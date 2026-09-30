@@ -40,6 +40,17 @@
   .tip b { color: #6b7280; }
   details { margin-top: 12px; }
   details summary { font-size: 13px; color: #6b7280; cursor: pointer; }
+  .pf { border: 1.5px solid #e5e7eb; border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .pf.active { border-color: #2563eb; background: #f5f8ff; }
+  .pf .pf-main { flex: 1; min-width: 180px; }
+  .pf .pf-name { font-size: 14px; font-weight: 600; }
+  .pf .pf-meta { font-size: 12px; color: #9ca3af; margin-top: 2px; word-break: break-all; }
+  .pf .pf-badge { font-size: 11px; padding: 1px 7px; border-radius: 6px; background: #2563eb; color: #fff; margin-left: 6px; }
+  .pf .pf-off { background: #9ca3af; }
+  .pf button { font-size: 12px; padding: 5px 10px; border-radius: 8px; border: 1.5px solid #e5e7eb; background: #fff; cursor: pointer; color: #374151; }
+  .pf button.pf-test { border-color: #bfdbfe; color: #2563eb; }
+  .pf button.pf-del { border-color: #fecaca; color: #e5484d; }
+  .pf .pf-status { flex-basis: 100%; font-size: 12px; margin-top: 4px; min-height: 0; }
 </style>
 </head>
 <body>
@@ -49,20 +60,50 @@
   <div class="sub">所有配置保存在本机浏览器（localStorage），不会上传</div>
 
   <div class="card">
-    <h2>🤖 文本模型（AI 写作 / 问答 / 简历 / 顾问等）</h2>
-    <div class="desc">OpenAI 兼容接口：DeepSeek、通义、Kimi、OpenAI 中转等均可。</div>
-    <div class="row">
-      <div>
-        <label class="fl">API 地址（Base URL）</label>
-        <input type="text" id="apiBase" placeholder="如 https://api.deepseek.com/v1">
+    <h2>🤖 文本模型配置（可添加多个，支持默认切换与故障转移）</h2>
+    <div class="desc">
+      每条配置对应一个 <b>OpenAI 兼容</b> 的模型接口（填入各平台官方的 <code style="background:#f4f4f5;padding:1px 5px;border-radius:4px;">Base URL</code>、模型名、你自己的 API Key）。
+      配置只保存在本机浏览器，<b>不做任何加密</b>，请仅在你本人可控的设备上使用。<br>
+      注意：这里需要各平台<b>官方开放的 API Key</b>，无法读取你在网页端的登录态 / Cookie / 会话，也不会替你抓取任何已登录页面。
+    </div>
+    <label class="fl">快速模板（选择后自动填入建议地址，仍需你手动填 Key）</label>
+    <div class="row" style="align-items:flex-end;">
+      <div style="flex:2;">
+        <select id="presetSel" style="width:100%;padding:11px 12px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:14px;background:#fff;">
+          <option value="">— 选择模板 —</option>
+          <option value="deepseek">DeepSeek</option>
+          <option value="qwen">通义千问 Qwen（兼容模式）</option>
+          <option value="chatglm">智谱 ChatGLM（兼容模式）</option>
+          <option value="minimax">MiniMax（兼容模式）</option>
+          <option value="moonshot">Kimi / Moonshot</option>
+          <option value="openai">OpenAI</option>
+          <option value="coze">Coze（需自行确认是否提供兼容接口）</option>
+          <option value="custom">自定义</option>
+        </select>
       </div>
-      <div>
-        <label class="fl">模型名</label>
-        <input type="text" id="model" placeholder="如 deepseek-chat">
+      <div style="flex:1;">
+        <button class="btn ghost" id="applyPreset" type="button">填入模板</button>
       </div>
     </div>
-    <label class="fl">API Key</label>
-    <input type="password" id="apiKey" placeholder="sk-…" autocomplete="off">
+    <div id="editArea" style="margin-top:6px;">
+      <div class="row">
+        <div><label class="fl">配置名称</label><input type="text" id="pfName" placeholder="如 我的 DeepSeek"></div>
+        <div><label class="fl">模型名</label><input type="text" id="pfModel" placeholder="如 deepseek-chat"></div>
+      </div>
+      <label class="fl">API 地址（Base URL，需 https://，会自动去掉多余路径与参数）</label>
+      <input type="text" id="pfBase" placeholder="如 https://api.deepseek.com/v1">
+      <label class="fl">API Key</label>
+      <input type="password" id="pfKey" placeholder="sk-…" autocomplete="off">
+      <div class="btns">
+        <button class="btn" id="addBtn" type="button">＋ 添加 / 保存此配置</button>
+        <button class="btn ghost" id="resetEdit" type="button">清空表单</button>
+      </div>
+    </div>
+    <div id="profileList" style="margin-top:14px;"></div>
+    <label class="fl" style="display:flex;align-items:center;gap:8px;margin-top:14px;cursor:pointer;">
+      <input type="checkbox" id="failoverChk" style="width:auto;">
+      <span>开启故障自动切换：当默认配置出现网络错误 / 超时 / 限流 / 5xx 时，自动改用其它已启用配置（每个至多试一次）。<b>开启后本次请求内容可能被发送到备用平台</b>，敏感场景请谨慎。</span>
+    </label>
   </div>
 
   <div class="card">
@@ -106,9 +147,9 @@
   </div>
 
   <div class="btns">
-    <button class="btn" id="saveBtn">保存设置</button>
-    <button class="btn ghost" id="testBtn">测试文本模型连通性</button>
+    <button class="btn" id="saveBtn">保存图像 / 虚拟号设置</button>
     <button class="btn danger" id="clearBtn">清空本地数据</button>
+    <button class="btn danger" id="clearKeysBtn">仅清除模型凭据</button>
   </div>
   <div class="status" id="status"></div>
 
@@ -130,21 +171,20 @@
 <script>
 (function () {
   'use strict';
-  var s = getSettings();
-  ['apiBase', 'apiKey', 'model', 'imgBase', 'imgKey', 'imgModel', 'virtualApiBase', 'virtualApiKey', 'virtualMode'].forEach(function (k) {
-    var input = document.getElementById(k);
-    if (input && s[k]) input.value = s[k];
-  });
-
   var $status = document.getElementById('status');
-  function setStatus(msg, ok) {
-    $status.textContent = msg;
-    $status.className = 'status ' + (ok ? 'ok' : 'err');
-  }
+  function setStatus(msg, ok) { $status.textContent = msg; $status.className = 'status ' + (ok ? 'ok' : 'err'); }
+
+  /* ---- 图像 / 虚拟号（沿用旧字段） ---- */
+  var s0 = getSettings();
+  ['imgBase', 'imgKey', 'imgModel', 'virtualApiBase', 'virtualApiKey', 'virtualMode'].forEach(function (k) {
+    var input = document.getElementById(k);
+    if (input && s0[k]) input.value = s0[k];
+  });
+  document.getElementById('failoverChk').checked = !!s0.llmFailover;
 
   document.getElementById('saveBtn').addEventListener('click', function () {
     var patch = {};
-    ['apiBase', 'apiKey', 'model', 'imgBase', 'imgKey', 'imgModel', 'virtualApiBase', 'virtualApiKey', 'virtualMode'].forEach(function (k) {
+    ['imgBase', 'imgKey', 'imgModel', 'virtualApiBase', 'virtualApiKey', 'virtualMode'].forEach(function (k) {
       patch[k] = document.getElementById(k).value.trim();
     });
     if (patch.virtualMode === '') patch.virtualMode = 'AXN';
@@ -152,21 +192,55 @@
     setStatus('✅ 已保存到本机', true);
     toast('设置已保存');
   });
+  document.getElementById('failoverChk').addEventListener('change', function () {
+    saveSettings({ llmFailover: this.checked });
+    toast(this.checked ? '已开启故障自动切换' : '已关闭故障自动切换');
+  });
 
-  document.getElementById('testBtn').addEventListener('click', async function () {
-    saveSettings({
-      apiBase: document.getElementById('apiBase').value.trim(),
-      apiKey: document.getElementById('apiKey').value.trim(),
-      model: document.getElementById('model').value.trim(),
-    });
-    if (!llmReady()) { setStatus('请先填写完整的 API 地址、Key 和模型名', false); return; }
-    setStatus('测试中…');
-    try {
-      var reply = await llmChat([{ role: 'user', content: '回复"OK"两个字母即可' }], { temperature: 0 });
-      setStatus('✅ 连通正常，模型返回：' + String(reply).slice(0, 60), true);
-    } catch (err) {
-      setStatus('❌ ' + ((err && err.message) || err), false);
+  /* ---- 文本模型 Profile 管理 ---- */
+  var PRESETS = {
+    deepseek: { name: 'DeepSeek', base: 'https://api.deepseek.com/v1', model: 'deepseek-chat' },
+    qwen: { name: '通义千问 Qwen', base: 'https://dashscope.aliyuncs.com/compatible-mode/v1', model: 'qwen-plus' },
+    chatglm: { name: '智谱 ChatGLM', base: 'https://open.bigmodel.cn/api/paas/v4', model: 'glm-4-plus' },
+    minimax: { name: 'MiniMax', base: 'https://api.minimax.chat/v1', model: 'abab6.5s-chat' },
+    moonshot: { name: 'Kimi / Moonshot', base: 'https://api.moonshot.cn/v1', model: 'moonshot-v1-8k' },
+    openai: { name: 'OpenAI', base: 'https://api.openai.com/v1', model: 'gpt-4o-mini' },
+    coze: { name: 'Coze', base: 'https://api.coze.cn/v1', model: '' },
+    custom: { name: '', base: '', model: '' },
+  };
+  var $ = function (id) { return document.getElementById(id); };
+  var editingId = null;
+
+  document.getElementById('applyPreset').addEventListener('click', function () {
+    var p = PRESETS[$('presetSel').value];
+    if (!p) { setStatus('请先选择一个模板', false); return; }
+    $('pfName').value = p.name; $('pfBase').value = p.base; $('pfModel').value = p.model; $('pfKey').value = '';
+    editingId = null;
+    setStatus('已填入模板，请补全 API Key 后点「添加」', true);
+  });
+  document.getElementById('resetEdit').addEventListener('click', function () {
+    $('pfName').value = ''; $('pfBase').value = ''; $('pfModel').value = ''; $('pfKey').value = ''; editingId = null;
+    setStatus('', true);
+  });
+
+  document.getElementById('addBtn').addEventListener('click', function () {
+    var name = $('pfName').value.trim(), model = $('pfModel').value.trim(), key = $('pfKey').value.trim();
+    var baseRaw = $('pfBase').value.trim(), base;
+    try { base = sanitizeBaseUrl(baseRaw); } catch (e) { setStatus('❌ ' + e.message, false); return; }
+    if (!name || !base || !model || !key) { setStatus('请填写完整：名称、地址、模型名、Key', false); return; }
+    var list = getProfiles();
+    if (editingId) {
+      var found = list.filter(function (p) { return p.id === editingId; })[0];
+      if (found) { found.name = name; found.baseUrl = base; found.model = model; found.apiKey = key; }
+    } else {
+      list.push({ id: genId(), name: name, provider: 'openai-compatible', baseUrl: base, apiKey: key, model: model, enabled: true, priority: 10 });
     }
+    var actId = getSettings().activeProfileId;
+    if (!actId && list.length) actId = list[0].id;
+    saveProfiles(list, actId);
+    document.getElementById('resetEdit').click();
+    render();
+    toast('已保存配置');
   });
 
   document.getElementById('clearBtn').addEventListener('click', async function () {
@@ -177,11 +251,85 @@
       await idbClear('ai-brain', 'docs');
       await idbClear('ai-mood', 'entries');
       setStatus('已清空全部本地数据', true);
+      render();
       toast('已清空');
     } catch (err) {
       setStatus('清空出错：' + ((err && err.message) || err), false);
     }
   });
+
+  document.getElementById('clearKeysBtn').addEventListener('click', function () {
+    if (!confirm('确定仅清除全部文本模型配置（含 Key）？其它本地数据保留。')) return;
+    saveProfiles([], '');
+    render();
+    setStatus('已清除全部模型凭据', true);
+    toast('已清除模型凭据');
+  });
+
+  /* ---- Profile 列表渲染与操作 ---- */
+  function maskUrl(u) { try { return new URL(u).host; } catch (e) { return u; } }
+  function render() {
+    var list = getProfiles();
+    var actId = (getActiveProfile() || {}).id;
+    var box = document.getElementById('profileList');
+    box.innerHTML = '';
+    if (!list.length) {
+      box.innerHTML = '<div class="tip">还没有文本模型配置。用上方模板或手动填写后点「添加」。</div>';
+      return;
+    }
+    list.forEach(function (p) {
+      var wrap = el('div', { class: 'pf' + (p.id === actId ? ' active' : '') });
+      var main = el('div', { class: 'pf-main' });
+      var nameLine = el('div', { class: 'pf-name' }, p.name);
+      if (p.id === actId) nameLine.appendChild(el('span', { class: 'pf-badge' }, '默认'));
+      if (p.enabled === false) nameLine.appendChild(el('span', { class: 'pf-badge pf-off' }, '已停用'));
+      main.appendChild(nameLine);
+      main.appendChild(el('div', { class: 'pf-meta' }, p.model + ' · ' + maskUrl(p.baseUrl)));
+      wrap.appendChild(main);
+
+      var bTest = el('button', { class: 'pf-test', type: 'button' }, '测试');
+      var bDef = el('button', { type: 'button' }, p.id === actId ? '默认✓' : '设为默认');
+      var bEn = el('button', { type: 'button' }, p.enabled === false ? '启用' : '停用');
+      var bEdit = el('button', { type: 'button' }, '编辑');
+      var bDel = el('button', { class: 'pf-del', type: 'button' }, '删除');
+      var st = el('div', { class: 'pf-status' });
+      wrap.appendChild(bTest); wrap.appendChild(bDef); wrap.appendChild(bEn); wrap.appendChild(bEdit); wrap.appendChild(bDel); wrap.appendChild(st);
+
+      bDef.addEventListener('click', function () { saveProfiles(getProfiles(), p.id); render(); toast('已设为默认'); });
+      bEn.addEventListener('click', function () {
+        var l = getProfiles(); var f = l.filter(function (x) { return x.id === p.id; })[0];
+        if (f) f.enabled = (f.enabled === false);
+        saveProfiles(l); render();
+      });
+      bEdit.addEventListener('click', function () {
+        $('pfName').value = p.name; $('pfBase').value = p.baseUrl; $('pfModel').value = p.model; $('pfKey').value = p.apiKey;
+        editingId = p.id; setStatus('正在编辑「' + p.name + '」，改完点「添加 / 保存」', true);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+      bDel.addEventListener('click', function () {
+        if (!confirm('删除配置「' + p.name + '」？')) return;
+        var l = getProfiles().filter(function (x) { return x.id !== p.id; });
+        var act = getSettings().activeProfileId; if (act === p.id) act = l.length ? l[0].id : '';
+        saveProfiles(l, act); render(); toast('已删除');
+      });
+      bTest.addEventListener('click', async function () {
+        st.textContent = '测试中…'; st.className = 'pf-status';
+        var l = getProfiles(); var f = l.filter(function (x) { return x.id === p.id; })[0];
+        var prevAct = getSettings().activeProfileId, prevFo = getSettings().llmFailover;
+        saveSettings({ activeProfileId: p.id, llmFailover: false }); /* 单配置测试：禁用切换 */
+        try {
+          var reply = await llmChat([{ role: 'user', content: '回复"OK"两个字母即可' }], { temperature: 0, allowFailover: false });
+          st.textContent = '✅ 连通，返回：' + String(reply).slice(0, 40); st.style.color = '#16a34a';
+        } catch (err) {
+          st.textContent = '❌ ' + ((err && err.message) || err); st.style.color = '#e5484d';
+        } finally {
+          saveSettings({ activeProfileId: prevAct, llmFailover: prevFo });
+        }
+      });
+      box.appendChild(wrap);
+    });
+  }
+  render();
 })();
 </script>
 </body>

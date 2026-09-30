@@ -54,12 +54,27 @@ function toast(msg, type) {
 const SETTINGS_KEY = 'at_settings_v1';
 function getSettings() {
   try {
-    return Object.assign({
+    const s = Object.assign({
       apiBase: '', apiKey: '', model: 'deepseek-chat',
       imgBase: '', imgKey: '', imgModel: 'gpt-image-1',
       virtualApiBase: '', virtualApiKey: '', virtualMode: 'AXN',
+      llmProfiles: null, activeProfileId: '', llmFailover: false,
     }, JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}'));
-  } catch (e) { return {}; }
+    /* 首次迁移：把旧的单一 apiBase/apiKey/model 生成为一条默认 Profile。
+       仅在内存中补齐，不主动写回，避免"仅加载页面"就改动用户存储。 */
+    if (!Array.isArray(s.llmProfiles)) {
+      s.llmProfiles = [];
+      if (s.apiBase && s.apiKey) {
+        s.llmProfiles.push({
+          id: 'migrated', name: '默认配置', provider: 'openai-compatible',
+          baseUrl: s.apiBase, apiKey: s.apiKey, model: s.model || 'deepseek-chat',
+          enabled: true, priority: 10,
+        });
+        s.activeProfileId = s.activeProfileId || 'migrated';
+      }
+    }
+    return s;
+  } catch (e) { return { llmProfiles: [] }; }
 }
 function saveSettings(patch) {
   const s = getSettings();
@@ -67,7 +82,43 @@ function saveSettings(patch) {
   localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
   return s;
 }
-function llmReady() { const s = getSettings(); return !!(s.apiBase && s.apiKey && s.model); }
+
+/* ---------- 模型 Profile 管理 ---------- */
+function genId() { return 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+/* URL 安全清洗：只保留 origin+pathname，剥离用户名/密码/query/fragment；仅允许 https（localhost 可 http） */
+function sanitizeBaseUrl(raw) {
+  const t = String(raw || '').trim();
+  if (!t) return '';
+  let u;
+  try { u = new URL(t); } catch (e) { throw new Error('接口地址格式无效'); }
+  const isLocal = /^(localhost|127\.0\.0\.1|\[::1\])$/i.test(u.hostname);
+  if (u.protocol !== 'https:' && !(u.protocol === 'http:' && isLocal)) {
+    throw new Error('接口地址必须使用 https://（本地调试可用 http://localhost）');
+  }
+  if (u.username || u.password) throw new Error('接口地址不得内嵌账号密码');
+  return u.origin + u.pathname.replace(/\/+$/, '');
+}
+function getProfiles() { const s = getSettings(); return Array.isArray(s.llmProfiles) ? s.llmProfiles : []; }
+function getActiveProfile() {
+  const s = getSettings();
+  const list = getProfiles().filter(function (p) { return p && p.enabled !== false; });
+  if (!list.length) return null;
+  const act = list.filter(function (p) { return p.id === s.activeProfileId; })[0];
+  return act || list.slice().sort(function (a, b) { return (b.priority || 0) - (a.priority || 0); })[0];
+}
+/* 故障切换时的候选顺序：活动配置优先，其余按 priority 降序 */
+function getFailoverChain() {
+  const active = getActiveProfile();
+  const rest = getProfiles()
+    .filter(function (p) { return p && p.enabled !== false && (!active || p.id !== active.id); })
+    .sort(function (a, b) { return (b.priority || 0) - (a.priority || 0); });
+  return (active ? [active] : []).concat(rest);
+}
+function saveProfiles(list, activeId) {
+  return saveSettings({ llmProfiles: list, activeProfileId: activeId != null ? activeId : getSettings().activeProfileId });
+}
+
+function llmReady() { return !!getActiveProfile(); }
 function imgReady() { const s = getSettings(); return !!(s.imgBase && s.imgKey && s.imgModel); }
 
 /* 未配置 API 时显示页面内提示条（.api-banner） */
@@ -115,27 +166,33 @@ function mdRender(src) {
   return t.replace(/\u0000C(\d+)\u0000/g, function (_, i) { return codes[+i]; });
 }
 
-/* ---------- LLM 调用（OpenAI 兼容 /chat/completions，流式） ---------- */
-async function llmChat(messages, opt) {
-  opt = opt || {};
-  const s = getSettings();
-  if (!llmReady()) throw new Error('请先在「设置」页配置文本模型 API');
-  const url = s.apiBase.replace(/\/+$/, '') + '/chat/completions';
-  const body = {
-    model: opt.model || s.model,
-    messages: messages,
-    stream: true,
-  };
+/* ---------- LLM 调用（OpenAI 兼容 /chat/completions，多 Profile + 故障切换） ---------- */
+/* 错误分类：可切换（网络/超时/429/5xx/格式）与不可切换（取消/400/401/403） */
+function _isFailoverable(err) {
+  if (!err) return false;
+  if (err.name === 'AbortError') return false;
+  const code = err.httpStatus;
+  if (code === 400 || code === 401 || code === 403) return false;
+  if (code === 408 || code === 429 || (code >= 500 && code < 600)) return true;
+  return true; /* 网络错误、无 code、格式错误 → 可切换 */
+}
+/* 单次向指定 Profile 发起请求 */
+async function _llmCallProfile(profile, messages, opt) {
+  const base = sanitizeBaseUrl(profile.baseUrl);
+  const url = base + '/chat/completions';
+  const body = { model: opt.model || profile.model, messages: messages, stream: opt.stream !== false };
   if (opt.temperature != null) body.temperature = opt.temperature;
   const resp = await fetch(url, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + s.apiKey },
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + profile.apiKey },
     body: JSON.stringify(body),
     signal: opt.signal,
   });
   if (!resp.ok) {
     const txt = await resp.text().catch(function () { return ''; });
-    throw new Error('模型接口 HTTP ' + resp.status + (txt ? '：' + txt.slice(0, 300) : ''));
+    const e = new Error('模型接口 HTTP ' + resp.status + (txt ? '：' + txt.slice(0, 300) : ''));
+    e.httpStatus = resp.status;
+    throw e;
   }
   const ctype = resp.headers.get('content-type') || '';
   if (!resp.body || ctype.indexOf('text/event-stream') === -1) {
@@ -166,6 +223,30 @@ async function llmChat(messages, opt) {
     }
   }
   return full;
+}
+async function llmChat(messages, opt) {
+  opt = opt || {};
+  const chain = getFailoverChain();
+  if (!chain.length) throw new Error('请先在「设置」页配置文本模型 API');
+  const s = getSettings();
+  /* 是否允许切换：全局开关开启 且 调用方未显式禁止；一旦已产生可见输出则不再切换 */
+  const allowFailover = s.llmFailover && opt.allowFailover !== false;
+  let started = false;
+  const wrapDelta = opt.onDelta ? function (d, f) { started = true; opt.onDelta(d, f); } : null;
+  let lastErr = null;
+  for (let i = 0; i < chain.length; i++) {
+    const profile = chain[i];
+    try {
+      const out = await _llmCallProfile(profile, messages, Object.assign({}, opt, { onDelta: wrapDelta }));
+      if (opt.onProfile) opt.onProfile(profile.name, i);
+      return out;
+    } catch (e) {
+      lastErr = e;
+      if (!allowFailover || started || !_isFailoverable(e) || i === chain.length - 1) throw e;
+      /* 尝试下一个 Profile（最多每个一次） */
+    }
+  }
+  throw lastErr || new Error('模型调用失败');
 }
 
 /* ---------- 下载 ---------- */

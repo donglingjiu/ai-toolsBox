@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>表格分析 · AI 工具箱</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: linear-gradient(160deg, #f4f6fb 0%, #e8edf7 100%);
+    min-height: 100vh; color: #1f2937; padding: 16px 12px 48px;
+  }
+  .wrap { max-width: 960px; margin: 0 auto; }
+  .back { display: inline-flex; align-items: center; gap: 6px; color: #2563eb; text-decoration: none; font-size: 14px; margin-bottom: 14px; }
+  h1 { font-size: 22px; margin-bottom: 4px; }
+  .sub { color: #6b7280; font-size: 13px; margin-bottom: 18px; }
+  .card { background: #fff; border-radius: 16px; padding: 20px 22px; box-shadow: 0 4px 20px rgba(30, 58, 138, .07); margin-bottom: 16px; }
+  .card h2 { font-size: 15px; margin-bottom: 10px; }
+  .drop { border: 2px dashed #c7d2fe; border-radius: 14px; padding: 34px 16px; text-align: center; color: #6b7280; cursor: pointer; transition: all .2s; font-size: 14px; line-height: 1.8; }
+  .drop.on { border-color: #2563eb; background: #eff6ff; }
+  .drop b { color: #2563eb; }
+  .fileinfo { margin-top: 12px; font-size: 13px; color: #374151; background: #f8fafc; border-radius: 10px; padding: 10px 14px; display: none; }
+  label.fl { display: block; font-size: 13px; color: #4b5563; margin: 12px 0 6px; }
+  input[type="text"], textarea, select {
+    width: 100%; padding: 11px 12px; border: 1.5px solid #e5e7eb; border-radius: 10px;
+    font-size: 14px; outline: none; transition: border-color .2s; font-family: inherit;
+  }
+  textarea { min-height: 76px; resize: vertical; }
+  input:focus, textarea:focus, select:focus { border-color: #2563eb; }
+  .btn { padding: 11px 18px; border: none; border-radius: 10px; color: #fff; font-size: 14px; cursor: pointer; background: linear-gradient(135deg, #2563eb, #4f46e5); font-weight: 600; }
+  .btn:disabled { opacity: .5; cursor: wait; }
+  .btn.ghost { background: #fff; color: #374151; border: 1.5px solid #e5e7eb; font-weight: 400; }
+  .btns { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+  .status { margin-top: 10px; font-size: 13px; color: #6b7280; min-height: 18px; }
+  .status.err { color: #e5484d; }
+  .status.ok { color: #16a34a; }
+  .hide { display: none; }
+  .tblbox { overflow: auto; max-height: 340px; border: 1px solid #eef2f7; border-radius: 10px; margin-top: 10px; }
+  table.data { border-collapse: collapse; font-size: 12.5px; width: 100%; }
+  table.data th, table.data td { border: 1px solid #eef2f7; padding: 5px 9px; text-align: left; white-space: nowrap; max-width: 220px; overflow: hidden; text-overflow: ellipsis; }
+  table.data th { background: #f5f8ff; position: sticky; top: 0; font-weight: 600; }
+  .cols { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+  .chip { font-size: 12px; padding: 3px 10px; border-radius: 8px; background: #f1f5f9; color: #475569; }
+  .chip.sens { background: #fef3c7; color: #92400e; }
+  .api-banner { display: none; align-items: center; gap: 8px; background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; border-radius: 10px; padding: 10px 14px; font-size: 13px; margin-bottom: 14px; }
+  .api-banner a { color: #b91c1c; }
+  .oplist { font-size: 13px; line-height: 1.9; margin-top: 8px; }
+  .oplist li { margin-left: 18px; }
+  .privacy { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 14px; font-size: 12.5px; color: #64748b; line-height: 1.7; margin-top: 10px; }
+  .toggle { display: flex; align-items: center; gap: 8px; font-size: 13px; margin-top: 10px; cursor: pointer; }
+  .toggle input { width: auto; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="index.html">← 返回工具箱</a>
+  <h1>📈 表格分析工具</h1>
+  <div class="sub">上传 Excel / CSV，本地解析与数据画像，按你的目标让 AI 给出整理方案，确认后在本地执行并导出 · 文件默认不上传</div>
+
+  <div class="api-banner">未配置文本模型，AI 分析不可用。<a href="settings.html">前往设置 →</a>（纯本地整理无需配置）</div>
+
+  <div class="card">
+    <h2>① 上传表格</h2>
+    <div class="drop" id="drop">
+      点击选择或拖入 <b>.xlsx / .xls / .csv</b> 文件<br>
+      <span style="font-size:12px;">在你的浏览器本地解析，不会上传到任何服务器</span>
+    </div>
+    <input type="file" id="file" accept=".xlsx,.xls,.csv" hidden>
+    <div class="fileinfo" id="fileinfo"></div>
+    <div id="sheetPick" class="hide">
+      <label class="fl">工作表</label>
+      <select id="sheetSel"></select>
+      <label class="fl">表头所在行（从 1 开始）</label>
+      <input type="text" id="headerRow" value="1" style="max-width:120px;">
+      <div class="btns"><button class="btn ghost" id="reloadBtn" type="button">重新解析</button></div>
+    </div>
+  </div>
+
+  <div class="card hide" id="previewCard">
+    <h2>② 数据预览与画像</h2>
+    <div id="profileInfo"></div>
+    <div class="cols" id="colChips"></div>
+    <div class="tblbox"><table class="data" id="previewTbl"></table></div>
+  </div>
+
+  <div class="card hide" id="aiCard">
+    <h2>③ 整理目标</h2>
+    <label class="fl">用一句话描述你想怎么整理这张表（例：按部门汇总销售额并降序排列）</label>
+    <textarea id="goal" placeholder="例：去掉重复行，只保留姓名和金额两列，按金额从高到低排序"></textarea>
+    <label class="toggle"><input type="checkbox" id="sendSensitive"> 允许把疑似敏感列（手机号 / 邮箱 / 身份证等）的真实值也发给模型（默认脱敏）</label>
+    <div class="privacy" id="privacyNote">AI 分析时，仅把<b>列信息摘要 + 前几行样本</b>发送到你在设置里配置的模型接口；疑似敏感列默认以 *** 脱敏。整表数据不会发送。</div>
+    <div class="btns">
+      <button class="btn" id="aiBtn" type="button">让 AI 生成整理方案</button>
+      <button class="btn ghost" id="localBtn" type="button">我自己不用 AI，直接导出当前表</button>
+    </div>
+    <div class="status" id="aiStatus"></div>
+  </div>
+
+  <div class="card hide" id="planCard">
+    <h2>④ 整理方案（确认后本地执行）</h2>
+    <div id="planSummary"></div>
+    <ul class="oplist" id="planOps"></ul>
+    <div class="btns">
+      <button class="btn" id="applyBtn" type="button">应用方案并预览结果</button>
+      <button class="btn ghost" id="skipPlanBtn" type="button">放弃此方案</button>
+    </div>
+    <div class="status" id="planStatus"></div>
+  </div>
+
+  <div class="card hide" id="resultCard">
+    <h2>⑤ 结果与导出</h2>
+    <div id="resultInfo"></div>
+    <div class="tblbox"><table class="data" id="resultTbl"></table></div>
+    <div class="btns">
+      <button class="btn" id="dlXlsx" type="button">下载 Excel（.xlsx）</button>
+      <button class="btn ghost" id="dlCsv" type="button">下载 CSV</button>
+      <button class="btn ghost" id="dlReport" type="button">下载分析说明（.txt）</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/vendor/xlsx.full.min.js"></script>
+<script src="js/app.js"></script>
+<script src="js/xlsx-core.js"></script>
+<script src="js/excel-page.js"></script>
+</body>
+</html>
