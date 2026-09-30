@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 情绪日记 · AI 工具箱</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<nav class="nav"><div class="nav-inner">
+  <a href="index.html" class="nav-logo"><span class="dot">⚡</span>AI 工具箱</a>
+  <div class="nav-links">
+    <a href="qr.html">艺术挪车码</a><a href="convert.html">文档转换</a><a href="resume.html">简历优化</a><a href="brain.html">第二大脑</a><a href="advisor.html">副业顾问</a><a href="mood.html">情绪日记</a><a href="tryon.html">AI 试衣</a><a href="ppt.html">AI 演示</a><a href="prompts.html">提示词库</a><a href="settings.html">设置</a>
+  </div>
+</div></nav>
+
+<div class="wrap">
+  <h1 class="page-title">📔 AI 情绪日记</h1>
+  <p class="page-sub">每晚 3 句话，看见自己的情绪曲线。日记只存在你的设备本地；只有在主动生成报告时，内容才会发送给你自己配置的 AI。</p>
+
+  <div id="alertBox"></div>
+
+  <div class="row" style="align-items:flex-start;">
+    <div class="card" style="flex:1.1;min-width:300px;">
+      <label class="fl">今天想说的三句话 <span class="muted" id="todayStr"></span></label>
+      <textarea id="d1" rows="2" placeholder="1. 今天发生了什么？"></textarea>
+      <textarea id="d2" rows="2" class="mt8" placeholder="2. 你当时的感受？"></textarea>
+      <textarea id="d3" rows="2" class="mt8" placeholder="3. 一件小事、一个人、一个念头（任意）"></textarea>
+      <div class="flex gap8 mt8 items-center">
+        <span class="fl" style="margin:0;">今日心情自评</span>
+        <div id="scorePick" style="display:flex;gap:6px;"></div>
+      </div>
+      <button class="btn btn-primary mt16" id="save" style="width:100%;">保存今天的日记</button>
+    </div>
+
+    <div style="flex:1;min-width:300px;">
+      <div class="card">
+        <div class="result-head"><h3>近 30 天情绪曲线</h3><span class="muted">1 – 5 分</span></div>
+        <canvas id="chart" width="640" height="240" class="mood-chart"></canvas>
+      </div>
+      <div class="card mt16">
+        <div class="result-head"><h3>AI 情绪报告</h3></div>
+        <button class="btn btn-soft" id="repGo" style="width:100%;">生成本周情绪分析报告</button>
+        <div class="muted mt8" style="text-align:center;">将最近 7 条日记发送给 AI 分析情绪模式、压力源与建议</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="repOut" class="mt24"></div>
+
+  <h2 style="font-size:18px;margin:32px 0 12px;">历史日记</h2>
+  <div id="entryList"></div>
+</div>
+
+<footer class="footer">AI 工具箱 · 日记加密存于浏览器本地 · 持续低落时请考虑寻求专业帮助</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/marked@9.1.6/marked.min.js"></script>
+<script src="js/app.js"></script>
+<script>
+(function () {
+  const DB = 'ai-mood', STORE = 'entries';
+  let score = 3;
+  const today = new Date().toISOString().slice(0, 10);
+  $('#todayStr').textContent = '（' + today + ' ' + '周' + '日一二三四五六'[new Date().getDay()] + '）';
+
+  /* 心情评分选择 */
+  const pick = $('#scorePick');
+  for (let i = 1; i <= 5; i++) {
+    const face = ['😞', '🙁', '😐', '🙂', '😄'][i - 1];
+    pick.appendChild(el('button', { class: 'style-opt' + (i === 3 ? ' active' : ''), style: 'padding:6px 10px;font-size:18px;', onclick: (e) => {
+      score = i;
+      $$('#scorePick .style-opt').forEach((x, j) => x.classList.toggle('active', j + 1 === i));
+    } }, face));
+  }
+
+  /* 保存 */
+  $('#save').addEventListener('click', async () => {
+    const t = [$('#d1'), $('#d2'), $('#d3')].map(x => x.value.trim()).filter(Boolean);
+    if (!t.length) { toast('先写点什么吧', 'err'); return; }
+    const id = 'e_' + today;
+    await idbPut(DB, STORE, { id, date: today, text: t.join('\n'), score, created: Date.now() });
+    $('#d1').value = $('#d2').value = $('#d3').value = '';
+    toast('已保存 ✅', 'ok');
+    render();
+  });
+
+  /* 词典打分（保存历史数据时估算用） */
+  const POS = ['开心','高兴','快乐','顺利','成功','喜欢','幸福','兴奋','放松','满意','感恩','成就','棒','爽','甜','暖','笑','进步','夸','晋升','赚钱'];
+  const NEG = ['难过','焦虑','压力','累','烦','生气','失败','担心','害怕','失眠','委屈','崩溃','丧','孤独','加班','吵架','批评','deadline','裁员','感冒'];
+  function guessScore(text) {
+    const p = POS.filter(w => text.includes(w)).length;
+    const n = NEG.filter(w => text.toLowerCase().includes(w)).length;
+    return Math.max(1, Math.min(5, 3 + p - n));
+  }
+
+  /* 曲线 */
+  function drawChart(entries) {
+    const cv = $('#chart'), ctx = cv.getContext('2d');
+    const W = cv.width = cv.clientWidth * 2, H = cv.height = 480;
+    ctx.scale(1, 1); ctx.clearRect(0, 0, W, H);
+    const pad = 60;
+    const data = entries.slice(-30);
+    if (!data.length) {
+      ctx.fillStyle = '#9aa1b2'; ctx.font = '26px sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText('还没有数据，保存第一条日记后出现曲线', W / 2, H / 2);
+      return;
+    }
+    /* 网格 */
+    ctx.strokeStyle = '#eef0f4'; ctx.lineWidth = 2;
+    ctx.font = '22px sans-serif'; ctx.fillStyle = '#9aa1b2'; ctx.textAlign = 'right';
+    for (let s = 1; s <= 5; s++) {
+      const y = pad + (5 - s) * (H - pad * 2) / 4;
+      ctx.beginPath(); ctx.moveTo(pad, y); ctx.lineTo(W - pad, y); ctx.stroke();
+      ctx.fillText(s, pad - 14, y + 8);
+    }
+    /* 面积 + 线 */
+    const stepX = (W - pad * 2) / Math.max(data.length - 1, 1);
+    const pt = (i) => [pad + i * stepX, pad + (5 - data[i].score) * (H - pad * 2) / 4];
+    const grad = ctx.createLinearGradient(0, pad, 0, H - pad);
+    grad.addColorStop(0, 'rgba(79,70,229,.25)'); grad.addColorStop(1, 'rgba(79,70,229,0)');
+    ctx.beginPath();
+    data.forEach((_, i) => { const [x, y] = pt(i); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); });
+    const lastX = pad + (data.length - 1) * stepX;
+    ctx.lineTo(lastX, H - pad); ctx.lineTo(pad, H - pad); ctx.closePath();
+    ctx.fillStyle = grad; ctx.fill();
+    ctx.beginPath();
+    data.forEach((_, i) => { const [x, y] = pt(i); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); });
+    ctx.strokeStyle = '#4f46e5'; ctx.lineWidth = 5; ctx.lineJoin = 'round'; ctx.stroke();
+    data.forEach((_, i) => {
+      const [x, y] = pt(i);
+      ctx.beginPath(); ctx.arc(x, y, 8, 0, Math.PI * 2);
+      ctx.fillStyle = data[i].score >= 4 ? '#16a34a' : data[i].score <= 2 ? '#dc2626' : '#4f46e5';
+      ctx.fill();
+    });
+    /* 日期轴（首尾） */
+    ctx.fillStyle = '#9aa1b2'; ctx.font = '22px sans-serif'; ctx.textAlign = 'left';
+    ctx.fillText(data[0].date.slice(5), pad, H - 18);
+    ctx.textAlign = 'right';
+    ctx.fillText(data[data.length - 1].date.slice(5), W - pad, H - 18);
+  }
+
+  /* 低落预警 */
+  function checkAlert(entries) {
+    const box = $('#alertBox');
+    box.innerHTML = '';
+    const last3 = entries.slice(0, 3);
+    if (last3.length === 3 && last3.every(e => e.score <= 2)) {
+      box.appendChild(el('div', { class: 'tip tip-warn', style: 'margin-bottom:16px;' },
+        '💛 连续几天分数都比较低。如果情绪持续低落、影响睡眠和食欲，请考虑和信任的人聊聊，或寻求专业心理支持（如全国 24 小时心理援助热线 400-161-9995）。你不是一个人。'));
+    }
+  }
+
+  /* 渲染 */
+  async function render() {
+    const all = (await idbAll(DB, STORE)).sort((a, b) => b.date.localeCompare(a.date));
+    drawChart(all);
+    checkAlert(all);
+    const list = $('#entryList');
+    list.innerHTML = '';
+    if (!all.length) { list.appendChild(el('p', { class: 'muted' }, '还没有日记。')); return; }
+    for (const e of all) {
+      list.appendChild(el('div', { class: 'doc-item' },
+        el('div', null,
+          el('b', null, e.date + ' '),
+          el('span', null, ['😞','🙁','😐','🙂','😄'][e.score - 1]),
+          el('div', { class: 'muted', style: 'white-space:pre-wrap;margin-top:4px;' }, e.text)),
+        el('button', { class: 'btn btn-danger btn-sm', onclick: async () => {
+          if (!confirm('删除 ' + e.date + ' 的日记？')) return;
+          await idbDel(DB, STORE, e.id); render();
+        } }, '删除')));
+    }
+  }
+
+  /* 报告 */
+  $('#repGo').addEventListener('click', async () => {
+    if (!llmReady()) { toast('请先配置模型 API', 'err'); location.href = 'settings.html'; return; }
+    const all = (await idbAll(DB, STORE)).sort((a, b) => b.date.localeCompare(a.date)).slice(0, 7);
+    if (!all.length) { toast('还没有日记', 'err'); return; }
+    const btn = $('#repGo'); btn.disabled = true;
+    const card = el('div', { class: 'result-box' }, el('div', { class: 'result-head' }, el('h3', null, '本周情绪报告')));
+    const body = el('div', { class: 'md cursor-blink' });
+    card.appendChild(body);
+    $('#repOut').innerHTML = '';
+    $('#repOut').appendChild(card);
+    const text = all.map(e => '【' + e.date + ' · 自评' + e.score + '/5】\n' + e.text).join('\n\n');
+    try {
+      const full = await llmChat([
+        { role: 'system', content: '你是温暖、专业的情绪陪伴分析师。语气温柔不说教，给的建议具体可行。如果发现持续负面信号，温和建议寻求专业帮助。输出中文 Markdown。' },
+        { role: 'user', content: '这是最近 7 天的日记（自评分数 1-5）：\n\n' + text +
+          '\n\n请输出：1. 情绪概览（本周模式）；2. 情绪来源分析（什么事让人开心/有压力）；3. 2-3 条小而具体的改善建议（明晚就能做的）；4. 一句温柔的话。' }],
+        { stream: true, temperature: 0.6, onDelta: (d, f) => { body.innerHTML = mdRender(f); } });
+      body.innerHTML = mdRender(full);
+    } catch (e) {
+      body.innerHTML = '<div class="tip tip-warn">调用失败：' + e.message + '</div>';
+    }
+    body.classList.remove('cursor-blink');
+    btn.disabled = false;
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>

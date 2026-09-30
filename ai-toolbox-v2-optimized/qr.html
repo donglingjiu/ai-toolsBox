@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>艺术挪车码 · AI 工具箱</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: linear-gradient(160deg, #f4f6fb 0%, #e8edf7 100%);
+    min-height: 100vh; color: #1f2937; padding: 16px 12px 48px;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; }
+  .back { display: inline-flex; align-items: center; gap: 6px; color: #2563eb; text-decoration: none; font-size: 14px; margin-bottom: 14px; }
+  h1 { font-size: 22px; margin-bottom: 4px; }
+  .sub { color: #6b7280; font-size: 13px; margin-bottom: 18px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+  @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } }
+  .card {
+    background: #fff; border-radius: 16px; padding: 20px;
+    box-shadow: 0 4px 20px rgba(30, 58, 138, .07);
+  }
+  .card h2 { font-size: 15px; margin-bottom: 12px; color: #111827; }
+  label.fl { display: block; font-size: 13px; color: #4b5563; margin: 12px 0 6px; }
+  input[type="text"], input[type="tel"], input[type="url"], input[type="password"] {
+    width: 100%; padding: 11px 12px; border: 1.5px solid #e5e7eb; border-radius: 10px;
+    font-size: 15px; outline: none; transition: border-color .2s;
+  }
+  input:focus { border-color: #2563eb; }
+  .themes { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 8px; }
+  @media (max-width: 420px) { .themes { grid-template-columns: repeat(2, 1fr); } }
+  .theme { border: 2px solid #e5e7eb; border-radius: 12px; padding: 8px; cursor: pointer; text-align: center; transition: all .15s; }
+  .theme.on { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, .12); }
+  .theme .sw { height: 44px; border-radius: 8px; margin-bottom: 6px; }
+  .theme .nm { font-size: 12px; color: #374151; }
+  .optrow { display: flex; align-items: flex-start; gap: 8px; margin-top: 14px; font-size: 13.5px; color: #374151; line-height: 1.5; }
+  .optrow input { margin-top: 3px; }
+  .tip { font-size: 12px; color: #9ca3af; margin-top: 6px; line-height: 1.55; }
+  .tip b { color: #6b7280; }
+  #genBtn {
+    width: 100%; margin-top: 18px; padding: 13px; border: none; border-radius: 12px;
+    background: linear-gradient(135deg, #2563eb, #4f46e5); color: #fff; font-size: 15.5px;
+    font-weight: 600; cursor: pointer; transition: opacity .2s;
+  }
+  #genBtn:disabled { opacity: .55; cursor: wait; }
+  #previewBox {
+    min-height: 320px; border: 1.5px dashed #dbe1ec; border-radius: 14px;
+    display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 10px;
+  }
+  #previewBox canvas, #previewBox img { max-width: 100%; max-height: 460px; border-radius: 10px; }
+  .ph { color: #9ca3af; font-size: 13.5px; text-align: center; line-height: 1.8; }
+  .err-card {
+    background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c;
+    border-radius: 12px; padding: 14px 16px; font-size: 13.5px; line-height: 1.7; max-width: 90%;
+  }
+  .err-card b { display: block; margin-bottom: 4px; }
+  .acts { display: flex; gap: 10px; margin-top: 14px; }
+  .acts button {
+    flex: 1; padding: 11px; border: 1.5px solid #e5e7eb; background: #fff; color: #374151;
+    border-radius: 10px; font-size: 14px; cursor: pointer;
+  }
+  .acts button:disabled { opacity: .45; cursor: not-allowed; }
+  .acts button:not(:disabled):hover { border-color: #2563eb; color: #2563eb; }
+  #linkInfo {
+    margin-top: 12px; font-size: 12px; color: #6b7280; word-break: break-all;
+    background: #f8fafc; border-radius: 8px; padding: 8px 10px; display: none;
+  }
+  details { margin-top: 14px; border: 1.5px solid #eef1f6; border-radius: 12px; padding: 12px 14px; }
+  details summary { font-size: 13.5px; color: #374151; cursor: pointer; user-select: none; }
+  .bookrow { display: flex; gap: 8px; margin-top: 10px; }
+  .bookrow input { flex: 1; }
+  .bookrow button {
+    padding: 0 16px; border: none; border-radius: 10px; background: #2563eb; color: #fff; cursor: pointer; font-size: 13px;
+  }
+  .booklist { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+  .bookitem { display: flex; align-items: center; gap: 8px; font-size: 13px; background: #f8fafc; border-radius: 8px; padding: 7px 10px; }
+  .bookitem .lbl { color: #6b7280; max-width: 96px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .bookitem .num { flex: 1; font-family: ui-monospace, monospace; }
+  .bookitem button { border: none; background: none; cursor: pointer; font-size: 12.5px; padding: 2px 4px; }
+  .bookitem .use { color: #2563eb; }
+  .bookitem .del { color: #e5484d; }
+  .empty { color: #9ca3af; font-size: 12.5px; text-align: center; padding: 6px 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="index.html">← 返回工具箱</a>
+  <h1>🎨 艺术挪车码</h1>
+  <div class="sub">手机号 / 链接 → 四款主题艺术码，支持隐私中转与虚拟号保护</div>
+
+  <div class="grid">
+    <div class="card">
+      <h2>① 填写内容</h2>
+      <label class="fl" for="phoneInput">手机号或链接</label>
+      <input type="tel" id="phoneInput" placeholder="如 13800000000，或 https://…" maxlength="200" inputmode="tel">
+
+      <label class="fl">选择主题</label>
+      <div class="themes" id="themeList"></div>
+
+      <div class="optrow">
+        <input type="checkbox" id="privateMode" checked>
+        <div>
+          <label for="privateMode">隐私中转模式（推荐）</label>
+          <div class="tip" id="privacyTip">二维码内容为<b>加密中转链接</b>，扫码页只显示"呼叫车主"按钮，不暴露真实号码。已在设置页配置虚拟号平台时，将自动绑定<b>运营商副号/虚拟号</b>拨打。</div>
+        </div>
+      </div>
+
+      <details id="bookDetails">
+        <summary>📇 号码簿 / 虚拟号管理（本地保存）</summary>
+        <div class="bookrow">
+          <input type="text" id="bkLabel" placeholder="备注（如：我的副号）" maxlength="16" style="max-width:150px;">
+          <input type="tel" id="bkNum" placeholder="号码" inputmode="tel">
+          <button id="bkAdd">添加</button>
+        </div>
+        <div class="tip">接入运营商副号 / 虚拟号平台后，可在此保存副号；未配置平台时用「设置 → 虚拟号接入」填网关地址。</div>
+        <div class="booklist" id="bookList"></div>
+      </details>
+
+      <button id="genBtn">生成艺术码</button>
+    </div>
+
+    <div class="card">
+      <h2>② 预览与保存</h2>
+      <div id="previewBox">
+        <div class="ph">填写号码、选好主题后<br>点击「生成艺术码」</div>
+      </div>
+      <div class="acts">
+        <button id="dlPng" disabled>⬇ 下载 PNG</button>
+        <button id="copyLink" disabled>🔗 复制中转链接</button>
+      </div>
+      <div id="linkInfo"></div>
+      <div class="tip" style="margin-top:12px;">
+        <b>建议：</b>挪车码打印尺寸 ≥ 5cm，材质推荐亚克力 UV 打印或金属蚀刻；生成后请先用两部手机试扫确认可跳转。
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 二维码核心库（本地化，失败时页面会显示明确错误而不是静默空白） -->
+<script src="js/vendor/qrcode-generator.js"></script>
+<script src="js/app.js"></script>
+<script src="js/qr-deco.js"></script>
+<script>
+(function () {
+  'use strict';
+  var curTheme = localStorage.getItem('at_qr_theme') || 'aries';
+  var lastCanvas = null;
+  var lastLink = '';
+
+  var $phone = document.getElementById('phoneInput');
+  var $preview = document.getElementById('previewBox');
+  var $genBtn = document.getElementById('genBtn');
+  var $dl = document.getElementById('dlPng');
+  var $copy = document.getElementById('copyLink');
+  var $linkInfo = document.getElementById('linkInfo');
+
+  /* ---------- 主题选择 ---------- */
+  var themeList = document.getElementById('themeList');
+  Object.keys(THEMES).forEach(function (key) {
+    var t = THEMES[key];
+    var d = document.createElement('div');
+    d.className = 'theme' + (key === curTheme ? ' on' : '');
+    d.setAttribute('data-key', key);
+    d.innerHTML = '<div class="sw" style="background:' + t.sw + '"></div><div class="nm">' + t.name + '</div>';
+    d.addEventListener('click', function () {
+      curTheme = key;
+      localStorage.setItem('at_qr_theme', key);
+      [].forEach.call(themeList.children, function (c) { c.classList.remove('on'); });
+      d.classList.add('on');
+      if ($phone.value.trim()) regenerate();
+    });
+    themeList.appendChild(d);
+  });
+
+  /* ---------- 号码簿（localStorage: at_virtual_numbers） ---------- */
+  var BOOK_KEY = 'at_virtual_numbers';
+  function bookAll() {
+    try { return JSON.parse(localStorage.getItem(BOOK_KEY) || '[]'); } catch (e) { return []; }
+  }
+  function bookSave(list) { localStorage.setItem(BOOK_KEY, JSON.stringify(list)); }
+  function renderBook() {
+    var list = bookAll();
+    var box = document.getElementById('bookList');
+    box.innerHTML = '';
+    if (!list.length) {
+      box.innerHTML = '<div class="empty">还没有保存号码</div>';
+      return;
+    }
+    list.forEach(function (item, i) {
+      var row = document.createElement('div');
+      row.className = 'bookitem';
+      row.innerHTML = '<span class="lbl"></span><span class="num"></span>';
+      row.querySelector('.lbl').textContent = item.label || '未命名';
+      row.querySelector('.num').textContent = item.number;
+      var useBtn = document.createElement('button');
+      useBtn.className = 'use'; useBtn.textContent = '选用';
+      useBtn.addEventListener('click', function () {
+        $phone.value = item.number;
+        document.getElementById('bookDetails').open = false;
+        regenerate();
+      });
+      var delBtn = document.createElement('button');
+      delBtn.className = 'del'; delBtn.textContent = '删除';
+      delBtn.addEventListener('click', function () {
+        var l = bookAll(); l.splice(i, 1); bookSave(l); renderBook();
+      });
+      row.appendChild(useBtn); row.appendChild(delBtn);
+      box.appendChild(row);
+    });
+  }
+  document.getElementById('bkAdd').addEventListener('click', function () {
+    var label = document.getElementById('bkLabel').value.trim();
+    var num = document.getElementById('bkNum').value.trim();
+    if (!num) { toast('请输入号码', 'warn'); return; }
+    var l = bookAll();
+    l.unshift({ label: label, number: num });
+    bookSave(l);
+    document.getElementById('bkLabel').value = '';
+    document.getElementById('bkNum').value = '';
+    renderBook();
+    toast('已保存到号码簿');
+  });
+  renderBook();
+
+  /* ---------- 错误卡片 ---------- */
+  function showError(msg, hint) {
+    $preview.innerHTML = '';
+    var card = document.createElement('div');
+    card.className = 'err-card';
+    var b = document.createElement('b');
+    b.textContent = '生成失败：' + msg;
+    card.appendChild(b);
+    if (hint) {
+      var p = document.createElement('div');
+      p.textContent = hint;
+      card.appendChild(p);
+    }
+    $preview.appendChild(card);
+    toast(msg, 'error');
+  }
+
+  /* ---------- 生成（全链路 try/catch，失败原因显示在预览区） ---------- */
+  function regenerate() {
+    var v = $phone.value.trim();
+    var isMobile = /^1[3-9]\d{9}$/.test(v);
+    var isTel = /^0\d{2,3}-?\d{7,8}$/.test(v);
+    var isUrl = /^https?:\/\/\S+$/i.test(v);
+    if (!v) { showError('请先填写手机号或链接'); return; }
+    if (!isMobile && !isTel && !isUrl) {
+      showError('号码格式不对', '支持 11 位手机号（如 13800000000）、座机（如 010-88886666）或 http(s) 链接');
+      return;
+    }
+
+    $genBtn.disabled = true;
+    var oldText = $genBtn.textContent;
+    $genBtn.textContent = '生成中…';
+    $preview.innerHTML = '<div class="ph">正在生成…</div>';
+    $dl.disabled = true; $copy.disabled = true; $linkInfo.style.display = 'none';
+    lastCanvas = null; lastLink = '';
+
+    var finish = function (payload, link) {
+      var canvas = generateArtQR(payload, curTheme, { size: 1024 });
+      lastCanvas = canvas;
+      $preview.innerHTML = '';
+      $preview.appendChild(canvas);
+      $dl.disabled = false;
+      if (link) {
+        lastLink = link;
+        $copy.disabled = false;
+        $linkInfo.textContent = '中转链接：' + link;
+        $linkInfo.style.display = 'block';
+      }
+      toast('生成成功，可用两部手机试扫验证');
+    };
+
+    Promise.resolve().then(function () {
+      var privateMode = document.getElementById('privateMode').checked;
+      if (!privateMode) {
+        var raw = isUrl ? v : 'tel:' + v;
+        finish(raw, '');
+        return;
+      }
+      /* 隐私模式：虚拟号平台优先（已配置时），失败回退内置 AES 中转 */
+      var s = getSettings();
+      if (s.virtualApiBase) {
+        return virtualBind(v).then(function (vn) {
+          if (vn) {
+            finish('tel:' + vn, '');
+            toast('已通过虚拟号平台绑定：' + vn);
+          } else {
+            return makePrivateLink(v).then(function (link) { finish(link, link); });
+          }
+        });
+      }
+      return makePrivateLink(v).then(function (link) { finish(link, link); });
+    }).catch(function (err) {
+      var msg = (err && err.message) || String(err);
+      var hint = '请检查网络后重试；若持续失败，可在「设置」页检测 API 配置。';
+      if (/核心库/.test(msg)) hint = '二维码核心库 js/vendor/qrcode-generator.js 加载失败，请刷新页面或重新部署。';
+      if (/HTTP/.test(msg)) hint = '虚拟号平台返回错误：请核对设置页的网关地址与密钥；可暂时取消勾选"隐私中转"先出普通码。';
+      showError(msg, hint);
+    }).then(function () {
+      $genBtn.disabled = false;
+      $genBtn.textContent = oldText;
+    });
+  }
+
+  $genBtn.addEventListener('click', regenerate);
+  $phone.addEventListener('keydown', function (e) { if (e.key === 'Enter') regenerate(); });
+
+  /* ---------- 下载 / 复制 ---------- */
+  $dl.addEventListener('click', function () {
+    if (!lastCanvas) return;
+    lastCanvas.toBlob(function (blob) {
+      downloadBlob('art-qr-' + Date.now() + '.png', blob);
+    }, 'image/png');
+  });
+  $copy.addEventListener('click', function () {
+    if (!lastLink) return;
+    (navigator.clipboard ? navigator.clipboard.writeText(lastLink) : Promise.reject())
+      .then(function () { toast('中转链接已复制'); })
+      .catch(function () {
+        var ta = document.createElement('textarea');
+        ta.value = lastLink; document.body.appendChild(ta); ta.select();
+        document.execCommand('copy'); ta.remove();
+        toast('中转链接已复制');
+      });
+  });
+})();
+</script>
+</body>
+</html>

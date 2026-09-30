@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 第二大脑 · AI 工具箱</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<nav class="nav"><div class="nav-inner">
+  <a href="index.html" class="nav-logo"><span class="dot">⚡</span>AI 工具箱</a>
+  <div class="nav-links">
+    <a href="qr.html">艺术挪车码</a><a href="convert.html">文档转换</a><a href="resume.html">简历优化</a><a href="brain.html">第二大脑</a><a href="advisor.html">副业顾问</a><a href="mood.html">情绪日记</a><a href="tryon.html">AI 试衣</a><a href="ppt.html">AI 演示</a><a href="prompts.html">提示词库</a><a href="settings.html">设置</a>
+  </div>
+</div></nav>
+
+<div class="wrap">
+  <h1 class="page-title">🧠 AI 第二大脑</h1>
+  <p class="page-sub">把笔记 / 文档 / 资料导入本地知识库，基于语义检索 + AI 问答，数据仅存于你的浏览器（IndexedDB），不出设备。</p>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="ask">💬 知识问答</button>
+    <button class="tab" data-tab="docs">📚 知识库管理</button>
+    <button class="tab" data-tab="report">📝 生成周报</button>
+  </div>
+
+  <div class="tabpane active" id="pane-ask">
+    <div class="card mb16">
+      <label class="fl">向你的知识库提问</label>
+      <div class="flex gap8">
+        <input type="text" id="q" placeholder="例如：我之前写过关于「用户增长」的哪些观点？" style="flex:1;">
+        <button class="btn btn-primary" id="askBtn">提问</button>
+      </div>
+      <div class="muted mt8">检索方式：本地 BM25 语义切片检索 → 最相关片段交给 AI 综合回答（附引用来源）。</div>
+    </div>
+    <div id="askOut"></div>
+  </div>
+
+  <div class="tabpane" id="pane-docs">
+    <div class="file-drop mb16" id="drop">点击选择或拖入 .md / .txt / .docx 文件（可多选）</div>
+    <input type="file" id="files" accept=".md,.txt,.docx" multiple class="hidden">
+    <div id="docList"></div>
+  </div>
+
+  <div class="tabpane" id="pane-report">
+    <div class="card">
+      <div class="row mb8">
+        <div><label class="fl">开始日期</label><input type="date" id="repStart"></div>
+        <div><label class="fl">结束日期</label><input type="date" id="repEnd"></div>
+      </div>
+      <button class="btn btn-primary" id="repGo">基于这段时间的笔记生成周报</button>
+    </div>
+    <div id="repOut" class="mt16"></div>
+  </div>
+</div>
+
+<footer class="footer">AI 工具箱 · 知识库存于浏览器 IndexedDB，仅检索片段会发送给你配置的模型</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/marked@9.1.6/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
+<script src="js/app.js"></script>
+<script>
+(function () {
+  const DB = 'ai-brain', STORE = 'docs';
+  const tabs = $$('.tab');
+  tabs.forEach(t => t.addEventListener('click', () => {
+    tabs.forEach(x => x.classList.toggle('active', x === t));
+    $$('.tabpane').forEach(p => p.classList.toggle('active', p.id === 'pane-' + t.dataset.tab));
+    if (t.dataset.tab === 'docs') renderDocs();
+  }));
+
+  /* ---------- 文档管理 ---------- */
+  const drop = $('#drop');
+  drop.addEventListener('click', () => $('#files').click());
+  drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('drag'); });
+  drop.addEventListener('dragleave', () => drop.classList.remove('drag'));
+  drop.addEventListener('drop', e => { e.preventDefault(); drop.classList.remove('drag'); importFiles(e.dataTransfer.files); });
+  $('#files').addEventListener('change', e => { importFiles(e.target.files); e.target.value = ''; });
+
+  async function importFiles(list) {
+    for (const f of list) {
+      try {
+        const content = await readTextFile(f);
+        await idbPut(DB, STORE, {
+          id: 'doc_' + Date.now() + '_' + Math.floor(Math.random() * 1e6),
+          name: f.name, content, created: Date.now(),
+          size: content.length,
+        });
+        toast('已导入：' + f.name, 'ok');
+      } catch (e) { toast('导入失败：' + f.name + ' ' + e.message, 'err'); }
+    }
+    renderDocs();
+  }
+  async function renderDocs() {
+    const docs = (await idbAll(DB, STORE)).sort((a, b) => b.created - a.created);
+    const list = $('#docList');
+    list.innerHTML = '';
+    if (!docs.length) { list.appendChild(el('p', { class: 'muted' }, '知识库还是空的，先导入几个文档吧。')); return; }
+    for (const d of docs) {
+      list.appendChild(el('div', { class: 'doc-item' },
+        el('div', null,
+          el('b', null, d.name),
+          el('div', { class: 'muted' }, new Date(d.created).toLocaleString() + ' · ' + (d.size || 0) + ' 字符')),
+        el('button', { class: 'btn btn-danger btn-sm', onclick: async () => {
+          if (!confirm('确定删除「' + d.name + '」？')) return;
+          await idbDel(DB, STORE, d.id); renderDocs();
+        } }, '删除')));
+    }
+  }
+
+  /* ---------- 问答 ---------- */
+  function streamBox(target) {
+    const card = el('div', { class: 'result-box mb16' },
+      el('div', { class: 'result-head' }, el('h3', null, '回答')));
+    const body = el('div', { class: 'md cursor-blink' });
+    card.appendChild(body);
+    target.prepend(card);
+    return { body, card };
+  }
+  $('#askBtn').addEventListener('click', ask);
+  $('#q').addEventListener('keydown', e => { if (e.key === 'Enter') ask(); });
+  async function ask() {
+    const query = $('#q').value.trim();
+    if (!query) return;
+    if (!llmReady()) { toast('请先配置模型 API', 'err'); location.href = 'settings.html'; return; }
+    const docs = await idbAll(DB, STORE);
+    if (!docs.length) { toast('知识库为空，请先导入文档', 'err'); return; }
+    const btn = $('#askBtn'); btn.disabled = true;
+    /* 切片 */
+    const chunks = [];
+    for (const d of docs) {
+      const paras = d.content.split(/\n{2,}/).filter(p => p.trim().length > 30);
+      for (let i = 0; i < paras.length; i++) chunks.push({ docId: d.id, docName: d.name, text: paras[i].trim() });
+    }
+    const hits = bm25Search(query, chunks, 8);
+    const s = streamBox($('#askOut'));
+    const ctxText = hits.map((h, i) => '[片段' + (i + 1) + ' · 来自《' + h.docName + '》]\n' + h.text).join('\n\n');
+    const sys = '你是用户的个人知识库助手。只基于提供的资料片段回答，回答末尾用「📎 来源：《文档名》」列出引用。若资料不足以回答，明确说明并根据资料谨慎推测，标注哪部分是推测。用中文 Markdown。';
+    try {
+      const full = await llmChat([
+        { role: 'system', content: sys },
+        { role: 'user', content: '【知识库检索片段】\n' + (ctxText || '（无相关片段）') + '\n\n【问题】' + query }],
+        { stream: true, temperature: 0.5, onDelta: (d, f) => { s.body.innerHTML = mdRender(f); } });
+      s.body.innerHTML = mdRender(full);
+      s.body.classList.remove('cursor-blink');
+      if (!hits.length) s.body.innerHTML += '<div class="tip tip-warn mt8">没有检索到明显相关的片段，以上回答基于模型知识，请注意甄别。</div>';
+    } catch (e) {
+      s.body.classList.remove('cursor-blink');
+      s.body.innerHTML = '<div class="tip tip-warn">调用失败：' + e.message + '</div>';
+    }
+    btn.disabled = false;
+  }
+
+  /* ---------- 周报 ---------- */
+  const start = $('#repStart'), end = $('#repEnd');
+  const week = new Date(); end.value = week.toISOString().slice(0, 10);
+  start.value = new Date(week - 7 * 86400000).toISOString().slice(0, 10);
+  $('#repGo').addEventListener('click', async () => {
+    if (!llmReady()) { toast('请先配置模型 API', 'err'); location.href = 'settings.html'; return; }
+    const docs = (await idbAll(DB, STORE)).filter(d => {
+      const day = new Date(d.created).toISOString().slice(0, 10);
+      return day >= start.value && day <= end.value;
+    });
+    if (!docs.length) { toast('该时间范围内没有导入的新文档（周报基于期间导入的内容）', 'err'); return; }
+    const btn = $('#repGo'); btn.disabled = true;
+    const s = streamBox($('#repOut'));
+    const text = docs.map(d => '《' + d.name + '》\n' + d.content.slice(0, 3000)).join('\n\n---\n\n');
+    try {
+      const full = await llmChat([
+        { role: 'system', content: '你是个人助理，基于用户期间的笔记生成一份高质量周报。输出 Markdown，中文。' },
+        { role: 'user', content: '以下是 ' + start.value + ' 至 ' + end.value + ' 期间我的笔记（共 ' + docs.length + ' 篇）：\n\n' + text +
+          '\n\n请输出：1. 本期主题概览；2. 关键进展与想法（分类归纳）；3. 待跟进事项（从笔记中提取的任务/疑问）；4. 下周建议关注点。' }],
+        { stream: true, temperature: 0.5, onDelta: (d, f) => { s.body.innerHTML = mdRender(f); } });
+      s.body.innerHTML = mdRender(full);
+      s.body.classList.remove('cursor-blink');
+    } catch (e) {
+      s.body.classList.remove('cursor-blink');
+      s.body.innerHTML = '<div class="tip tip-warn">调用失败：' + e.message + '</div>';
+    }
+    btn.disabled = false;
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>联系车主 · 挪车中转</title>
+<link rel="stylesheet" href="css/style.css">
+<style>
+  body { display: flex; flex-direction: column; min-height: 100vh; }
+  .call-wrap { flex: 1; display: flex; align-items: center; justify-content: center; padding: 24px; }
+  .call-card { text-align: center; max-width: 420px; width: 100%; padding: 42px 30px; }
+  .call-card .car { font-size: 64px; }
+  .call-card h1 { font-size: 22px; margin: 14px 0 6px; }
+  .call-card p { color: var(--ink-2); font-size: 14.5px; margin: 0 0 26px; }
+  #callBtn { width: 100%; font-size: 17px; padding: 15px; border-radius: 14px; text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="call-wrap">
+  <div class="card call-card" id="card">
+    <div class="car">🚗</div>
+    <h1>挪车联系</h1>
+    <p>本页由车主通过 AI 工具箱生成。<br>号码已加密保护，点击下方按钮即可拨打，不会展示明文号码。</p>
+    <div id="content"><div class="loading-block"><span class="spinner"></span>正在解密…</div></div>
+  </div>
+</div>
+<footer class="footer">AI 工具箱 · 隐私挪车码 · 全程无服务器存储</footer>
+<script src="js/qr-deco.js"></script>
+<script>
+(async function () {
+  const box = document.getElementById('content');
+  const hasParams = (location.search && location.search.length > 1) || (location.hash && location.hash.length > 1);
+  if (!hasParams) {
+    box.innerHTML = '<div class="tip tip-warn">请通过车主生成的挪车码或中转链接访问本页。<br>直接打开本页不会显示联系方式。</div>';
+    return;
+  }
+  try {
+    const obj = await decodePrivateLink(location);
+    if (obj && obj.t === 'tel' && obj.n) {
+      box.innerHTML = '';
+      const a = document.createElement('a');
+      a.className = 'btn btn-primary btn-lg';
+      a.id = 'callBtn';
+      a.href = 'tel:' + obj.n;
+      a.textContent = '📞 拨打车主电话';
+      const note = document.createElement('p');
+      note.className = 'muted mt16';
+      note.style.margin = '18px 0 0';
+      note.textContent = '如车主未及时挪车，也可通过 114 / 12580 登记挪车。';
+      box.appendChild(a);
+      box.appendChild(note);
+    } else {
+      throw new Error('内容格式不支持');
+    }
+  } catch (e) {
+    box.innerHTML = '<div class="tip tip-warn">链接无效或已损坏：' + (e.message || '解密失败') + '<br>请让车主重新生成挪车码。</div>';
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>提示词工具库 · AI 工具箱</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<nav class="nav"><div class="nav-inner">
+  <a href="index.html" class="nav-logo"><span class="dot">⚡</span>AI 工具箱</a>
+  <div class="nav-links">
+    <a href="qr.html">艺术挪车码</a><a href="convert.html">文档转换</a><a href="resume.html">简历优化</a><a href="brain.html">第二大脑</a><a href="advisor.html">副业顾问</a><a href="mood.html">情绪日记</a><a href="tryon.html">AI 试衣</a><a href="ppt.html">AI 演示</a><a href="prompts.html">提示词库</a><a href="settings.html">设置</a>
+  </div>
+</div></nav>
+
+<div class="wrap">
+  <div id="listView">
+    <h1 class="page-title">🎯 提示词工具库</h1>
+    <p class="page-sub"><span id="cnt"></span> 个专业提示词工具 · 覆盖 12 大类 · 选择工具 → 填入信息 → AI 直接执行</p>
+    <div class="row mb16">
+      <input type="text" id="search" placeholder="🔍 搜索工具，如：合同 / 会议纪要 / 小红书 / 代码…" style="flex:1;">
+    </div>
+    <div class="prompts-layout">
+      <div class="cat-list" id="catList"></div>
+      <div>
+        <div class="tool-grid" id="toolGrid"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="runView" class="hidden">
+    <div class="flex items-center gap8 mb16">
+      <button class="btn btn-ghost btn-sm" id="backBtn">← 返回工具列表</button>
+      <button class="btn btn-ghost btn-sm" id="favBtn">☆ 收藏</button>
+    </div>
+    <h1 class="page-title" id="runTitle" style="font-size:22px;"></h1>
+    <div class="muted mb16" id="runMeta"></div>
+
+    <div class="card mb16">
+      <div id="slots"></div>
+      <div class="field" id="extraField">
+        <label class="fl">补充内容 / 素材（可选，粘贴需要处理的正文）</label>
+        <textarea id="extraText" rows="6" placeholder="如需处理长文本（合同、文章、代码），粘贴到这里…"></textarea>
+      </div>
+      <button class="btn btn-primary btn-lg" id="runBtn" style="width:100%;">▶️ AI 执行</button>
+    </div>
+
+    <div id="outBox"></div>
+
+    <details class="mt16">
+      <summary class="muted" style="cursor:pointer;">查看该工具的完整提示词</summary>
+      <pre id="promptRaw" style="background:#f7f8fa;border:1px solid var(--line);border-radius:10px;padding:14px;font-size:12.5px;white-space:pre-wrap;max-height:400px;overflow:auto;"></pre>
+    </details>
+  </div>
+</div>
+
+<footer class="footer">AI 工具箱 · 提示词数据整理自公开资料</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/marked@9.1.6/marked.min.js"></script>
+<script src="js/prompts.js"></script>
+<script src="js/app.js"></script>
+<script>
+(function () {
+  const FAV_KEY = 'at_prompt_favs';
+  const getFavs = () => { try { return JSON.parse(localStorage.getItem(FAV_KEY) || '[]'); } catch (e) { return []; } };
+  const setFavs = (a) => localStorage.setItem(FAV_KEY, JSON.stringify(a));
+  let curCat = '全部', curTool = null, curKeyword = '';
+
+  $('#cnt').textContent = PROMPT_TOOLS.length;
+
+  /* 分类 */
+  const cats = ['全部', ...new Set(PROMPT_TOOLS.map(t => t.cat))];
+  const catList = $('#catList');
+  function renderCats() {
+    catList.innerHTML = '';
+    for (const c of cats) {
+      const n = c === '全部' ? PROMPT_TOOLS.length : PROMPT_TOOLS.filter(t => t.cat === c).length;
+      catList.appendChild(el('button', { class: 'cat-item' + (c === curCat ? ' active' : ''), onclick: () => {
+        curCat = c; renderCats(); renderGrid();
+      } }, el('span', null, c), el('span', { class: 'n' }, n)));
+    }
+    /* 收藏入口 */
+    const fn = getFavs().length;
+    catList.appendChild(el('button', { class: 'cat-item' + (curCat === '⭐ 收藏' ? ' active' : ''), onclick: () => {
+      curCat = '⭐ 收藏'; renderCats(); renderGrid();
+    } }, el('span', null, '⭐ 收藏'), el('span', { class: 'n' }, fn)));
+  }
+
+  function filtered() {
+    let arr = PROMPT_TOOLS;
+    if (curCat === '⭐ 收藏') {
+      const favs = getFavs();
+      arr = arr.filter(t => favs.includes(t.name));
+    } else if (curCat !== '全部') {
+      arr = arr.filter(t => t.cat === curCat);
+    }
+    if (curKeyword) {
+      const k = curKeyword.toLowerCase();
+      arr = arr.filter(t => t.name.toLowerCase().includes(k) || t.prompt.toLowerCase().includes(k));
+    }
+    return arr;
+  }
+  function renderGrid() {
+    const grid = $('#toolGrid');
+    grid.innerHTML = '';
+    const arr = filtered();
+    if (!arr.length) { grid.innerHTML = '<p class="muted">没有匹配的工具，换个关键词试试。</p>'; return; }
+    for (const t of arr) {
+      grid.appendChild(el('button', { class: 'tool-chip', onclick: () => openTool(t.name) },
+        el('b', null, t.name),
+        el('span', null, (t.audience || []).join(' / ') || t.cat)));
+    }
+  }
+  $('#search').addEventListener('input', (e) => { curKeyword = e.target.value.trim(); renderGrid(); });
+
+  /* 占位符解析：[xxx] 或 [请填写xxx] 或 {xxx} */
+  function parseSlots(prompt) {
+    const slots = [];
+    const seen = new Set();
+    const re = /\[([^\[\]]{2,40})\]/g;
+    let m;
+    while ((m = re.exec(prompt))) {
+      const name = m[1].trim();
+      if (seen.has(name)) continue;
+      if (/^\\|^\/|^\*$|^#/.test(name)) continue; /* markdown 语法误伤 */
+      seen.add(name);
+      slots.push({ name, sample: m[0] });
+      if (slots.length >= 10) break;
+    }
+    return slots;
+  }
+
+  /* 执行视图 */
+  function openTool(name) {
+    const t = PROMPT_TOOLS.find(x => x.name === name);
+    if (!t) return;
+    curTool = t;
+    $('#listView').classList.add('hidden');
+    $('#runView').classList.remove('hidden');
+    $('#runTitle').textContent = t.name;
+    $('#runMeta').textContent = '分类：' + t.cat + ' · 适用：' + ((t.audience || []).join('、') || '通用') + ' · 推荐值 ' + t.score + '/5';
+    $('#promptRaw').textContent = t.prompt;
+    $('#outBox').innerHTML = '';
+    $('#favBtn').textContent = getFavs().includes(t.name) ? '★ 已收藏' : '☆ 收藏';
+    /* slots */
+    const slots = parseSlots(t.prompt);
+    const box = $('#slots');
+    box.innerHTML = '';
+    window.__slotEls = [];
+    if (!slots.length) $('#extraField').querySelector('label').textContent = '要处理的内容（AI 会把你的输入作为素材交给该工具执行）';
+    for (const s of slots) {
+      const f = el('div', { class: 'field' },
+        el('label', { class: 'fl' }, s.name),
+        el('textarea', { rows: '2', 'data-slot': s.sample, placeholder: '填写「' + s.name + '」…' }));
+      box.appendChild(f);
+      window.__slotEls.push(f.querySelector('textarea'));
+    }
+    window.scrollTo(0, 0);
+  }
+  $('#backBtn').addEventListener('click', () => {
+    $('#runView').classList.add('hidden');
+    $('#listView').classList.remove('hidden');
+    renderCats();
+  });
+  $('#favBtn').addEventListener('click', () => {
+    if (!curTool) return;
+    let favs = getFavs();
+    if (favs.includes(curTool.name)) { favs = favs.filter(x => x !== curTool.name); $('#favBtn').textContent = '☆ 收藏'; }
+    else { favs.push(curTool.name); $('#favBtn').textContent = '★ 已收藏'; }
+    setFavs(favs);
+  });
+
+  /* 执行 */
+  $('#runBtn').addEventListener('click', async () => {
+    if (!curTool) return;
+    if (!llmReady()) { toast('请先在设置页配置模型 API', 'err'); location.href = 'settings.html'; return; }
+    let prompt = curTool.prompt;
+    for (const ta of window.__slotEls) {
+      const v = ta.value.trim();
+      const placeholder = ta.dataset.slot;
+      prompt = prompt.split(placeholder).join(v || placeholder);
+    }
+    const extra = $('#extraText').value.trim();
+    if (extra) prompt += '\n\n【用户提供的内容】\n' + extra;
+    const btn = $('#runBtn'); btn.disabled = true; btn.textContent = 'AI 执行中…';
+    const card = el('div', { class: 'result-box' },
+      el('div', { class: 'result-head' },
+        el('h3', null, curTool.name + ' · 结果'),
+        el('div', { class: 'flex gap8' },
+          el('button', { class: 'btn btn-ghost btn-sm hidden', onclick: () => downloadText(curTool.name + '-结果.md', card.dataset.raw || '', 'text/markdown') }, '⬇️ 下载'),
+          el('button', { class: 'btn btn-ghost btn-sm hidden', onclick: () => { navigator.clipboard.writeText(card.dataset.raw || ''); toast('已复制', 'ok'); } }, '📋 复制'))));
+    const body = el('div', { class: 'md cursor-blink' });
+    card.appendChild(body);
+    $('#outBox').innerHTML = '';
+    $('#outBox').appendChild(card);
+    try {
+      const full = await llmChat([
+        { role: 'system', content: '你是提示词中定义的专业角色，严格按提示词的格式、约束执行任务。全程中文（除非提示词要求其他语言）。' },
+        { role: 'user', content: prompt }],
+        { stream: true, temperature: 0.7, onDelta: (d, f) => { body.innerHTML = mdRender(f); } });
+      body.innerHTML = mdRender(full);
+      body.classList.remove('cursor-blink');
+      card.dataset.raw = full;
+      card.querySelectorAll('button').forEach(b => b.classList.remove('hidden'));
+    } catch (e) {
+      body.classList.remove('cursor-blink');
+      body.innerHTML = '<div class="tip tip-warn">调用失败：' + (e.message || e) + '</div>';
+    }
+    btn.disabled = false; btn.textContent = '▶️ AI 执行';
+    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+  });
+
+  /* URL 直达工具：prompts.html?tool=xxx */
+  const q = new URLSearchParams(location.search).get('tool');
+  if (q) {
+    const t = PROMPT_TOOLS.find(x => x.name.includes(q));
+    if (t) openTool(t.name);
+  }
+  renderCats();
+  renderGrid();
+})();
+</script>
+</body>
+</html>

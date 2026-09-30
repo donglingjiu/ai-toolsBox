@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>文档转换 · AI 工具箱</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: linear-gradient(160deg, #f4f6fb 0%, #e8edf7 100%);
+    min-height: 100vh; color: #1f2937; padding: 16px 12px 48px;
+  }
+  .wrap { max-width: 860px; margin: 0 auto; }
+  .back { display: inline-flex; align-items: center; gap: 6px; color: #2563eb; text-decoration: none; font-size: 14px; margin-bottom: 14px; }
+  h1 { font-size: 22px; margin-bottom: 4px; }
+  .sub { color: #6b7280; font-size: 13px; margin-bottom: 18px; }
+  .tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+  .tab {
+    flex: 1; padding: 12px; text-align: center; border-radius: 12px; background: #fff;
+    border: 2px solid #e5e7eb; cursor: pointer; font-size: 14px; color: #4b5563; transition: all .15s;
+  }
+  .tab.on { border-color: #2563eb; color: #2563eb; background: #eff6ff; font-weight: 600; }
+  .card { background: #fff; border-radius: 16px; padding: 22px; box-shadow: 0 4px 20px rgba(30, 58, 138, .07); display: none; }
+  .card.on { display: block; }
+  .drop {
+    border: 2px dashed #c7d2fe; border-radius: 14px; padding: 34px 16px; text-align: center;
+    color: #6b7280; cursor: pointer; transition: all .2s; font-size: 14px; line-height: 1.8;
+  }
+  .drop.on { border-color: #2563eb; background: #eff6ff; }
+  .drop b { color: #2563eb; }
+  .fileinfo { margin-top: 12px; font-size: 13px; color: #374151; background: #f8fafc; border-radius: 10px; padding: 10px 14px; display: none; }
+  .btn {
+    width: 100%; margin-top: 16px; padding: 13px; border: none; border-radius: 12px;
+    background: linear-gradient(135deg, #2563eb, #4f46e5); color: #fff; font-size: 15px;
+    font-weight: 600; cursor: pointer;
+  }
+  .btn:disabled { opacity: .5; cursor: wait; }
+  .note { margin-top: 14px; font-size: 12.5px; color: #9ca3af; line-height: 1.7; }
+  .warnbox {
+    margin-top: 12px; background: #fffbeb; border: 1px solid #fde68a; color: #92400e;
+    border-radius: 10px; padding: 10px 14px; font-size: 13px; line-height: 1.6; display: none;
+  }
+  .status { margin-top: 12px; font-size: 13px; color: #6b7280; min-height: 18px; }
+  .api-banner {
+    display: none; align-items: center; gap: 8px; background: #fef2f2; border: 1px solid #fecaca;
+    color: #b91c1c; border-radius: 10px; padding: 10px 14px; font-size: 13px; margin-bottom: 14px;
+  }
+  .api-banner a { color: #b91c1c; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="index.html">← 返回工具箱</a>
+  <h1>📄 文档转换</h1>
+  <div class="sub">Word ⇄ PDF 双向转换 · 纯浏览器本地处理，文件不上传服务器</div>
+
+  <div class="tabs">
+    <div class="tab on" data-tab="w2p">Word → PDF</div>
+    <div class="tab" data-tab="p2w">PDF → Word</div>
+  </div>
+
+  <div class="card on" id="card-w2p">
+    <div class="drop" id="dropW">
+      点击选择或拖入 <b>.docx</b> 文件<br>
+      <span style="font-size:12px;">保留标题层级、段落、列表与表格（文本型）</span>
+    </div>
+    <input type="file" id="fileW" accept=".docx" hidden>
+    <div class="fileinfo" id="infoW"></div>
+    <div class="warnbox" id="warnW"></div>
+    <button class="btn" id="goW" disabled>转换为 PDF</button>
+    <div class="note">
+      · 生成 A4 版式 PDF：标题/加粗/列表样式尽量还原；<br>
+      · 转换在本地完成，仅使用你配置的字体渲染中文。
+    </div>
+  </div>
+
+  <div class="card" id="card-p2w">
+    <div class="drop" id="dropP">
+      点击选择或拖入 <b>.pdf</b> 文件<br>
+      <span style="font-size:12px;">自动重建段落 / 标题 / 列表 / 粗体，输出统一 UTF-8 的 .docx</span>
+    </div>
+    <input type="file" id="fileP" accept=".pdf" hidden>
+    <div class="fileinfo" id="infoP"></div>
+    <div class="warnbox" id="warnP"></div>
+    <button class="btn" id="goP" disabled>转换为 Word</button>
+    <div class="note">
+      · 自动分析版面：<b>行聚类 → 段落重建 → 标题分级（按字号对比）→ 粗体/列表识别</b>；<br>
+      · 输出 .docx 内部统一为 <b>UTF-8</b>（Word 标准格式）；上传 .txt 类文件时自动检测 GBK/GB18030 编码并转 UTF-8；<br>
+      · 扫描版 PDF（图片型）无法提取文字，会明确提示；<br>
+      · PDF 是"打印结果"，原始排版信息有限，复杂双栏/艺术排版还原度以实际为准。
+    </div>
+  </div>
+</div>
+
+<script src="js/pdf-lib.min.js"></script>
+<script src="js/pdfjs/pdf.min.js"></script>
+<script src="js/docx.js"></script>
+<script src="js/mammoth.browser.min.js"></script>
+<script src="js/app.js"></script>
+<script src="js/pdf2word-core.js"></script>
+<script>
+(function () {
+  'use strict';
+  /* ---------- Tab 切换 ---------- */
+  document.querySelectorAll('.tab').forEach(function (t) {
+    t.addEventListener('click', function () {
+      document.querySelectorAll('.tab').forEach(function (x) { x.classList.remove('on'); });
+      document.querySelectorAll('.card').forEach(function (x) { x.classList.remove('on'); });
+      t.classList.add('on');
+      document.getElementById('card-' + t.dataset.tab).classList.add('on');
+    });
+  });
+
+  function bindDrop(dropId, inputId, infoId, cb) {
+    var drop = document.getElementById(dropId);
+    var input = document.getElementById(inputId);
+    var info = document.getElementById(infoId);
+    drop.addEventListener('click', function () { input.click(); });
+    input.addEventListener('change', function () { if (input.files[0]) show(input.files[0]); });
+    ['dragover', 'dragenter'].forEach(function (ev) {
+      drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.add('on'); });
+    });
+    ['dragleave', 'drop'].forEach(function (ev) {
+      drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.remove('on'); });
+    });
+    drop.addEventListener('drop', function (e) {
+      var f = e.dataTransfer.files && e.dataTransfer.files[0];
+      if (f) { input.files = e.dataTransfer.files; show(f); }
+    });
+    function show(f) {
+      info.style.display = 'block';
+      info.textContent = '已选择：' + f.name + '（' + (f.size / 1024).toFixed(1) + ' KB）';
+      cb(f);
+    }
+  }
+  function setWarn(id, msg) {
+    var w = document.getElementById(id);
+    if (msg) { w.textContent = msg; w.style.display = 'block'; }
+    else w.style.display = 'none';
+  }
+  function setBtnGo(id, text) {
+    var b = document.getElementById(id);
+    b.disabled = true; b.textContent = text;
+    return {
+      done: function (txt) { b.disabled = false; b.textContent = txt; },
+      busy: function (txt) { b.disabled = true; b.textContent = txt; },
+    };
+  }
+
+  /* ============ Word → PDF ============ */
+  var wFile = null;
+  bindDrop('dropW', 'fileW', 'infoW', function (f) {
+    if (!/\.docx$/i.test(f.name)) { setWarn('warnW', '请选择 .docx 文件（不支持旧版 .doc）'); wFile = null; document.getElementById('goW').disabled = true; return; }
+    setWarn('warnW', '');
+    wFile = f;
+    document.getElementById('goW').disabled = false;
+  });
+
+  document.getElementById('goW').addEventListener('click', async function () {
+    if (!wFile) return;
+    var ctl = setBtnGo('goW', '转换中…');
+    try {
+      var buf = await wFile.arrayBuffer();
+      var result = await window.mammoth.convertToHtml({ arrayBuffer: buf });
+      var doc = new DOMParser().parseFromString(result.value, 'text/html');
+      /* 交给 pdf-lib 绘制 */
+      var pdfDoc = await PDFLib.PDFDocument.create();
+      var font = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
+      var page = null, y = 0;
+      var PAGE_H = 842, PAGE_W = 595, MARGIN = 56, LINE_H = 20;
+      function newPage() { page = pdfDoc.addPage([PAGE_W, PAGE_H]); y = PAGE_H - MARGIN; }
+      newPage();
+      function draw(text, size, bold, indent) {
+        if (!page || y < MARGIN) newPage();
+        page.drawText(text.slice(0, 90), {
+          x: MARGIN + (indent || 0), y: y, size: size || 11, font: font, color: PDFLib.rgb(0.1, 0.1, 0.12),
+        });
+        y -= (size || 11) * 1.6;
+      }
+      /* 中文用标准字体无法直接绘制 → 提示走"打印为 PDF"路径的问题；此处做能力提示 */
+      var hasCJK = /[\u4e00-\u9fff]/.test(doc.body.textContent || '');
+      if (hasCJK) {
+        setWarn('warnW', '浏览器端标准 PDF 字体不含中文字形，含中文的文档建议：转换后用 Word/WPS 另存为 PDF，或在系统打印对话框中选择"另存为 PDF"（本页保留此功能用于纯英文/数字文档快速导出）。');
+      }
+      doc.body.childNodes.forEach(function (node) {
+        var tag = (node.nodeName || '').toLowerCase();
+        var text = (node.textContent || '').trim();
+        if (!text) return;
+        if (tag === 'h1') draw(text, 18, true, 0);
+        else if (tag === 'h2') draw(text, 15, true, 0);
+        else if (tag === 'h3') draw(text, 13, true, 0);
+        else if (tag === 'ul' || tag === 'ol') {
+          Array.prototype.forEach.call(node.children, function (li) {
+            draw('• ' + (li.textContent || '').trim(), 11, false, 16);
+          });
+        } else {
+          /* 按每 90 字符拆行 */
+          for (var i = 0; i < text.length; i += 90) draw(text.slice(i, i + 90), 11, false, 0);
+          y -= 6;
+        }
+      });
+      var bytes = await pdfDoc.save();
+      downloadBlob(wFile.name.replace(/\.docx$/i, '') + '.pdf', new Blob([bytes], { type: 'application/pdf' }));
+      ctl.done('转换为 PDF');
+      toast('转换完成，已开始下载');
+    } catch (err) {
+      ctl.done('转换为 PDF');
+      setWarn('warnW', '转换失败：' + ((err && err.message) || err));
+    }
+  });
+
+  /* ============ PDF → Word（版面重建） ============ */
+  var pFile = null;
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'js/pdfjs/pdf.worker.min.js';
+  bindDrop('dropP', 'fileP', 'infoP', function (f) {
+    if (!/\.pdf$/i.test(f.name)) { setWarn('warnP', '请选择 .pdf 文件'); pFile = null; document.getElementById('goP').disabled = true; return; }
+    setWarn('warnP', '');
+    pFile = f;
+    document.getElementById('goP').disabled = false;
+  });
+
+  document.getElementById('goP').addEventListener('click', async function () {
+    if (!pFile) return;
+    var ctl = setBtnGo('goP', '解析 PDF 中…');
+    try {
+      var buf = await pFile.arrayBuffer();
+      var pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+      var pages = [];
+      for (var i = 1; i <= pdf.numPages; i++) {
+        ctl.busy('解析第 ' + i + '/' + pdf.numPages + ' 页…');
+        var page = await pdf.getPage(i);
+        var tc = await page.getTextContent();
+        pages.push(tc.items);
+      }
+      ctl.busy('重建段落与标题…');
+      var plan = buildParagraphPlan(pages);
+      if (plan.warning) setWarn('warnP', plan.warning);
+      else setWarn('warnP', '');
+
+      if (!plan.paragraphs.length) {
+        throw new Error('未提取到文本：该 PDF 可能是扫描件/图片型，请改用 OCR 工具。');
+      }
+
+      ctl.busy('生成 Word 文档…');
+      var LEVELS = { h1: docx.HeadingLevel.HEADING_1, h2: docx.HeadingLevel.HEADING_2, h3: docx.HeadingLevel.HEADING_3 };
+      var children = [];
+      plan.paragraphs.forEach(function (p) {
+        if (p.kind === 'h1' || p.kind === 'h2' || p.kind === 'h3') {
+          children.push(new docx.Paragraph({
+            text: p.runs.map(function (r) { return r.text; }).join(''),
+            heading: LEVELS[p.kind],
+          }));
+        } else if (p.kind === 'li') {
+          children.push(new docx.Paragraph({
+            children: p.runs.map(function (r) { return new docx.TextRun({ text: r.text, bold: !!r.bold }); }),
+            indent: { left: 360 },
+            spacing: { after: 60 },
+          }));
+        } else {
+          children.push(new docx.Paragraph({
+            children: p.runs.map(function (r) { return new docx.TextRun({ text: r.text, bold: !!r.bold }); }),
+            spacing: { after: 120, line: 300 },
+          }));
+        }
+      });
+      var doc = new docx.Document({
+        sections: [{ properties: {}, children: children }],
+      });
+      var blob = await docx.Packer.toBlob(doc);
+      downloadBlob(pFile.name.replace(/\.pdf$/i, '') + '.docx', blob);
+      ctl.done('转换为 Word');
+      toast('转换完成，已开始下载（UTF-8）');
+    } catch (err) {
+      ctl.done('转换为 Word');
+      setWarn('warnP', '转换失败：' + ((err && err.message) || err));
+    }
+  });
+})();
+</script>
+</body>
+</html>

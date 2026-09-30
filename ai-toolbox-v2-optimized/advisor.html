@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 副业顾问 · AI 工具箱</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<nav class="nav"><div class="nav-inner">
+  <a href="index.html" class="nav-logo"><span class="dot">⚡</span>AI 工具箱</a>
+  <div class="nav-links">
+    <a href="qr.html">艺术挪车码</a><a href="convert.html">文档转换</a><a href="resume.html">简历优化</a><a href="brain.html">第二大脑</a><a href="advisor.html">副业顾问</a><a href="mood.html">情绪日记</a><a href="tryon.html">AI 试衣</a><a href="ppt.html">AI 演示</a><a href="prompts.html">提示词库</a><a href="settings.html">设置</a>
+  </div>
+</div></nav>
+
+<div class="wrap wrap-narrow">
+  <h1 class="page-title">💼 AI 副业顾问</h1>
+  <p class="page-sub">说清你会什么、懂什么、能投入多少，AI 为你产出 3 个可落地的副业方向与 30 天起步计划。</p>
+
+  <div class="card">
+    <div class="row">
+      <div class="field"><label class="fl">我的技能 / 专长 *</label><input type="text" id="skills" placeholder="如：会 Python、做过电商运营、擅长做 PPT"></div>
+      <div class="field"><label class="fl">兴趣 / 资源</label><input type="text" id="interest" placeholder="如：喜欢做饭、有 5000 粉小红书账号、认识本地商家"></div>
+    </div>
+    <div class="row">
+      <div class="field"><label class="fl">每天可投入时间 *</label>
+        <select id="time"><option value="1 小时以内">1 小时以内</option><option value="1-2 小时" selected>1-2 小时</option><option value="3-4 小时">3-4 小时</option><option value="4 小时以上 / 可全职">4 小时以上 / 可全职</option></select>
+      </div>
+      <div class="field"><label class="fl">启动资金</label>
+        <select id="budget"><option value="0 元（纯技能变现）">0 元（纯技能变现）</option><option value="500 元以内" selected>500 元以内</option><option value="500-3000 元">500-3000 元</option><option value="3000 元以上">3000 元以上</option></select>
+      </div>
+    </div>
+    <div class="field"><label class="fl">目标：每月额外赚多少？</label><input type="text" id="goal" placeholder="如：先每月 +2000，一年内做到月入过万" value="每月增加 1000-3000 元收入"></div>
+    <button class="btn btn-primary btn-lg" id="go" style="width:100%;">生成我的副业方案</button>
+  </div>
+
+  <div id="out" class="mt24"></div>
+</div>
+
+<footer class="footer">AI 工具箱 · 方案由 AI 基于通识生成，投入前请自行验证市场</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/marked@9.1.6/marked.min.js"></script>
+<script src="js/app.js"></script>
+<script>
+(function () {
+  let step1 = '';
+  function check() {
+    if (!$('#skills').value.trim()) { toast('请先填写你的技能', 'err'); return false; }
+    if (!llmReady()) { toast('请先在设置页配置模型 API', 'err'); location.href = 'settings.html'; return false; }
+    return true;
+  }
+  function streamBox(target, title) {
+    const card = el('div', { class: 'result-box' },
+      el('div', { class: 'result-head' },
+        el('h3', null, title),
+        el('button', { class: 'btn btn-ghost btn-sm hidden', onclick: () => downloadText(title + '.md', card.dataset.raw || '', 'text/markdown') }, '⬇️ 下载')));
+    const body = el('div', { class: 'md cursor-blink' });
+    card.appendChild(body);
+    target.innerHTML = '';
+    target.appendChild(card);
+    return { body, card };
+  }
+
+  $('#go').addEventListener('click', async () => {
+    if (!check()) return;
+    const btn = $('#go'); btn.disabled = true;
+    const s = streamBox($('#out'), '🎯 你的副业方案');
+    const user = '【技能】' + $('#skills').value.trim() + '\n【兴趣/资源】' + ($('#interest').value.trim() || '无特殊') +
+      '\n【每日可投入】' + $('#time').value + '\n【启动资金】' + $('#budget').value + '\n【收入目标】' + $('#goal').value.trim() +
+      '\n\n请输出 Markdown：\n## 三个副业方向\n每个方向包含：定位一句话、为什么适合我（结合我的技能资源）、变现路径、启动成本明细、首月收入预估（保守/理想）、风险与对策、匹配度打分（⭐）。\n要求：方向必须具体可落地、细分领域（不做泛泛建议），优先「一两个人就能跑起来」的模式。';
+    try {
+      step1 = await llmChat([
+        { role: 'system', content: '你是一位务实的副业与个体创业顾问，给建议具体、数字保守可信、拒绝画饼。输出中文 Markdown。' },
+        { role: 'user', content: user }],
+        { stream: true, temperature: 0.8, onDelta: (d, f) => { s.body.innerHTML = mdRender(f); } });
+      s.body.innerHTML = mdRender(step1);
+      s.body.classList.remove('cursor-blink');
+      s.card.dataset.raw = step1;
+      s.card.querySelector('button').classList.remove('hidden');
+      /* 第二步按钮 */
+      const more = el('button', { class: 'btn btn-soft mt16', onclick: plan30 }, '📅 帮我挑一个方向，出 30 天起步计划');
+      s.body.appendChild(more);
+    } catch (e) {
+      s.body.classList.remove('cursor-blink');
+      s.body.innerHTML = '<div class="tip tip-warn">调用失败：' + e.message + '</div>';
+    }
+    btn.disabled = false;
+  });
+
+  async function plan30(e) {
+    const btn = e.currentTarget;
+    const pick = prompt('三个方向中你最想做哪个？（复制方向标题粘贴到这里，留空则让 AI 替你选）', '') || '';
+    btn.disabled = true; btn.textContent = '生成中…';
+    const s = streamBox($('#out'), '📅 30 天起步计划');
+    try {
+      const full = await llmChat([
+        { role: 'system', content: '你是务实的副业执行教练，计划必须细化到每天可执行的动作。输出中文 Markdown。' },
+        { role: 'user', content: '基于上一轮的副业方向：\n\n' + step1.slice(0, 4000) + '\n\n我选择的方向：' + pick +
+          '\n\n请输出 30 天起步计划表：按周分四阶段（第1周 验证 / 第2周 最小闭环 / 第3周 放量 / 第4周 复盘迭代），每天给出具体动作（当日产出物），标注关键里程碑 ✅，并给出第一单成交的促单技巧。' }],
+        { stream: true, temperature: 0.7, onDelta: (d, f) => { s.body.innerHTML = mdRender(f); } });
+      s.body.innerHTML = mdRender(full);
+      s.body.classList.remove('cursor-blink');
+      s.card.dataset.raw = full;
+      s.card.querySelector('button').classList.remove('hidden');
+    } catch (e2) {
+      s.body.classList.remove('cursor-blink');
+      s.body.innerHTML = '<div class="tip tip-warn">调用失败：' + e2.message + '</div>';
+    }
+    btn.disabled = false; btn.textContent = '📅 已生成';
+  }
+})();
+</script>
+</body>
+</html>

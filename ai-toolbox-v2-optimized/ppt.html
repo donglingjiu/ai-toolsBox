@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 演示工坊 · AI 工具箱</title>
+<style>
+  :root { --accent:#2563EB; --bg:#F6F8FB; --card:#fff; --line:#E5EAF2; --tx:#1B2A4A; --mut:#64748B; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif; background:var(--bg); color:var(--tx); min-height:100vh; }
+  a { color:inherit; text-decoration:none; }
+  .top { display:flex; align-items:center; gap:12px; padding:14px 20px; background:#fff; border-bottom:1px solid var(--line); position:sticky; top:0; z-index:20; }
+  .top .back { font-size:20px; line-height:1; padding:4px 8px; border-radius:8px; }
+  .top .back:hover { background:var(--bg); }
+  .top b { font-size:17px; }
+  .top .tag { font-size:12px; color:var(--mut); }
+  .wrap { max-width:1200px; margin:0 auto; padding:20px; display:grid; grid-template-columns:400px 1fr; gap:18px; align-items:start; }
+  @media (max-width:960px){ .wrap { grid-template-columns:1fr; } }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px; }
+  .card h3 { font-size:14px; margin-bottom:10px; color:var(--tx); }
+  .lbl { font-size:12px; color:var(--mut); margin:10px 0 5px; display:block; }
+  textarea, input[type=text], select { width:100%; border:1px solid var(--line); border-radius:9px; padding:9px 11px; font-size:13px; font-family:inherit; outline:none; background:#fff; color:var(--tx); }
+  textarea:focus, input:focus { border-color:var(--accent); }
+  .modes { display:flex; gap:6px; margin-bottom:10px; }
+  .modes button { flex:1; padding:8px 4px; font-size:12.5px; border:1px solid var(--line); background:#fff; border-radius:9px; cursor:pointer; color:var(--mut); }
+  .modes button.on { border-color:var(--accent); color:var(--accent); background:#EFF4FF; font-weight:600; }
+  .btn { display:inline-flex; align-items:center; justify-content:center; gap:6px; border:none; border-radius:10px; padding:11px 16px; font-size:14px; font-weight:600; cursor:pointer; background:var(--accent); color:#fff; width:100%; }
+  .btn.ghost { background:#fff; color:var(--accent); border:1px solid var(--accent); }
+  .btn.sm { width:auto; padding:7px 12px; font-size:12.5px; }
+  .btn:disabled { opacity:.55; cursor:not-allowed; }
+  .row2 { display:flex; gap:8px; }
+  .row2 > * { flex:1; }
+  .themes { display:flex; gap:8px; flex-wrap:wrap; }
+  .themes .th { width:86px; border:2px solid var(--line); border-radius:10px; padding:6px; cursor:pointer; text-align:center; font-size:11px; color:var(--mut); }
+  .themes .th .sw { height:30px; border-radius:6px; margin-bottom:5px; }
+  .themes .th.on { border-color:var(--accent); color:var(--tx); font-weight:600; }
+  .hint { font-size:12px; color:var(--mut); line-height:1.6; margin-top:8px; }
+  .err { background:#FEF2F2; border:1px solid #FECACA; color:#B91C1C; padding:10px 12px; border-radius:10px; font-size:13px; line-height:1.6; margin-top:10px; }
+  .stage { position:relative; }
+  .slideView { width:100%; aspect-ratio:16/9; border-radius:14px; overflow:hidden; box-shadow:0 8px 30px rgba(27,42,74,.12); background:#fff; position:relative; }
+  .slideView > div { width:100%; height:100%; }
+  .nav { display:flex; align-items:center; justify-content:center; gap:14px; margin-top:12px; }
+  .nav button { border:1px solid var(--line); background:#fff; border-radius:9px; padding:8px 16px; cursor:pointer; font-size:13px; }
+  .nav button:hover { border-color:var(--accent); color:var(--accent); }
+  .nav .pg { font-size:13px; color:var(--mut); min-width:70px; text-align:center; }
+  .thumbs { display:flex; gap:8px; overflow-x:auto; padding:10px 2px; }
+  .thumbs .tb { width:96px; aspect-ratio:16/9; border:2px solid var(--line); border-radius:8px; overflow:hidden; cursor:pointer; flex-shrink:0; position:relative; }
+  .thumbs .tb.on { border-color:var(--accent); }
+  .thumbs .tb > div { width:200%; height:200%; transform:scale(.5); transform-origin:0 0; pointer-events:none; }
+  .actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; }
+  .actions .btn { width:auto; flex:1; min-width:130px; }
+  .pres { position:fixed; inset:0; background:#000; z-index:100; display:none; flex-direction:column; }
+  .pres.show { display:flex; }
+  .pres .pv { flex:1; display:flex; align-items:center; justify-content:center; padding:2vh 2vw; }
+  .pres .pslide-holder { width:min(92vw, calc(92vh * 16 / 9)); aspect-ratio:16/9; position:relative; }
+  .pres .pslide-holder > div { width:100%; height:100%; }
+  .pres .pfoot { color:#94A3B8; font-size:12px; text-align:center; padding:8px 0 14px; }
+  .pres .note { position:absolute; left:0; right:0; bottom:-40px; font-size:12px; color:#94A3B8; text-align:center; }
+  .stream { font-size:12px; color:var(--mut); background:var(--bg); border-radius:9px; padding:9px 11px; margin-top:8px; max-height:130px; overflow:auto; white-space:pre-wrap; display:none; }
+  .badge { display:inline-block; font-size:11px; color:var(--accent); background:#EFF4FF; border-radius:6px; padding:2px 8px; margin-left:6px; }
+  #printArea { display:none; }
+  @media print {
+    body > *:not(#printArea) { display:none !important; }
+    #printArea { display:block !important; }
+    #printArea .pv-page { page-break-after:always; width:100%; aspect-ratio:16/9; }
+  }
+</style>
+</head>
+<body>
+<div class="top">
+  <a class="back" href="index.html">←</a>
+  <b>AI 演示工坊</b><span class="tag">大纲确认 · 一键成稿 · 原生可编辑 PPTX</span>
+</div>
+
+<div class="wrap">
+  <!-- 左：输入与生成 -->
+  <div>
+    <div class="card">
+      <h3>① 输入内容</h3>
+      <div class="modes">
+        <button id="mTopic" class="on" onclick="setMode('topic')">主题生成</button>
+        <button id="mPaste" onclick="setMode('paste')">粘贴大纲</button>
+        <button id="mFile" onclick="setMode('file')">导入文档</button>
+        <button id="mPptx" onclick="setMode('pptx')">上传PPT</button>
+      </div>
+      <div id="paneTopic">
+        <textarea id="topic" rows="3" placeholder="一句话主题，例如：2026 年 Q4 产品运营规划汇报"></textarea>
+      </div>
+      <div id="panePaste" style="display:none">
+        <textarea id="pasteMd" rows="6" placeholder="粘贴你的大纲或素材（Markdown / 纯文本均可）&#10;# 标题&#10;## 页标题&#10;- 要点"></textarea>
+      </div>
+      <div id="paneFile" style="display:none">
+        <input type="file" id="docFile" accept=".txt,.md,.docx,.pdf">
+        <div class="hint" id="fileInfo">支持 Word / PDF / TXT，自动提取正文并整理为大纲素材</div>
+      </div>
+      <div id="panePptx" style="display:none">
+        <input type="file" id="pptxFile" accept=".pptx">
+        <div class="hint" id="pptxInfo">上传已有 .pptx，逐页提取文字后由 AI 诊断问题并重排优化，成稿为全新可编辑演示。</div>
+      </div>
+
+      <label class="lbl">受众</label>
+      <input type="text" id="audience" placeholder="例如：管理层 / 客户 / 新员工" value="管理层">
+      <label class="lbl">页数</label>
+      <select id="pages"><option>8</option><option selected>12</option><option>16</option><option>20</option></select>
+      <label class="lbl">语言风格</label>
+      <select id="style"><option>专业汇报体，观点先行</option><option>简洁干练，只留结论</option><option>路演风格，有冲击力</option><option>教学讲解，循序渐进</option></select>
+      <label class="lbl">补充要求（可选）</label>
+      <input type="text" id="extra" placeholder="例如：突出成本数据；最后一页放联系方式">
+
+      <h3 style="margin-top:16px">② 选择主题</h3>
+      <div class="themes" id="themeList"></div>
+
+      <div style="margin-top:14px" class="row2">
+        <button class="btn" id="btnOutline" onclick="genOutline()">生成大纲</button>
+      </div>
+      <div class="row2" style="margin-top:8px">
+        <button class="btn ghost" id="btnDeck" onclick="genDeck()" disabled>② 一键成稿</button>
+      </div>
+      <div class="stream" id="stream"></div>
+      <div id="errBox"></div>
+    </div>
+
+    <div class="card" style="margin-top:14px">
+      <h3>大纲预览 <span class="badge">可直接编辑</span></h3>
+      <textarea id="outlineBox" rows="12" placeholder="点击「生成大纲」后，这里会出现可编辑的大纲。改完再点「一键成稿」。"></textarea>
+      <div class="hint">成稿基于此处内容：改标题、增删要点都会反映到最终页面。</div>
+    </div>
+  </div>
+
+  <!-- 右：预览与导出 -->
+  <div>
+    <div class="card stage">
+      <div class="slideView" id="slideView"></div>
+      <div class="nav">
+        <button onclick="go(-1)">← 上一页</button>
+        <span class="pg" id="pg">– / –</span>
+        <button onclick="go(1)">下一页 →</button>
+        <button onclick="present()">▶ 放映</button>
+      </div>
+      <div class="thumbs" id="thumbs"></div>
+      <div class="actions">
+        <button class="btn" id="btnPptx" onclick="expPptx()" disabled>⬇ 导出 .pptx</button>
+        <button class="btn ghost" id="btnHtml" onclick="expHtml()" disabled>⬇ 演示网页</button>
+        <button class="btn ghost" id="btnPdf" onclick="window.print()" disabled>⬇ 打印/PDF</button>
+      </div>
+      <div class="hint" id="deckInfo"></div>
+      <div id="errBox2"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 放映层 -->
+<div class="pres" id="pres">
+  <div class="pv">
+    <div class="pslide-holder">
+      <div id="presSlide"></div>
+      <div class="note" id="presNote"></div>
+    </div>
+  </div>
+  <div class="pfoot">← → / 空格翻页 · N 切换备注 · ESC 退出</div>
+</div>
+
+<div id="printArea"></div>
+
+<script src="js/vendor/qrcode-generator.js"></script>
+<script src="js/pptxgen.bundle.js"></script>
+<script src="js/app.js"></script>
+<script src="js/ppt-themes.js"></script>
+<script>
+'use strict';
+var MODE = 'topic';
+var THEME = localStorage.getItem('at_ppt_theme') || 'business';
+var deck = null, cur = 0, outlineText = '';
+
+function setMode(m) {
+  MODE = m;
+  ['topic','paste','file','pptx'].forEach(function (k) {
+    document.getElementById('pane' + k.charAt(0).toUpperCase() + k.slice(1)).style.display = k === m ? '' : 'none';
+    document.getElementById('m' + k.charAt(0).toUpperCase() + k.slice(1)).classList.toggle('on', k === m);
+  });
+  document.getElementById('btnOutline').textContent = m === 'pptx' ? '分析并优化' : '生成大纲';
+}
+
+/* 主题色卡 */
+(function () {
+  var box = document.getElementById('themeList');
+  Object.keys(PPT_THEMES).forEach(function (k) {
+    var t = PPT_THEMES[k];
+    var d = document.createElement('div');
+    d.className = 'th' + (k === THEME ? ' on' : '');
+    d.innerHTML = '<div class="sw" style="background:linear-gradient(135deg,#' + t.accent + ' 0%,#' + t.title + ' 100%)"></div>' + t.name;
+    d.onclick = function () {
+      THEME = k; localStorage.setItem('at_ppt_theme', k);
+      [].forEach.call(box.children, function (c) { c.classList.remove('on'); });
+      d.classList.add('on');
+      if (deck) renderAll();
+    };
+    box.appendChild(d);
+  });
+})();
+
+function showErr(boxId, msg) {
+  document.getElementById(boxId).innerHTML = msg ? '<div class="err">' + msg.replace(/</g, '&lt;') + '</div>' : '';
+}
+
+function streamShow(on, text) {
+  var el = document.getElementById('stream');
+  el.style.display = on ? 'block' : 'none';
+  if (text !== undefined) el.textContent = text;
+}
+
+function checkReady() {
+  if (!llmReady()) {
+    showErr('errBox', '未配置 AI 接口。请先到 <a href="settings.html" style="text-decoration:underline">设置页</a> 填写文本 API（接口地址 / Key / 模型），本工具的大纲与成稿由你自己的模型生成。');
+    return false;
+  }
+  return true;
+}
+
+async function baseContext() {
+  var ctx = '';
+  if (MODE === 'topic') {
+    ctx = document.getElementById('topic').value.trim();
+    if (!ctx) { showErr('errBox', '请先填写主题'); return null; }
+    return { text: '主题：' + ctx, isOutlineReady: false };
+  }
+  if (MODE === 'paste') {
+    ctx = document.getElementById('pasteMd').value.trim();
+    if (!ctx) { showErr('errBox', '请粘贴大纲或素材'); return null; }
+    return { text: ctx, isOutlineReady: /^#{1,3}\s/m.test(ctx) && ctx.length > 80 };
+  }
+  if (MODE === 'pptx') {
+    var pf = document.getElementById('pptxFile').files[0];
+    if (!pf) { showErr('errBox', '请选择 .pptx 文件'); return null; }
+    if (!/\.pptx$/i.test(pf.name)) { showErr('errBox', '仅支持 .pptx 格式（旧版 .ppt 请先另存为 .pptx）'); return null; }
+    var parsed;
+    try {
+      parsed = await parsePptxFile(pf);
+    } catch (e) { showErr('errBox', '解析失败：' + (e.message || e)); return null; }
+    var plain = pptxToPlainText(parsed);
+    if (!plain || plain.replace(/【第.*?页】|（本页无文字）/g, '').trim().length < 20) {
+      showErr('errBox', '未能从该 PPT 提取到足够文字（可能是纯图片型幻灯片）');
+      return null;
+    }
+    document.getElementById('pptxInfo').textContent = '已载入：' + pf.name + '（' + parsed.count + ' 页，' + plain.length + ' 字）';
+    if (plain.length > 12000) plain = plain.slice(0, 12000) + '\n…（超长已截断）';
+    return { text: plain, isOutlineReady: false, fromPptx: pf.name, slideCount: parsed.count };
+  }
+  var f = document.getElementById('docFile').files[0];
+  if (!f) { showErr('errBox', '请选择文档文件'); return null; }
+  try {
+    ctx = await readTextFile(f);
+  } catch (e) { showErr('errBox', '读取失败：' + (e.message || e)); return null; }
+  if (!ctx || ctx.trim().length < 30) { showErr('errBox', '未能从文档提取到足够文本'); return null; }
+  document.getElementById('fileInfo').textContent = '已载入：' + f.name + '（' + ctx.length + ' 字）';
+  if (ctx.length > 12000) ctx = ctx.slice(0, 12000) + '\n…（超长已截断）';
+  return { text: ctx, isOutlineReady: false, fromFile: f.name };
+}
+
+/* 第一步：生成大纲 */
+async function genOutline() {
+  showErr('errBox', ''); showErr('errBox2', '');
+  if (!checkReady()) return;
+  var src = await baseContext();
+  if (!src) return;
+  var btn = document.getElementById('btnOutline');
+  btn.disabled = true; btn.textContent = MODE === 'pptx' ? '分析中…' : '生成中…';
+  streamShow(true, '');
+  try {
+    var prompt;
+    if (MODE === 'pptx') {
+      prompt = pptOptimizePrompt({ original: src.text, audience: val('audience'), pages: val('pages'), style: val('style'), extra: val('extra') });
+    } else if (MODE === 'paste' && src.isOutlineReady) {
+      prompt = '整理下面这份大纲为标准 PPT 大纲（保持 Markdown：# 主标题 / 副标题：… / ## 页标题 / - 要点，页数约 ' + document.getElementById('pages').value + '）：\n\n' + src.text;
+      if (!confirm('检测到你粘贴的内容已像一份大纲。直接使用原文大纲（点「取消」则让 AI 重新整理）？')) {
+        prompt = pptOutlinePrompt({ topic: src.text.slice(0, 3000), audience: val('audience'), pages: val('pages'), style: val('style'), extra: val('extra') });
+      }
+    } else if (MODE === 'file') {
+      prompt = '根据以下文档内容生成一份 PPT 大纲（Markdown：# 主标题 / 副标题：… / ## 页标题 / - 要点，每页 3~5 条要点）。\n受众：' + val('audience') + '；页数：约 ' + val('pages') + '；风格：' + val('style') + '；' + val('extra') + '\n\n文档内容：\n' + src.text;
+    } else {
+      prompt = pptOutlinePrompt({ topic: src.text, audience: val('audience'), pages: val('pages'), style: val('style'), extra: val('extra') });
+    }
+    outlineText = await llmChat([{ role: 'user', content: prompt }], {
+      temperature: 0.6,
+      onDelta: function (d) {
+        var el = document.getElementById('stream');
+        el.textContent = (el.textContent + d).slice(-800);
+      }
+    });
+    document.getElementById('outlineBox').value = outlineText.trim();
+    document.getElementById('btnDeck').disabled = false;
+    showErr('errBox', '');
+  } catch (e) {
+    showErr('errBox', '大纲生成失败：' + (e.message || e));
+  } finally {
+    btn.disabled = false; btn.textContent = MODE === 'pptx' ? '分析并优化' : '生成大纲';
+    streamShow(false);
+  }
+}
+function val(id) { return document.getElementById(id).value.trim(); }
+
+/* 第二步：大纲 → deck JSON → 预览 */
+async function genDeck() {
+  showErr('errBox', ''); showErr('errBox2', '');
+  if (!checkReady()) return;
+  outlineText = document.getElementById('outlineBox').value.trim();
+  if (!outlineText) { showErr('errBox', '请先生成或粘贴大纲'); return; }
+  var btn = document.getElementById('btnDeck');
+  btn.disabled = true; btn.textContent = '成稿中…';
+  streamShow(true, '');
+  try {
+    var raw = await llmChat([{ role: 'user', content: pptDeckPrompt(outlineText, PPT_THEMES[THEME].name) }], {
+      temperature: 0.4,
+      onDelta: function (d) {
+        var el = document.getElementById('stream');
+        el.textContent = ('正在生成页面内容… ' + (el.textContent + d).slice(-400));
+      }
+    });
+    deck = normalizeDeck(extractJSON(raw));
+    if (!deck.title || deck.title === '未命名演示') {
+      var mt = outlineText.match(/^#\s+(.+)$/m);
+      if (mt) deck.title = mt[1].trim().slice(0, 60);
+    }
+    theme().__deckTitle = deck.title;
+    cur = 0;
+    renderAll();
+    ['btnPptx', 'btnHtml', 'btnPdf'].forEach(function (id) { document.getElementById(id).disabled = false; });
+    document.getElementById('deckInfo').textContent = '已生成 ' + deck.slides.length + ' 页 · 主题「' + PPT_THEMES[THEME].name + '」（换主题不会重新生成内容）· PPTX 为原生可编辑文本与图表';
+  } catch (e) {
+    showErr('errBox2', '成稿失败：' + (e.message || e) + '。可重试一次，或简化大纲后重试。');
+  } finally {
+    btn.disabled = false; btn.textContent = '② 一键成稿';
+    streamShow(false);
+  }
+}
+
+function theme() { return PPT_THEMES[THEME]; }
+
+function renderAll() {
+  if (!deck) return;
+  renderSlide(cur);
+  var th = document.getElementById('thumbs');
+  th.innerHTML = '';
+  deck.slides.forEach(function (s, i) {
+    var d = document.createElement('div');
+    d.className = 'tb' + (i === cur ? ' on' : '');
+    d.innerHTML = renderSlideHTML(s, theme(), i, deck.slides.length);
+    d.firstChild.style.fontSize = '5px';
+    d.onclick = function () { cur = i; renderSlide(cur); markThumb(); };
+    th.appendChild(d);
+  });
+  var pa = document.getElementById('printArea');
+  pa.innerHTML = deck.slides.map(function (s, i) {
+    return '<div class="pv-page" style="font-size:14px;overflow:hidden;">' + renderSlideHTML(s, theme(), i, deck.slides.length) + '</div>';
+  }).join('');
+}
+
+function markThumb() {
+  [].forEach.call(document.querySelectorAll('#thumbs .tb'), function (el, i) {
+    el.classList.toggle('on', i === cur);
+  });
+  document.querySelectorAll('#thumbs .tb')[cur] && document.querySelectorAll('#thumbs .tb')[cur].scrollIntoView({ block: 'nearest', inline: 'nearest' });
+}
+
+function renderSlide(i) {
+  var v = document.getElementById('slideView');
+  v.innerHTML = renderSlideHTML(deck.slides[i], theme(), i, deck.slides.length);
+  v.firstChild.style.fontSize = (v.clientWidth / 46) + 'px';
+  document.getElementById('pg').textContent = (i + 1) + ' / ' + deck.slides.length;
+  document.getElementById('presSlide').innerHTML = renderSlideHTML(deck.slides[i], theme(), i, deck.slides.length);
+  document.getElementById('presNote').textContent = deck.slides[i].note ? '备注：' + deck.slides[i].note : '';
+  document.getElementById('presNote').style.display = showNote ? '' : 'none';
+}
+window.addEventListener('resize', function () { if (deck) renderSlide(cur); });
+
+function go(d) {
+  if (!deck) return;
+  cur = Math.min(deck.slides.length - 1, Math.max(0, cur + d));
+  renderSlide(cur); markThumb();
+}
+
+/* 放映 */
+var showNote = false, presOpen = false;
+function present() {
+  if (!deck) return;
+  presOpen = true;
+  document.getElementById('pres').classList.add('show');
+  renderSlide(cur);
+}
+function closePres() {
+  presOpen = false;
+  document.getElementById('pres').classList.remove('show');
+}
+document.addEventListener('keydown', function (e) {
+  if (!presOpen) {
+    if (e.key === 'ArrowRight' && deck && document.activeElement.tagName !== 'TEXTAREA' && document.activeElement.tagName !== 'INPUT') go(1);
+    if (e.key === 'ArrowLeft' && deck && document.activeElement.tagName !== 'TEXTAREA' && document.activeElement.tagName !== 'INPUT') go(-1);
+    return;
+  }
+  if (e.key === 'Escape') closePres();
+  else if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); go(1); if (presOpen) renderSlide(cur); }
+  else if (e.key === 'ArrowLeft') { go(-1); if (presOpen) renderSlide(cur); }
+  else if (e.key.toLowerCase() === 'n') { showNote = !showNote; renderSlide(cur); }
+});
+document.getElementById('pres').addEventListener('click', function (e) {
+  if (e.target.closest('.pslide-holder')) { go(e.clientX > innerWidth / 2 ? 1 : -1); renderSlide(cur); }
+  else closePres();
+});
+
+/* 导出 PPTX */
+async function expPptx() {
+  if (!deck) return;
+  var btn = document.getElementById('btnPptx');
+  btn.disabled = true;
+  try {
+    var pptx = buildPPTX(deck, THEME);
+    var name = (deck.title || 'presentation').replace(/[\\/:*?"<>|]/g, '_').slice(0, 40);
+    await pptx.writeFile({ fileName: name });
+  } catch (e) {
+    showErr('errBox2', '导出失败：' + (e.message || e));
+  } finally { btn.disabled = false; }
+}
+
+/* 导出自包含演示 HTML */
+function expHtml() {
+  if (!deck) return;
+  try {
+    var slides = deck.slides.map(function (s, i) {
+      return '<div class="S" style="display:' + (i === 0 ? 'block' : 'none') + ';position:absolute;inset:0;font-size:calc(min(92vw, 92vh*16/9)/46);">' + renderSlideHTML(s, theme(), i, deck.slides.length) + '</div>';
+    }).join('');
+    var n = deck.slides.length;
+    var doc = '<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>' + deck.title.replace(/</g, '&lt;') + '</title><style>' +
+      'html,body{margin:0;height:100%;background:#0F172A;overflow:hidden;font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif}' +
+      '#stage{position:fixed;inset:0}' +
+      '.S{width:100%;height:100%}</style></head><body><div id="stage">' + slides + '</div>' +
+      '<script>var i=0,n=' + n + ';function s(d){var a=document.querySelectorAll(".S");a[i].style.display="none";i=Math.min(n-1,Math.max(0,i+d));a[i].style.display="block"}' +
+      'document.addEventListener("keydown",function(e){if(e.key==="ArrowRight"||e.key===" ")s(1);if(e.key==="ArrowLeft")s(-1)});' +
+      'document.addEventListener("click",function(e){s(e.clientX>innerWidth/2?1:-1)});<\/script></body></html>';
+    downloadText((deck.title || '演示').replace(/[\\/:*?"<>|]/g, '_') + '.html', doc);
+  } catch (e) {
+    showErr('errBox2', '导出失败：' + (e.message || e));
+  }
+}
+</script>
+</body>
+</html>

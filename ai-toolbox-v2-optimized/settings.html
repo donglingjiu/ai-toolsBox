@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>设置 · AI 工具箱</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: linear-gradient(160deg, #f4f6fb 0%, #e8edf7 100%);
+    min-height: 100vh; color: #1f2937; padding: 16px 12px 48px;
+  }
+  .wrap { max-width: 760px; margin: 0 auto; }
+  .back { display: inline-flex; align-items: center; gap: 6px; color: #2563eb; text-decoration: none; font-size: 14px; margin-bottom: 14px; }
+  h1 { font-size: 22px; margin-bottom: 4px; }
+  .sub { color: #6b7280; font-size: 13px; margin-bottom: 18px; }
+  .card { background: #fff; border-radius: 16px; padding: 20px 22px; box-shadow: 0 4px 20px rgba(30, 58, 138, .07); margin-bottom: 16px; }
+  .card h2 { font-size: 15px; margin-bottom: 4px; }
+  .card .desc { font-size: 12.5px; color: #9ca3af; margin-bottom: 12px; line-height: 1.6; }
+  label.fl { display: block; font-size: 13px; color: #4b5563; margin: 12px 0 6px; }
+  input[type="text"], input[type="password"] {
+    width: 100%; padding: 11px 12px; border: 1.5px solid #e5e7eb; border-radius: 10px;
+    font-size: 14px; outline: none; transition: border-color .2s;
+  }
+  input:focus { border-color: #2563eb; }
+  .row { display: flex; gap: 10px; }
+  .row > div { flex: 1; }
+  .btns { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+  .btn {
+    padding: 11px 18px; border: none; border-radius: 10px; color: #fff; font-size: 14px;
+    cursor: pointer; background: linear-gradient(135deg, #2563eb, #4f46e5); font-weight: 600;
+  }
+  .btn.ghost { background: #fff; color: #374151; border: 1.5px solid #e5e7eb; font-weight: 400; }
+  .btn.danger { background: #fff; color: #e5484d; border: 1.5px solid #fecaca; font-weight: 400; }
+  .status { margin-top: 10px; font-size: 13px; min-height: 18px; }
+  .status.ok { color: #16a34a; }
+  .status.err { color: #e5484d; }
+  .tip { font-size: 12px; color: #9ca3af; line-height: 1.7; margin-top: 10px; }
+  .tip b { color: #6b7280; }
+  details { margin-top: 12px; }
+  details summary { font-size: 13px; color: #6b7280; cursor: pointer; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="index.html">← 返回工具箱</a>
+  <h1>⚙️ 设置</h1>
+  <div class="sub">所有配置保存在本机浏览器（localStorage），不会上传</div>
+
+  <div class="card">
+    <h2>🤖 文本模型（AI 写作 / 问答 / 简历 / 顾问等）</h2>
+    <div class="desc">OpenAI 兼容接口：DeepSeek、通义、Kimi、OpenAI 中转等均可。</div>
+    <div class="row">
+      <div>
+        <label class="fl">API 地址（Base URL）</label>
+        <input type="text" id="apiBase" placeholder="如 https://api.deepseek.com/v1">
+      </div>
+      <div>
+        <label class="fl">模型名</label>
+        <input type="text" id="model" placeholder="如 deepseek-chat">
+      </div>
+    </div>
+    <label class="fl">API Key</label>
+    <input type="password" id="apiKey" placeholder="sk-…" autocomplete="off">
+  </div>
+
+  <div class="card">
+    <h2>🖼️ 图像模型（AI 试衣）</h2>
+    <div class="desc">OpenAI 兼容 /images/edits 图像接口。</div>
+    <div class="row">
+      <div>
+        <label class="fl">API 地址（Base URL）</label>
+        <input type="text" id="imgBase" placeholder="如 https://api.openai.com/v1">
+      </div>
+      <div>
+        <label class="fl">模型名</label>
+        <input type="text" id="imgModel" placeholder="如 gpt-image-1">
+      </div>
+    </div>
+    <label class="fl">API Key</label>
+    <input type="password" id="imgKey" placeholder="sk-…" autocomplete="off">
+  </div>
+
+  <div class="card">
+    <h2>📱 虚拟号平台接入（预留）</h2>
+    <div class="desc">
+      为「艺术挪车码」接入运营商副号 / 隐私虚拟号做准备。配置后，隐私中转模式会先把真实号码绑定到虚拟号，再把虚拟号编码进二维码。
+      建议自建一层<b>适配网关</b>统一接口：网关需实现 <code style="background:#f4f4f5;padding:1px 5px;border-radius:4px;">POST /bind</code>，
+      请求体 <code style="background:#f4f4f5;padding:1px 5px;border-radius:4px;">{mode, phoneA, expire}</code>，
+      响应 <code style="background:#f4f4f5;padding:1px 5px;border-radius:4px;">{virtual_number}</code>（阿里隐私号 AXN、移动和多号等都可包一层转换）。未配置时自动使用内置 AES 加密中转，同样不暴露真实号码。
+    </div>
+    <label class="fl">平台网关地址（Base URL，如 https://your-gateway.example.com）</label>
+    <input type="text" id="virtualApiBase" placeholder="留空 = 使用内置加密中转">
+    <div class="row">
+      <div>
+        <label class="fl">网关密钥（Bearer Token）</label>
+        <input type="password" id="virtualApiKey" placeholder="可选" autocomplete="off">
+      </div>
+      <div>
+        <label class="fl">绑定模式</label>
+        <input type="text" id="virtualMode" placeholder="AXN（默认）">
+      </div>
+    </div>
+    <div class="tip"><b>说明：</b>网关地址与密钥仅保存在本机；生成码时由你的浏览器直接调用网关。平台侧产生的副号费用与实名要求以运营商规则为准。</div>
+  </div>
+
+  <div class="btns">
+    <button class="btn" id="saveBtn">保存设置</button>
+    <button class="btn ghost" id="testBtn">测试文本模型连通性</button>
+    <button class="btn danger" id="clearBtn">清空本地数据</button>
+  </div>
+  <div class="status" id="status"></div>
+
+  <div class="card" style="margin-top:16px;">
+    <h2>🧹 本地数据</h2>
+    <div class="desc">清空浏览器中保存的所有工具数据（API 配置、知识库文档、情绪日记、号码簿、收藏等）。</div>
+    <details>
+      <summary>清空范围说明</summary>
+      <div class="tip">
+        · localStorage：API 设置、号码簿、提示词收藏、主题选择；<br>
+        · IndexedDB：第二大脑文档（ai-brain）、情绪日记（ai-mood）。<br>
+        清空不可恢复，请确认后再操作。
+      </div>
+    </details>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+(function () {
+  'use strict';
+  var s = getSettings();
+  ['apiBase', 'apiKey', 'model', 'imgBase', 'imgKey', 'imgModel', 'virtualApiBase', 'virtualApiKey', 'virtualMode'].forEach(function (k) {
+    var input = document.getElementById(k);
+    if (input && s[k]) input.value = s[k];
+  });
+
+  var $status = document.getElementById('status');
+  function setStatus(msg, ok) {
+    $status.textContent = msg;
+    $status.className = 'status ' + (ok ? 'ok' : 'err');
+  }
+
+  document.getElementById('saveBtn').addEventListener('click', function () {
+    var patch = {};
+    ['apiBase', 'apiKey', 'model', 'imgBase', 'imgKey', 'imgModel', 'virtualApiBase', 'virtualApiKey', 'virtualMode'].forEach(function (k) {
+      patch[k] = document.getElementById(k).value.trim();
+    });
+    if (patch.virtualMode === '') patch.virtualMode = 'AXN';
+    saveSettings(patch);
+    setStatus('✅ 已保存到本机', true);
+    toast('设置已保存');
+  });
+
+  document.getElementById('testBtn').addEventListener('click', async function () {
+    saveSettings({
+      apiBase: document.getElementById('apiBase').value.trim(),
+      apiKey: document.getElementById('apiKey').value.trim(),
+      model: document.getElementById('model').value.trim(),
+    });
+    if (!llmReady()) { setStatus('请先填写完整的 API 地址、Key 和模型名', false); return; }
+    setStatus('测试中…');
+    try {
+      var reply = await llmChat([{ role: 'user', content: '回复"OK"两个字母即可' }], { temperature: 0 });
+      setStatus('✅ 连通正常，模型返回：' + String(reply).slice(0, 60), true);
+    } catch (err) {
+      setStatus('❌ ' + ((err && err.message) || err), false);
+    }
+  });
+
+  document.getElementById('clearBtn').addEventListener('click', async function () {
+    if (!confirm('确定清空全部本地数据？此操作不可恢复。')) return;
+    if (!confirm('再次确认：API 配置、知识库、日记、号码簿都将被删除。')) return;
+    try {
+      localStorage.clear();
+      await idbClear('ai-brain', 'docs');
+      await idbClear('ai-mood', 'entries');
+      setStatus('已清空全部本地数据', true);
+      toast('已清空');
+    } catch (err) {
+      setStatus('清空出错：' + ((err && err.message) || err), false);
+    }
+  });
+})();
+</script>
+</body>
+</html>

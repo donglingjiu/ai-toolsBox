@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 简历优化助手 · AI 工具箱</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<nav class="nav"><div class="nav-inner">
+  <a href="index.html" class="nav-logo"><span class="dot">⚡</span>AI 工具箱</a>
+  <div class="nav-links">
+    <a href="qr.html">艺术挪车码</a><a href="convert.html">文档转换</a><a href="resume.html">简历优化</a><a href="brain.html">第二大脑</a><a href="advisor.html">副业顾问</a><a href="mood.html">情绪日记</a><a href="tryon.html">AI 试衣</a><a href="ppt.html">AI 演示</a><a href="prompts.html">提示词库</a><a href="settings.html">设置</a>
+  </div>
+</div></nav>
+
+<div class="wrap">
+  <h1 class="page-title">📋 AI 简历优化助手</h1>
+  <p class="page-sub">上传或粘贴简历 + 目标岗位 JD，获得关键词覆盖分析、逐条重写建议与模拟面试追问。</p>
+
+  <div class="row">
+    <div class="card">
+      <label class="fl">我的简历（支持上传 .docx / .txt / .md，或直接粘贴）</label>
+      <div class="row mb8">
+        <div class="file-drop" id="rDrop" style="flex:1;min-width:180px;padding:14px;">点击上传文件</div>
+        <input type="file" id="rFile" accept=".docx,.txt,.md" class="hidden">
+      </div>
+      <textarea id="resumeText" rows="10" placeholder="粘贴简历全文…（工作经历、技能、项目）"></textarea>
+    </div>
+    <div class="card">
+      <label class="fl">目标岗位 JD（职位描述）</label>
+      <textarea id="jdText" rows="12" placeholder="粘贴目标岗位的职位描述，包括职责要求与任职要求…"></textarea>
+      <label class="fl mt8">目标岗位名称（可选）</label>
+      <input type="text" id="jobName" placeholder="如：Java 后端开发工程师">
+    </div>
+  </div>
+
+  <div class="tabs mt24">
+    <button class="tab active" data-tab="opt">✨ 简历优化重写</button>
+    <button class="tab" data-tab="cov">📊 关键词覆盖分析</button>
+    <button class="tab" data-tab="intv">🎤 模拟面试官追问</button>
+  </div>
+
+  <div class="tabpane active" id="pane-opt">
+    <button class="btn btn-primary" id="goOpt">开始优化重写</button>
+    <div id="outOpt" class="mt16"></div>
+  </div>
+  <div class="tabpane" id="pane-cov">
+    <button class="btn btn-primary" id="goCov">分析关键词覆盖</button>
+    <div id="outCov" class="mt16"></div>
+  </div>
+  <div class="tabpane" id="pane-intv">
+    <button class="btn btn-primary" id="goIntv">生成面试官追问</button>
+    <div id="outIntv" class="mt16"></div>
+  </div>
+</div>
+
+<footer class="footer">AI 工具箱 · 简历内容仅发送给你自己配置的模型 API</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/marked@9.1.6/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
+<script src="js/app.js"></script>
+<script>
+(function () {
+  const tabs = $$('.tab');
+  tabs.forEach(t => t.addEventListener('click', () => {
+    tabs.forEach(x => x.classList.toggle('active', x === t));
+    $$('.tabpane').forEach(p => p.classList.toggle('active', p.id === 'pane-' + t.dataset.tab));
+  }));
+
+  $('#rDrop').addEventListener('click', () => $('#rFile').click());
+  $('#rFile').addEventListener('change', async (e) => {
+    const f = e.target.files[0];
+    if (!f) return;
+    try {
+      const text = await readTextFile(f);
+      $('#resumeText').value = ($('#resumeText').value ? $('#resumeText').value + '\n\n' : '') + text;
+      $('#rDrop').innerHTML = '✅ 已导入：<b>' + f.name + '</b>';
+      toast('简历导入成功', 'ok');
+    } catch (err) { toast('读取失败：' + err.message, 'err'); }
+  });
+
+  function check() {
+    if (!$('#resumeText').value.trim()) { toast('请先填写简历内容', 'err'); return false; }
+    if (!$('#jdText').value.trim()) { toast('请先填写目标岗位 JD', 'err'); return false; }
+    if (!llmReady()) { toast('请先在设置页配置模型 API', 'err'); location.href = 'settings.html'; return false; }
+    return true;
+  }
+
+  function streamTo(target, btn) {
+    target.classList.remove('hidden');
+    const card = el('div', { class: 'result-box' },
+      el('div', { class: 'result-head' },
+        el('h3', null, '分析结果'),
+        el('button', { class: 'btn btn-ghost btn-sm hidden', onclick: () => downloadText('result.md', card.dataset.raw || '', 'text/markdown') }, '⬇️ 下载 MD')));
+    const body = el('div', { class: 'md cursor-blink' });
+    card.appendChild(body);
+    target.innerHTML = '';
+    target.appendChild(card);
+    btn.disabled = true;
+    return {
+      card, body,
+      done(text) {
+        body.innerHTML = mdRender(text);
+        body.classList.remove('cursor-blink');
+        card.dataset.raw = text;
+        card.querySelector('button').classList.remove('hidden');
+        btn.disabled = false;
+      },
+      fail(e) {
+        body.classList.remove('cursor-blink');
+        body.innerHTML = e.message === 'NO_API'
+          ? '<div class="tip tip-warn">尚未配置模型 API，<a href="settings.html">前往设置</a></div>'
+          : '<div class="tip tip-warn">调用失败：' + (e.message || e) + '</div>';
+        btn.disabled = false;
+      },
+    };
+  }
+
+  /* 优化重写 */
+  $('#goOpt').addEventListener('click', async () => {
+    if (!check()) return;
+    const s = streamTo($('#outOpt'), $('#goOpt'));
+    const job = $('#jobName').value.trim();
+    const sys = '你是一位拥有 15 年经验的资深猎头与简历专家，熟悉大厂 HR 的筛选逻辑与 ATS 关键词匹配机制。请用中文，输出 Markdown。';
+    const user = '请针对目标岗位优化以下简历。\n\n' +
+      (job ? '【目标岗位】' + job + '\n' : '') +
+      '【岗位JD】\n' + $('#jdText').value.trim() + '\n\n【我的简历】\n' + $('#resumeText').value.trim() +
+      '\n\n请输出：\n1. **诊断摘要**：当前简历 vs JD 的匹配度评估与三大问题\n2. **逐条重写**：挑出 6-10 条需要改写的经历描述，用两栏对比展示（左：原文 / 右：改写后），改写遵循 STAR 法则、量化成果、嵌入 JD 关键词\n3. **技能 gap 分析**：JD 要求但简历缺失的能力清单，每条给出 1 句补齐建议\n4. **一句话卖点**：基于简历为该岗位提炼一段 80 字内的个人亮点陈述';
+    try {
+      const full = await llmChat([{ role: 'system', content: sys }, { role: 'user', content: user }],
+        { stream: true, temperature: 0.6, onDelta: (d, full2) => { s.body.innerHTML = mdRender(full2); } });
+      s.done(full);
+    } catch (e) { s.fail(e); }
+  });
+
+  /* 关键词覆盖 */
+  $('#goCov').addEventListener('click', async () => {
+    if (!check()) return;
+    const s = streamTo($('#outCov'), $('#goCov'));
+    const user = '分析以下简历对岗位 JD 的关键词覆盖情况，输出 JSON（不要包含其它文字）。\n【JD】\n' + $('#jdText').value.trim() + '\n\n【简历】\n' + $('#resumeText').value.trim() +
+      '\n\nJSON 格式：{"keywords":[{"word":"关键词","weight":"high|mid|low","covered":true|false,"evidence":"简历中的依据原文片段，未覆盖则为空字符串"}],"summary":"一段 60 字内的总体评估"}。keywords 提取 12-18 个 JD 中的硬技能/软素质关键词，high 为核心必须项。';
+    try {
+      const full = await llmChat([{ role: 'system', content: '你是 ATS 简历关键词分析引擎，只输出 JSON。' }, { role: 'user', content: user }],
+        { temperature: 0.2, json: true });
+      const j = JSON.parse(full.replace(/^```json?\s*|```$/g, '').trim());
+      const kws = j.keywords || [];
+      const cov = kws.filter(k => k.covered).length;
+      const pct = kws.length ? Math.round(cov / kws.length * 100) : 0;
+      const box = el('div', { class: 'result-box' });
+      box.appendChild(el('div', { class: 'result-head' },
+        el('h3', null, '关键词覆盖率：' + pct + '%'),
+        el('span', { class: 'badge ' + (pct >= 70 ? 'badge-ok' : pct >= 40 ? 'badge-warn' : 'badge-err') }, cov + ' / ' + kws.length + ' 项命中')));
+      const summary = el('div', { class: 'callout mb16' }, j.summary || '');
+      box.appendChild(summary);
+      for (const k of kws) {
+        box.appendChild(el('div', { class: 'cov-row' + (k.covered ? '' : ' miss') },
+          el('span', { class: 'kw', title: k.word }, k.word + (k.weight === 'high' ? ' ★' : '')),
+          el('div', { class: 'cov-bar' }, el('i', { style: 'width:' + (k.covered ? 100 : 12) + '%' })),
+          el('span', { class: 'pct' }, k.covered ? '已覆盖' : '缺失')));
+        if (!k.covered && k.evidence === '' && k.weight === 'high') {}
+      }
+      const missBox = el('div', { class: 'mt16' });
+      const misses = kws.filter(k => !k.covered);
+      if (misses.length) {
+        missBox.appendChild(el('h3', { style: 'font-size:15px' }, '缺失关键词（建议补充进简历）：'));
+        missBox.appendChild(el('p', { class: 'muted' }, misses.map(k => k.word).join('、')));
+      }
+      box.appendChild(missBox);
+      $('#outCov').innerHTML = '';
+      $('#outCov').appendChild(box);
+      $('#goCov').disabled = false;
+    } catch (e) {
+      s.fail(e);
+    }
+  });
+
+  /* 模拟面试 */
+  $('#goIntv').addEventListener('click', async () => {
+    if (!check()) return;
+    const s = streamTo($('#outIntv'), $('#goIntv'));
+    const user = '你是该岗位的资深面试官（压力面风格）。基于简历与 JD，生成 8 个最有杀伤力的追问：技术深挖、项目细节拷问、压力情景题。\n【JD】\n' + $('#jdText').value.trim() + '\n\n【简历】\n' + $('#resumeText').value.trim() +
+      '\n\n对每个问题给出：**问题** + 考察点 + 优秀回答思路（3 句内）+ 踩坑提示。输出 Markdown。';
+    try {
+      const full = await llmChat([{ role: 'system', content: '你是资深面试官教练，输出 Markdown，中文。' }, { role: 'user', content: user }],
+        { stream: true, temperature: 0.7, onDelta: (d, f) => { s.body.innerHTML = mdRender(f); } });
+      s.done(full);
+    } catch (e) { s.fail(e); }
+  });
+})();
+</script>
+</body>
+</html>
