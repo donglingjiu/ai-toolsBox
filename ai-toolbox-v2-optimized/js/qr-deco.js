@@ -1,4 +1,4 @@
-/* ============ 艺术二维码引擎：矩阵绘制 + 四主题背景 + 隐私中转 + 虚拟号预留 ============ */
+/* ============ 艺术二维码引擎：矩阵绘制 + 四主题背景 + 自定义形状/渐变/图片 + 隐私中转 + 虚拟号预留 ============ */
 'use strict';
 
 /* ---------- 二维码矩阵（双库适配：本地 qrcode-generator 优先，npm qrcode UMD 兼容） ---------- */
@@ -27,56 +27,180 @@ function inFinder(x, y, n, s) {
   return (x < s && y < s) || (x >= n - s && y < s) || (x < s && y >= n - s);
 }
 
-/* ---------- 把二维码画成圆盘（定位角方块 + 数据圆点） ---------- */
-function drawQrDisk(ctx, matrix, cx, cy, diskD, opt) {
-  const fg = opt.fg, disk = opt.disk;
-  const n = matrix.size;
-  /* 内切正方形：保证定位角不被圆盘边缘裁掉，留 3% 边距 */
-  const qrSide = Math.floor(diskD / Math.SQRT2 * 0.97);
-  const cell = qrSide / n;
-  const half = qrSide / 2;
-  const ox = cx - half, oy = cy - half;
+/* ---------- 可选形状 ---------- */
+var QR_MODULE_STYLES = ['square', 'dot', 'rounded', 'diamond', 'fluid'];
+var QR_FINDER_STYLES = ['square', 'rounded', 'circle', 'leaf'];
+var QR_IMG_MODES = ['logo', 'fill', 'bg'];
 
-  /* 承托盘 */
-  ctx.beginPath();
-  ctx.arc(cx, cy, diskD / 2, 0, Math.PI * 2);
-  ctx.fillStyle = disk;
-  ctx.fill();
-  /* 外环 */
+/* 单个模块路径（px,py 为模块左上角，cell 为边长） */
+function modulePath(ctx, style, px, py, cell, connected) {
+  const cx = px + cell / 2, cy = py + cell / 2;
+  if (style === 'dot') {
+    ctx.arc(cx, cy, cell * 0.42, 0, Math.PI * 2);
+  } else if (style === 'rounded') {
+    const r = cell * 0.32;
+    ctx.moveTo(px + r, py);
+    ctx.arcTo(px + cell, py, px + cell, py + cell, r);
+    ctx.arcTo(px + cell, py + cell, px, py + cell, r);
+    ctx.arcTo(px, py + cell, px, py, r);
+    ctx.arcTo(px, py, px + cell, py, r);
+    ctx.closePath();
+  } else if (style === 'diamond') {
+    ctx.moveTo(cx, py + cell * 0.06);
+    ctx.lineTo(px + cell * 0.94, cy);
+    ctx.lineTo(cx, py + cell * 0.94);
+    ctx.lineTo(px + cell * 0.06, cy);
+    ctx.closePath();
+  } else if (style === 'fluid' && connected) {
+    /* 流体：与相邻暗模块连接处画直边，孤立处圆角——近似连续流线 */
+    const r = cell * 0.5;
+    ctx.arc(cx, cy, r * (connected.left || connected.right || connected.up || connected.down ? 0.62 : 0.46), 0, Math.PI * 2);
+  } else {
+    ctx.rect(px, py, cell, cell);
+  }
+}
+
+/* 定位角绘制（三种同心结构） */
+function finderDraw(ctx, style, px, py, cell, fg, bg) {
+  const S = cell * 7;
+  const roundRect = (x, y, w, h, r) => {
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  };
+  const shape = (k, x, y, w, fill) => {
+    ctx.beginPath();
+    if (style === 'circle' && k !== 2) ctx.arc(x + w / 2, y + w / 2, w / 2, 0, Math.PI * 2);
+    else if (style === 'rounded' && k !== 2) roundRect(x, y, w, w, w * 0.28);
+    else if (style === 'leaf' && k !== 2) {
+      /* 叶形：对角大圆角 */
+      ctx.moveTo(x + w * 0.28, y);
+      ctx.arcTo(x + w, y, x + w, y + w, w * 0.42);
+      ctx.arcTo(x + w, y + w, x, y + w, w * 0.42);
+      ctx.arcTo(x, y + w, x, y, w * 0.42);
+      ctx.arcTo(x, y, x + w, y, w * 0.42);
+      ctx.closePath();
+    } else ctx.rect(x, y, w, w);
+    if (fill) { ctx.fillStyle = fg; ctx.fill(); } else { ctx.fillStyle = bg; ctx.fill(); }
+  };
+  shape(0, px, py, S, true);            /* 外框 */
+  shape(1, px + cell, py + cell, cell * 5, false); /* 白环 */
+  ctx.beginPath();                       /* 中心芯：始终实心 */
+  if (style === 'circle') ctx.arc(px + S / 2, py + S / 2, cell * 1.5, 0, Math.PI * 2);
+  else if (style === 'rounded') roundRect(px + cell * 2, py + cell * 2, cell * 3, cell * 3, cell * 0.8);
+  else if (style === 'leaf') roundRect(px + cell * 2, py + cell * 2, cell * 3, cell * 3, cell * 0.9);
+  else ctx.rect(px + cell * 2, py + cell * 2, cell * 3, cell * 3);
+  ctx.fillStyle = fg; ctx.fill();
+}
+
+/* ---------- 通用二维码渲染核心（方形 / 圆盘通用） ----------
+ * opt: { fg, fg2, gradient:'none'|'linear'|'radial', bg, moduleStyle, finderStyle,
+ *        disk:null|color(圆盘承托), ring, ringWidth, logoImg, logoScale, quiet }
+ */
+function renderQrCore(ctx, matrix, ox, oy, qrSide, opt) {
+  const n = matrix.size;
+  const cell = qrSide / (n + (opt.quiet || 0) * 2);
+  const q = opt.quiet || 0;
+  const gridOx = ox + q * cell, gridOy = oy + q * cell;
+
+  /* 前景色（支持渐变） */
+  let fg = opt.fg || '#1f2937';
+  if (opt.gradient === 'linear' && opt.fg2) {
+    const g = ctx.createLinearGradient(ox, oy, ox + qrSide, oy + qrSide);
+    g.addColorStop(0, fg); g.addColorStop(1, opt.fg2);
+    fg = g;
+  } else if (opt.gradient === 'radial' && opt.fg2) {
+    const g = ctx.createRadialGradient(ox + qrSide / 2, oy + qrSide / 2, qrSide * 0.05, ox + qrSide / 2, oy + qrSide / 2, qrSide * 0.72);
+    g.addColorStop(0, fg); g.addColorStop(1, opt.fg2);
+    fg = g;
+  }
+
+  /* 圆盘承托 */
+  if (opt.disk) {
+    const cx = ox + qrSide / 2, cy = oy + qrSide / 2;
+    ctx.beginPath();
+    ctx.arc(cx, cy, qrSide / Math.SQRT2, 0, Math.PI * 2);
+    ctx.fillStyle = opt.disk; ctx.fill();
+    if (opt.ringWidth > 0) {
+      ctx.beginPath();
+      ctx.arc(cx, cy, qrSide / Math.SQRT2 - opt.ringWidth / 2 - 2, 0, Math.PI * 2);
+      ctx.lineWidth = opt.ringWidth;
+      ctx.strokeStyle = opt.ring || opt.fg || '#333';
+      ctx.stroke();
+    }
+  }
+
+  const style = opt.moduleStyle || 'square';
+  const connected = (x, y) => ({
+    left: x > 0 && matrix.get(y, x - 1) && !inFinder(x - 1, y, n),
+    right: x < n - 1 && matrix.get(y, x + 1) && !inFinder(x + 1, y, n),
+    up: y > 0 && matrix.get(y - 1, x) && !inFinder(x, y - 1, n),
+    down: y < n - 1 && matrix.get(y + 1, x) && !inFinder(x, y + 1, n),
+  });
+
+  ctx.fillStyle = fg;
+  for (let y = 0; y < n; y++) {
+    for (let x = 0; x < n; x++) {
+      if (!matrix.get(y, x) || inFinder(x, y, n)) continue;
+      ctx.beginPath();
+      modulePath(ctx, style, gridOx + x * cell, gridOy + y * cell, cell, connected(x, y));
+      ctx.fill();
+    }
+  }
+
+  /* 定位角 */
+  const fs = opt.finderStyle || 'square';
+  [[0, 0], [n - 7, 0], [0, n - 7]].forEach(function (p) {
+    finderDraw(ctx, fs, gridOx + p[0] * cell, gridOy + p[1] * cell, cell, opt.fg || '#1f2937', opt.disk || opt.bg || '#ffffff');
+  });
+
+  /* 中心 Logo（面积限制 + 白色托底） */
+  if (opt.logoImg) {
+    const lw = qrSide * (opt.logoScale || 0.2);
+    const lx = ox + (qrSide - lw) / 2, ly = oy + (qrSide - lw) / 2;
+    const pad = lw * 0.08, rr = lw * 0.18;
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(lx - pad + rr, ly - pad);
+    ctx.arcTo(lx + lw + pad, ly - pad, lx + lw + pad, ly + lw + pad, rr);
+    ctx.arcTo(lx + lw + pad, ly + lw + pad, lx - pad, ly + lw + pad, rr);
+    ctx.arcTo(lx - pad, ly + lw + pad, lx - pad, ly - pad, rr);
+    ctx.arcTo(lx - pad, ly - pad, lx + lw + pad, ly - pad, rr);
+    ctx.closePath();
+    ctx.fillStyle = opt.logoPad !== false ? '#ffffff' : 'rgba(255,255,255,0)';
+    ctx.fill();
+    ctx.clip();
+    const img = opt.logoImg;
+    const s = Math.min(img.width, img.height);
+    ctx.drawImage(img, (img.width - s) / 2, (img.height - s) / 2, s, s, lx, ly, lw, lw);
+    ctx.restore();
+  }
+}
+
+/* ---------- 把二维码画成圆盘（旧接口，保留兼容：主题模式走 renderQrCore） ---------- */
+function drawQrDisk(ctx, matrix, cx, cy, diskD, opt) {
+  const n = matrix.size;
+  const qrSide = Math.floor(diskD / Math.SQRT2 * 0.97);
+  renderQrCore(ctx, matrix, cx - qrSide / 2, cy - qrSide / 2, qrSide, {
+    fg: opt.fg, bg: opt.disk, disk: null, ring: opt.ring, ringWidth: 0,
+    moduleStyle: 'dot', finderStyle: 'square', quiet: 0,
+  });
+  /* 重新补画圆盘边框（renderQrCore 不画） */
   if (opt.ringWidth > 0) {
     ctx.beginPath();
     ctx.arc(cx, cy, diskD / 2 - opt.ringWidth / 2 - 2, 0, Math.PI * 2);
     ctx.lineWidth = opt.ringWidth;
-    ctx.strokeStyle = opt.ring || fg;
+    ctx.strokeStyle = opt.ring || opt.fg;
     ctx.stroke();
   }
-
-  /* 定位角：方块三层结构 */
-  const drawFinder = (fx, fy) => {
-    const px = ox + fx * cell, py = oy + fy * cell;
-    ctx.fillStyle = fg;
-    ctx.fillRect(px, py, cell * 7, cell * 7);
-    ctx.fillStyle = disk;
-    ctx.fillRect(px + cell, py + cell, cell * 5, cell * 5);
-    ctx.fillStyle = fg;
-    ctx.fillRect(px + cell * 2, py + cell * 2, cell * 3, cell * 3);
-  };
-  drawFinder(0, 0);
-  drawFinder(n - 7, 0);
-  drawFinder(0, n - 7);
-
-  /* 数据点：圆点 */
-  ctx.fillStyle = fg;
-  const r = cell * 0.42;
-  for (let y = 0; y < n; y++) {
-    for (let x = 0; x < n; x++) {
-      if (!matrix.get(y, x)) continue;
-      if (inFinder(x, y, n)) continue;
-      ctx.beginPath();
-      ctx.arc(ox + (x + 0.5) * cell, oy + (y + 0.5) * cell, r, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  }
+  ctx.beginPath();
+  ctx.arc(cx, cy, diskD / 2, 0, Math.PI * 2);
+  ctx.strokeStyle = 'rgba(0,0,0,.08)';
+  ctx.lineWidth = 1;
+  ctx.stroke();
 }
 
 /* ---------- 工具：确定性伪随机 / 星空 ---------- */
@@ -189,7 +313,7 @@ const THEMES = {
     fg: '#7a4a12', disk: '#fdf6e8', ring: '#e6a23c',
     draw: function (ctx, W) {
       const rnd = rand(20240321);
-      const g = ctx.createRadialGradient(W / 2, W / 2, 40, W / 2, W / 2, W / 1.4);
+      const g = ctx.createRadialGradient(W / 2, W / 2, 40, W / 2, W / 1.4);
       g.addColorStop(0, '#ffe9c4'); g.addColorStop(0.55, '#f6c169'); g.addColorStop(1, '#d97c2b');
       ctx.fillStyle = g; ctx.fillRect(0, 0, W, W);
       runeRing(ctx, W / 2, W / 2, W * 0.468, '#8a4d13', rnd, W);
@@ -203,7 +327,7 @@ const THEMES = {
     fg: '#1e3a8a', disk: '#f5efe0', ring: '#e6c15a',
     draw: function (ctx, W) {
       const rnd = rand(777);
-      const g = ctx.createRadialGradient(W / 2, W / 2, 40, W / 2, W / 2, W / 1.3);
+      const g = ctx.createRadialGradient(W / 2, W / 2, 40, W / 2, W / 1.3);
       g.addColorStop(0, '#243064'); g.addColorStop(1, '#0d1229');
       ctx.fillStyle = g; ctx.fillRect(0, 0, W, W);
       const cx = W / 2, cy = W / 2;
@@ -254,7 +378,7 @@ const THEMES = {
   },
 };
 
-/* ---------- 生成完整艺术二维码 ---------- */
+/* ---------- 生成完整艺术二维码（主题模式） ---------- */
 function generateArtQR(payload, themeKey, opts) {
   opts = opts || {};
   const W = opts.size || 1024;
@@ -264,11 +388,93 @@ function generateArtQR(payload, themeKey, opts) {
   const ctx = canvas.getContext('2d');
   theme.draw(ctx, W);
   const matrix = qrMatrix(payload); /* 可能抛错：调用方负责 catch */
-  drawQrDisk(ctx, matrix, W / 2, W / 2, W * (opts.scale || 0.62), {
-    fg: opts.fg || theme.fg,
-    disk: opts.disk || theme.disk,
-    ring: opts.ring || theme.ring,
-    ringWidth: opts.ringWidth != null ? opts.ringWidth : Math.round(W * 0.014),
+  const fg = opts.fg || theme.fg;
+  const disk = opts.disk || theme.disk;
+  /* 主题模式下支持模块形状覆盖（默认保持各主题观感：圆点） */
+  const mStyle = opts.moduleStyle || 'dot';
+  const fStyle = opts.finderStyle || 'square';
+  const qrSide = Math.floor(W * (opts.scale || 0.62) / Math.SQRT2 * 0.97);
+  const cx = W / 2, cy = W / 2;
+  /* 圆盘承托 + 外环 */
+  ctx.beginPath();
+  ctx.arc(cx, cy, W * (opts.scale || 0.62) / 2, 0, Math.PI * 2);
+  ctx.fillStyle = disk; ctx.fill();
+  const ringWidth = opts.ringWidth != null ? opts.ringWidth : Math.round(W * 0.014);
+  if (ringWidth > 0) {
+    ctx.beginPath();
+    ctx.arc(cx, cy, W * (opts.scale || 0.62) / 2 - ringWidth / 2 - 2, 0, Math.PI * 2);
+    ctx.lineWidth = ringWidth;
+    ctx.strokeStyle = opts.ring || theme.ring || fg;
+    ctx.stroke();
+  }
+  renderQrCore(ctx, matrix, cx - qrSide / 2, cy - qrSide / 2, qrSide, {
+    fg: fg, fg2: opts.fg2, gradient: opts.gradient || 'none',
+    bg: disk, disk: null, ringWidth: 0,
+    moduleStyle: mStyle, finderStyle: fStyle, quiet: 0,
+    logoImg: opts.logoImg, logoScale: opts.logoScale,
+  });
+  return canvas;
+}
+
+/* ---------- 自定义模式：形状 / 渐变 / 图片自由组合 ----------
+ * opt: { size, moduleStyle, finderStyle, fg, fg2, gradient, bg,
+ *        img, imgMode:'logo'|'fill'|'bg', imgAlpha(0~1 遮罩强度), scale }
+ */
+function generateCustomQR(payload, opt) {
+  opt = opt || {};
+  const W = opt.size || 1024;
+  const canvas = document.createElement('canvas');
+  canvas.width = canvas.height = W;
+  const ctx = canvas.getContext('2d');
+  const matrix = qrMatrix(payload);
+
+  const scale = opt.scale || 0.86;             /* 方形模式：二维码占画布比例 */
+  const quiet = 4;                              /* 四边静区（模块数） */
+  const qrSide = W * scale;
+  const ox = (W - qrSide) / 2, oy = (W - qrSide) / 2;
+
+  /* 背景：纯色 / 图片(bg 模式) */
+  ctx.fillStyle = opt.bg || '#ffffff';
+  ctx.fillRect(0, 0, W, W);
+  if (opt.img && opt.imgMode === 'bg') {
+    const s = Math.max(W / opt.img.width, W / opt.img.height);
+    const dw = opt.img.width * s, dh = opt.img.height * s;
+    ctx.drawImage(opt.img, (W - dw) / 2, (W - dh) / 2, dw, dh);
+    ctx.fillStyle = 'rgba(255,255,255,' + (opt.imgAlpha != null ? opt.imgAlpha : 0.55) + ')';
+    ctx.fillRect(0, 0, W, W);
+  }
+
+  /* fill 模式：先把模块画到离屏画布，再把图片 source-atop 进模块形状 */
+  if (opt.img && opt.imgMode === 'fill') {
+    const off = document.createElement('canvas');
+    off.width = off.height = W;
+    const octx = off.getContext('2d');
+    renderQrCore(octx, matrix, ox, oy, qrSide, {
+      fg: '#000000', bg: '#ffffff', disk: null, ringWidth: 0,
+      moduleStyle: opt.moduleStyle || 'rounded', finderStyle: opt.finderStyle || 'rounded', quiet: quiet,
+    });
+    octx.globalCompositeOperation = 'source-atop';
+    const s = Math.max(W / opt.img.width, W / opt.img.height);
+    const dw = opt.img.width * s, dh = opt.img.height * s;
+    octx.drawImage(opt.img, (W - dw) / 2, (W - dh) / 2, dw, dh);
+    if (opt.imgAlpha != null && opt.imgAlpha < 1) {
+      /* tint：把图片压暗保证扫码对比度 */
+      octx.globalAlpha = 1 - opt.imgAlpha;
+      octx.fillStyle = '#111827';
+      octx.fillRect(0, 0, W, W);
+      octx.globalAlpha = 1;
+    }
+    ctx.drawImage(off, 0, 0);
+    return canvas;
+  }
+
+  /* logo / 无图模式：直接核心渲染 */
+  renderQrCore(ctx, matrix, ox, oy, qrSide, {
+    fg: opt.fg || '#111827', fg2: opt.fg2, gradient: opt.gradient || 'none',
+    bg: opt.bg || '#ffffff', disk: null, ringWidth: 0,
+    moduleStyle: opt.moduleStyle || 'square', finderStyle: opt.finderStyle || 'square',
+    quiet: quiet, logoImg: opt.imgMode === 'logo' ? opt.img : null,
+    logoScale: opt.logoScale || 0.2,
   });
   return canvas;
 }

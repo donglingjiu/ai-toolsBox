@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>石人居 · 石刻手作入门 · AI 工具箱</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: linear-gradient(165deg, #f6f4ef 0%, #ece9e1 100%);
+    color: #2d2a24; padding: 0 0 56px;
+  }
+  .hero {
+    background:
+      radial-gradient(1200px 400px at 80% -10%, rgba(140,110,75,.18), transparent 60%),
+      linear-gradient(160deg, #3d3529 0%, #57503f 55%, #6b5f49 100%);
+    color: #f5efe4; padding: 46px 16px 38px; text-align: center;
+  }
+  .hero h1 { font-size: 30px; letter-spacing: 6px; margin-bottom: 10px; }
+  .hero p { font-size: 14.5px; opacity: .85; line-height: 1.8; }
+  .hero .tagline { display: inline-block; margin-top: 14px; font-size: 13px; border: 1px solid rgba(245,239,228,.4); border-radius: 999px; padding: 6px 18px; letter-spacing: 2px; }
+  .wrap { max-width: 1020px; margin: 0 auto; padding: 0 14px; }
+  .back { display: inline-flex; align-items: center; gap: 6px; color: #8a6d3b; text-decoration: none; font-size: 14px; margin: 16px 0 4px; }
+  nav.jump { display: flex; flex-wrap: wrap; gap: 10px; margin: 18px 0 8px; }
+  nav.jump a { text-decoration: none; color: #4a4032; background: #fff; border: 1.5px solid #e2dccd; border-radius: 999px; padding: 8px 18px; font-size: 13.5px; transition: all .15s; }
+  nav.jump a:hover { border-color: #8a6d3b; color: #8a6d3b; }
+  section { margin-top: 26px; scroll-margin-top: 16px; }
+  section > h2 { font-size: 20px; letter-spacing: 2px; padding-left: 12px; border-left: 4px solid #8a6d3b; margin-bottom: 14px; }
+  section > h2 small { font-size: 12.5px; color: #8b8271; letter-spacing: 0; margin-left: 10px; font-weight: normal; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; }
+  .card { background: #fff; border-radius: 14px; padding: 16px; box-shadow: 0 3px 14px rgba(80,64,40,.07); }
+  .card h3 { font-size: 15px; margin-bottom: 8px; color: #3d3529; }
+  .card p, .card li { font-size: 13px; color: #5c5548; line-height: 1.75; }
+  .card ul { padding-left: 18px; }
+  .lv { display: inline-block; font-size: 11.5px; border-radius: 6px; padding: 2px 8px; margin-left: 6px; vertical-align: 2px; }
+  .lv1 { background: #e8f0e4; color: #3e7d3a; }
+  .lv2 { background: #fdeeda; color: #b26a00; }
+  .lv3 { background: #f9e3e1; color: #c04a42; }
+  table.tools { width: 100%; border-collapse: collapse; background: #fff; border-radius: 14px; overflow: hidden; box-shadow: 0 3px 14px rgba(80,64,40,.07); font-size: 13px; }
+  table.tools th, table.tools td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #f0ece2; line-height: 1.6; }
+  table.tools th { background: #f4efe4; color: #4a4032; font-size: 13px; }
+  table.tools tr:last-child td { border-bottom: none; }
+  table.tools td.price { color: #8a6d3b; white-space: nowrap; font-weight: 600; }
+  .budget { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-top: 14px; }
+  .budget .card b { color: #8a6d3b; font-size: 16px; }
+  .gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+  .work { background: #fff; border-radius: 14px; overflow: hidden; box-shadow: 0 3px 14px rgba(80,64,40,.08); }
+  .work .ph { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; transition: transform .35s ease; }
+  .work:hover .ph { transform: scale(1.03); }
+  .work .cap { padding: 12px 14px 14px; }
+  .work .cap b { font-size: 14px; color: #3d3529; display: block; margin-bottom: 4px; }
+  .work .cap span { font-size: 12.5px; color: #8b8271; line-height: 1.65; display: block; }
+  .work .cap .pr { display: inline-block; margin-top: 8px; font-size: 12.5px; color: #8a6d3b; font-weight: 600; background: #f8f2e4; border-radius: 8px; padding: 3px 10px; }
+  .steps { counter-reset: st; }
+  .step { position: relative; background: #fff; border-radius: 14px; padding: 16px 16px 16px 58px; margin-bottom: 10px; box-shadow: 0 3px 14px rgba(80,64,40,.06); }
+  .step::before {
+    counter-increment: st; content: counter(st, decimal-leading-zero);
+    position: absolute; left: 14px; top: 14px; width: 32px; height: 32px; border-radius: 10px;
+    background: linear-gradient(135deg, #8a6d3b, #b08d55); color: #fff; font-size: 13px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .step b { font-size: 14.5px; color: #3d3529; }
+  .step p { font-size: 13px; color: #5c5548; line-height: 1.75; margin-top: 4px; }
+  .first-project { background: linear-gradient(150deg, #fff, #faf5ea); border: 1.5px dashed #cbb98d; border-radius: 14px; padding: 18px; margin-top: 16px; }
+  .first-project h3 { font-size: 15.5px; color: #6b5426; margin-bottom: 10px; }
+  .first-project ol { padding-left: 20px; }
+  .first-project li { font-size: 13px; color: #5c5548; line-height: 1.9; }
+  .note { font-size: 12px; color: #9a927f; margin-top: 10px; line-height: 1.7; }
+  footer { text-align: center; font-size: 12.5px; color: #9a927f; margin-top: 40px; line-height: 1.8; }
+  footer a { color: #8a6d3b; }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>石人居</h1>
+  <p>从一块河滩上的普通石头，到一盆山水、一方印章、一件可以传家的手作。<br>这里是石刻手作的入门站：认识石头、选对工具、走完第一件作品。</p>
+  <div class="tagline">山水盆景 · 桌案赏石 · 印石篆刻 · 手作入门</div>
+</div>
+
+<div class="wrap">
+  <a class="back" href="index.html">← 返回工具箱</a>
+
+  <nav class="jump">
+    <a href="#guide">入门手册</a>
+    <a href="#tools">上手工具</a>
+    <a href="#bonsai">山水盆景</a>
+    <a href="#gallery">成品展示</a>
+    <a href="#steps">步骤指南</a>
+  </nav>
+
+  <section id="guide">
+    <h2>入门手册<small>先认识石头，再谈刀</small></h2>
+    <div class="cards">
+      <div class="card">
+        <h3>吸水石 / 上水石<span class="lv lv1">盆景首选</span></h3>
+        <p>质地松软（摩氏 1-1.5），凿子、小镐就能塑形，能吸水长苔，是山水盆景的当家石料。山东、河北、河南产地毛料论斤卖，成本极低。</p>
+      </div>
+      <div class="card">
+        <h3>皂石 / 滑石<span class="lv lv1">刻印入门</span></h3>
+        <p>硬度低，指甲可划痕，手推刨不崩裂。适合练刀、刻印、做小件。缺点是软容易磕碰，成品适合摆不宜佩戴。</p>
+      </div>
+      <div class="card">
+        <h3>石灰石 / 青石<span class="lv lv1">容易上手</span></h3>
+        <p>河滩鹅卵石多属此类（摩氏 3 左右）。够硬能出手感，又不至于崩刀。彩绘石头画、刻字、案头小件首选，成本几乎为零。</p>
+      </div>
+      <div class="card">
+        <h3>寿山石 / 青田石<span class="lv lv2">进阶印章</span></h3>
+        <p>传统印石，质地细腻有冻感，走刀爽脆不粘刀。适合学篆刻、做纽雕。价格跨度大，练习选普通老岭青田即可。</p>
+      </div>
+      <div class="card">
+        <h3>太湖石 / 灵璧石<span class="lv lv2">赏石摆件</span></h3>
+        <p>"瘦皱漏透"的文人赏石传统，讲究天然形态而非雕刻。小规格原石便宜，配上木座就是桌案摆件；懂"相石"比会刻刀更重要。</p>
+      </div>
+      <div class="card">
+        <h3>花岗岩 / 玉石<span class="lv lv3">硬料慎入</span></h3>
+        <p>摩氏 6 以上，手刀基本无解，必须上电磨+金刚砂磨头，噪声粉尘大。有基础后再碰，成品价值也最高。</p>
+      </div>
+    </div>
+    <div class="cards" style="margin-top:14px">
+      <div class="card"><h3>🔍 选石四看</h3><ul><li>看裂纹：对光看，有贯穿裂的料子一雕就碎</li><li>看质地：细腻均匀、颜色纯净的下刀不崩</li><li>看造型：天然形状能少雕就少雕</li><li>看用途：盆景选吸水石，把件选卵石，印章选方料，摆件选随形</li></ul></div>
+      <div class="card"><h3>🦺 安全三条（必读）</h3><ul><li><b>护目镜</b>：磨头高速旋转，石屑崩眼是新手第一伤</li><li><b>防尘口罩</b>：干磨粉尘伤肺，石英粉尘尤其危险，尽量湿磨</li><li><b>手套+通风</b>：防割防震，操作时保持空气流通</li></ul></div>
+    </div>
+  </section>
+
+  <section id="tools">
+    <h2>上手工具<small>价格为主流电商平台参考带，随行情浮动</small></h2>
+    <table class="tools">
+      <tr><th>工具</th><th>用途</th><th>参考价带</th></tr>
+      <tr><td><b>电动刻字笔</b></td><td>第一件工具：刻字、签名、简单线条，振幅小易控</td><td class="price">¥27 - 96</td></tr>
+      <tr><td><b>电磨机套装</b></td><td>核心设备：打磨/雕刻/抛光全靠它，选带调速的</td><td class="price">¥18 - 206（艾锐盾/德力西/美耐特/思耐捷等）</td></tr>
+      <tr><td><b>金刚砂磨头套装</b></td><td>耗品：F/D/C2/A/T形/球形/柱形各配，柄径 2.35mm / 3mm</td><td class="price">¥0.2 - 15 / 支</td></tr>
+      <tr><td><b>石工凿 + 小镐</b></td><td>山水盆景塑形主力：钢凿开沟壑、小镐敲剥大形，吸水石专用</td><td class="price">¥3.8 - 30 / 件</td></tr>
+      <tr><td><b>篆刻刀套装</b></td><td>走刀刻印、修边，软质石材的精准武器</td><td class="price">¥3 - 14（入门碳钢）</td></tr>
+      <tr><td><b>金刚石锉刀</b></td><td>去大棱、修整外形，比磨头快且不扬尘</td><td class="price">¥5 - 20</td></tr>
+      <tr><td><b>砂纸 / 抛光</b></td><td>目数进阶：60-120（塑形）→150-220（修面）→400（细磨）→800-1500（抛光）</td><td class="price">¥10 - 30 / 套</td></tr>
+      <tr><td><b>护具三件套</b></td><td>护目镜 + 防尘口罩（KN95 级）+ 防割手套</td><td class="price">¥20 - 40</td></tr>
+    </table>
+    <div class="budget">
+      <div class="card"><h3>🎒 极简体验 · 50 元内</h3><p>电动刻字笔 + 砂纸几张 + 河滩鹅卵石。一个下午就能刻出第一块名字石，适合先确认兴趣。</p></div>
+      <div class="card"><h3>🧰 进阶套装 · 200 元内</h3><p>调速电磨机 + 金刚砂磨头全套 + 石工凿镐 + 浅盆一只 + 吸水石毛料。能做打磨摆件、石头画、桌面山水。</p></div>
+      <div class="card"><h3>⚒️ 认真玩家 · 500 元内</h3><p>进阶电磨 + 全尺寸磨头 + 篆刻刀套装 + 金刚石锉刀 + 印石练习料 + 成套盆器配件。可以开始做印章、纽雕和完整山水盆景。</p></div>
+    </div>
+  </section>
+
+  <section id="bonsai">
+    <h2>山水盆景<small>创业主推品类：石头+盆+配件，接受度最高、上手最快</small></h2>
+    <div class="cards">
+      <div class="card">
+        <h3>🍵 茶室桌面山水<span class="lv lv1">引流款</span></h3>
+        <p>吸水石小景 + 浅盆白砂青苔，几十元材料出一盆。禅意微景观是电商爆款赛道，同类陶瓷摆件单款成交上万件，适合走量起号。</p>
+      </div>
+      <div class="card">
+        <h3>🏔 标准山水盆景<span class="lv lv2">主力款</span></h3>
+        <p>青花瓷盆/紫砂盆 + 主峰群峦 + 亭塔船人物配件。盆器 9.5-216 元分档，配件 1.4-30 元一件。一盆一景一故事，定价 150-600 元。</p>
+      </div>
+      <div class="card">
+        <h3>💧 流水假山<span class="lv lv3">高客单</span></h3>
+        <p>循环水泵 + 大型吸水石，室内流水摆件。成品电商卖 666 元起，茶室、办公室、开业礼场景刚需，是利润最厚的档位。</p>
+      </div>
+    </div>
+    <table class="tools" style="margin-top:14px">
+      <tr><th>物料</th><th>说明</th><th>参考价带（2026-10 检索）</th></tr>
+      <tr><td><b>吸水石毛料</b></td><td>产地山东/河北/河南，论斤批发；选孔洞自然、层理分明的</td><td class="price">批发约 ¥0.03/斤起，零售 ¥3-10/斤</td></tr>
+      <tr><td><b>盆器</b></td><td>树脂盆入门（¥12-159）、青花/紫砂瓷盆进阶（¥9.5-216）、汉白玉/大理石盆高配（¥216-1123）</td><td class="price">¥9.5 - 216 主流</td></tr>
+      <tr><td><b>配件摆件</b></td><td>陶瓷小船（单品成交 7 万+）、铅制亭塔（¥1.68-10.7）、人物渔翁（¥1.39-28）、凉亭廊桥（¥9.5-29）</td><td class="price">¥1.4 - 30 / 件</td></tr>
+      <tr><td><b>造景辅材</b></td><td>白砂石子、苔藓、文竹/菖蒲小苗、云石胶或水泥（粘峰峦）</td><td class="price">¥5 - 30 / 套</td></tr>
+      <tr><td><b>水泵（流水款）</b></td><td>小型潜水泵 + 滴水盘，注意噪音参数</td><td class="price">¥6.8 - 61</td></tr>
+    </table>
+    <div class="first-project">
+      <h3>⏱ 第一盆山水：一个下午的桌面山水（成本 50 元内）</h3>
+      <ol>
+        <li>相石定势：挑一块有主峰走势的吸水石，底面用钢锯锯平（20 分钟）</li>
+        <li>凿刻纹理：小镐敲剥大形，钢凿顺层理开沟壑，深度做足明暗（60 分钟）</li>
+        <li>铺苔种绿：石面喷湿，贴鲜苔藓压实，石缝栽文竹或菖蒲（20 分钟）</li>
+        <li>配盆布景：浅盆注清水或铺白砂，主峰居中偏侧，白砂做水面留白（15 分钟）</li>
+        <li>配件点睛：一亭一船一渔翁，宁缺毋滥，放完退后三步看整体（10 分钟）</li>
+      </ol>
+      <p class="note">养护：吸水石每天给石顶浇水，苔藓自然生长越养越绿——"会活的盆景"正是它比干摆件好卖的原因。</p>
+    </div>
+  </section>
+
+  <section id="gallery">
+    <h2>成品展示<small>五个主打品类的参考效果与行情</small></h2>
+    <div class="gallery">
+      <div class="work">
+        <img class="ph" src="img/stones/penjing.jpg" alt="吸水石山水盆景：青花浅盆中主峰群峦，苔藓白石点景" loading="lazy">
+        <div class="cap"><b>桌面山水盆景</b><span>吸水石凿刻群峰，青花浅盆布水，苔藓白石点景。入门最快、最易起量的品类。</span><span class="pr">材料 50 元内 · 成品 80-300 元</span></div>
+      </div>
+      <div class="work">
+        <img class="ph" src="img/stones/taihu.jpg" alt="太湖石桌案摆件：瘦皱漏透，配实木随形底座" loading="lazy">
+        <div class="cap"><b>太湖石桌案摆件</b><span>"瘦皱漏透"文人清供，讲究天然形态配木座。会相石比会动刀更重要。</span><span class="pr">小规格原石 13-30 元 · 精品文房 190-1380 元</span></div>
+      </div>
+      <div class="work">
+        <img class="ph" src="img/stones/seal.jpg" alt="寿山石印章：狮钮，印身薄意山水" loading="lazy">
+        <div class="cap"><b>寿山石印章</b><span>狮钮 + 薄意山水，篆刻进阶款。姓名章/闲章是文玩礼赠的硬通货。</span><span class="pr">练习料 10-30 元 · 成品礼盒 300 元起</span></div>
+      </div>
+      <div class="work">
+        <img class="ph" src="img/stones/lion.jpg" alt="青石案头小石狮，保留手工凿痕" loading="lazy">
+        <div class="cap"><b>案头小石狮</b><span>手工雕刻，保留凿痕反而更讨喜，石色随选料可深可浅。镇纸摆件两用，手艺感的最佳名片。</span><span class="pr">工时 2-4 小时 · 定价 60-200 元</span></div>
+      </div>
+      <div class="work">
+        <img class="ph" src="img/stones/stoneart.jpg" alt="鹅卵石手绘星空石头画与随形挂坠" loading="lazy">
+        <div class="cap"><b>石头画 & 随形挂坠</b><span>零雕刻门槛的引流爆款 + 单件利润最高的佩戴款，市集与线上双渠道通吃。</span><span class="pr">石头画 15-40 元 · 挂坠 30-80 元</span></div>
+      </div>
+    </div>
+    <p class="note">图片为 AI 生成的参考效果图（选品方向与构图参考真实市售作品），正式运营替换为实拍图：文件位 img/stones/（penjing / taihu / seal / lion / stoneart.jpg），同名覆盖即可，无需改代码。价格为主流电商平台公开区间（2026-10 检索）。</p>
+  </section>
+
+  <section id="steps">
+    <h2>步骤指南<small>雕刻通用八步 + 30 分钟新手第一件</small></h2>
+    <div class="steps">
+      <div class="step"><b>选料勘石</b><p>对光检查裂纹走向，敲击听声（清脆=实心，沉闷=有暗裂）。新手选吸水石、皂石、鹅卵石起步。</p></div>
+      <div class="step"><b>设计绘图</b><p>用记号笔直接在石头上画稿，随形就势：俏色利用、避裂设纹。拍照留存设计稿。</p></div>
+      <div class="step"><b>打坯减荒</b><p>电磨机装粗磨头（F/T 形）或石工凿去掉大块余料，确定大轮廓。心诀：宁多留三分，不多去一成。</p></div>
+      <div class="step"><b>细修造型</b><p>换小号磨头细化轮廓与层次，边磨边水冷降温，避免石材干烧发白开裂。</p></div>
+      <div class="step"><b>精雕细琢</b><p>球形/柱形磨头开脸、刻纹；软料可换篆刻刀走刀，细节的密度决定成品档次。</p></div>
+      <div class="step"><b>打磨抛光</b><p>砂纸目数阶梯走：120 → 220 → 400 → 800 → 1500，每级磨掉上一级划痕再升级，最后羊毛轮上膏抛光。</p></div>
+      <div class="step"><b>防护处理</b><p>擦净后上石蜡或矿物油养色，防裂增润；印章底面蘸印泥试印检查平整度。</p></div>
+      <div class="step"><b>质检修整</b><p>强光下全面检查裂纹与崩口，小瑕用同色石粉+胶修补，大瑕重新设计俏色化掉。</p></div>
+    </div>
+    <div class="first-project">
+      <h3>⏱ 新手第一个作品：30 分钟刻字石</h3>
+      <ol>
+        <li>捡一块巴掌大的扁鹅卵石，洗净晾干（5 分钟）</li>
+        <li>记号笔写好名字或一句话，写大一点（2 分钟）</li>
+        <li>电动刻字笔沿笔迹慢速描一遍，再描第二遍加深（10 分钟）</li>
+        <li>400 目砂纸把字口周边磨顺，800/1500 目整体抛光（8 分钟）</li>
+        <li>薄擦一层矿物油，晾干即成品（5 分钟）</li>
+      </ol>
+      <p class="note">完成它，你就走完了"选料—设计—雕刻—打磨—养护"的完整闭环，后面每一件都只是把这个循环做深。</p>
+    </div>
+  </section>
+
+  <footer>
+    石人居 · 石刻手作入门站（预备栏目）<br>
+    工具与物料价格为主流电商平台公开参考区间（2026-10 检索，含 1688 批发成交数据）；工艺流程参考石雕行业通用八步法与山水盆景制作通用工序。<br>
+    <a href="index.html">AI 工具箱</a> · 手作之路，从一块石头开始
+  </footer>
+</div>
+
+</body>
+</html>

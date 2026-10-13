@@ -23,11 +23,23 @@
     var info = $('fileinfo');
     info.style.display = 'block';
     info.textContent = '正在解析：' + file.name + '（' + (file.size / 1024).toFixed(1) + ' KB）';
-    file.arrayBuffer().then(function (buf) {
+    var ext = (file.name.match(/\.([^.]+)$/) || [0, ''])[1].toLowerCase();
+    var parseJob;
+    if (ext === 'docx') {
+      parseJob = file.arrayBuffer().then(docTablesFromDocx);
+    } else if (ext === 'pdf') {
+      parseJob = file.arrayBuffer().then(docTablesFromPdf);
+    } else if (ext === 'html' || ext === 'htm') {
+      parseJob = file.text().then(docTablesFromHtml);
+    } else {
+      parseJob = file.arrayBuffer().then(function (buf) { return xlsxParse(buf); });
+    }
+    parseJob.then(function (parsed) {
       try {
-        S.parsed = xlsxParse(buf);
+        S.parsed = parsed;
       } catch (e) { info.textContent = '解析失败：' + (e.message || e); return; }
-      info.textContent = '已解析：' + file.name + ' · 共 ' + S.parsed.sheetNames.length + ' 个工作表';
+      var srcTag = S.parsed.source === 'doc' ? '（从文档中提取到 ' + S.parsed.sheetNames.length + ' 个表格）' : '';
+      info.textContent = '已解析：' + file.name + ' · 共 ' + S.parsed.sheetNames.length + ' 个工作表' + srcTag;
       var sel = $('sheetSel'); sel.innerHTML = '';
       S.parsed.sheetNames.forEach(function (nm) { sel.appendChild(el('option', { value: nm }, nm)); });
       $('sheetPick').classList.remove('hide');

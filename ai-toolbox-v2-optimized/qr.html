@@ -28,7 +28,7 @@
     font-size: 15px; outline: none; transition: border-color .2s;
   }
   input:focus { border-color: #2563eb; }
-  .themes { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 8px; }
+  .themes { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 8px; }
   @media (max-width: 420px) { .themes { grid-template-columns: repeat(2, 1fr); } }
   .theme { border: 2px solid #e5e7eb; border-radius: 12px; padding: 8px; cursor: pointer; text-align: center; transition: all .15s; }
   .theme.on { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, .12); }
@@ -81,6 +81,12 @@
   .bookitem .use { color: #2563eb; }
   .bookitem .del { color: #e5484d; }
   .empty { color: #9ca3af; font-size: 12.5px; text-align: center; padding: 6px 0; }
+  .crow { display: flex; align-items: center; gap: 8px; margin-top: 9px; font-size: 13px; color: #374151; flex-wrap: wrap; }
+  .crow > span:first-child { width: 66px; color: #6b7280; flex: none; }
+  select { padding: 6px 8px; border: 1.5px solid #e5e7eb; border-radius: 8px; background: #fff; font-size: 13px; cursor: pointer; }
+  input[type="color"] { width: 36px; height: 30px; padding: 2px; border: 1.5px solid #e5e7eb; border-radius: 8px; background: #fff; cursor: pointer; }
+  input[type="range"] { flex: 1; }
+  #customPanel { display: none; margin-top: 12px; border: 1.5px dashed #c7d2fe; border-radius: 12px; padding: 12px; background: #fafbff; }
 </style>
 </head>
 <body>
@@ -97,6 +103,26 @@
 
       <label class="fl">选择主题</label>
       <div class="themes" id="themeList"></div>
+
+      <div id="customPanel">
+        <div class="crow"><span>模块形状</span>
+          <select id="cModule"><option value="square">方块</option><option value="dot">圆点</option><option value="rounded" selected>圆角</option><option value="diamond">菱形</option></select>
+          <span style="width:auto">定位角</span>
+          <select id="cFinder"><option value="square">方形</option><option value="rounded" selected>圆角</option><option value="circle">圆环</option><option value="leaf">叶形</option></select>
+        </div>
+        <div class="crow"><span>前景色</span>
+          <input type="color" id="cFg" value="#111827">
+          <input type="color" id="cFg2" value="#2563eb">
+          <select id="cGrad"><option value="none">纯色</option><option value="linear">线性渐变</option><option value="radial">径向渐变</option></select>
+          <span style="width:auto">背景</span>
+          <input type="color" id="cBg" value="#ffffff">
+        </div>
+        <div class="crow"><span>上传图片</span><input type="file" id="cImg" accept="image/*" style="font-size:12px;">
+          <select id="cImgMode" style="display:none"><option value="logo">中心徽标</option><option value="fill">填充码点</option><option value="bg">图片背景</option></select>
+        </div>
+        <div class="crow" id="cAlphaRow" style="display:none"><span>融合强度</span><input type="range" id="cAlpha" min="0" max="90" value="45"><span id="cAlphaV" style="width:auto">45%</span></div>
+        <div class="tip">图片模式下生成后请用两部手机试扫；中心徽标自动限制在 22% 面积内，避免不可扫。</div>
+      </div>
 
       <div class="optrow">
         <input type="checkbox" id="privateMode" checked>
@@ -168,9 +194,64 @@
       localStorage.setItem('at_qr_theme', key);
       [].forEach.call(themeList.children, function (c) { c.classList.remove('on'); });
       d.classList.add('on');
+      document.getElementById('customPanel').style.display = 'none';
       if ($phone.value.trim()) regenerate();
     });
     themeList.appendChild(d);
+  });
+
+  /* ---------- 自定义模式 ---------- */
+  var customImg = null;
+  var customCard = document.createElement('div');
+  customCard.className = 'theme' + (curTheme === 'custom' ? ' on' : '');
+  customCard.setAttribute('data-key', 'custom');
+  customCard.innerHTML = '<div class="sw" style="background:conic-gradient(#2563eb,#8b5cf6,#ec4899,#f59e0b,#10b981,#2563eb)"></div><div class="nm">自定义</div>';
+  customCard.addEventListener('click', function () {
+    curTheme = 'custom';
+    localStorage.setItem('at_qr_theme', 'custom');
+    [].forEach.call(themeList.children, function (c) { c.classList.remove('on'); });
+    customCard.classList.add('on');
+    document.getElementById('customPanel').style.display = 'block';
+    if ($phone.value.trim()) regenerate();
+  });
+  themeList.appendChild(customCard);
+  if (curTheme === 'custom') document.getElementById('customPanel').style.display = 'block';
+
+  function cid(id) { return document.getElementById(id); }
+  function cval(id) { return cid(id).value; }
+  function collectCustom() {
+    return {
+      size: 1024,
+      moduleStyle: cval('cModule'), finderStyle: cval('cFinder'),
+      fg: cval('cFg'), fg2: cval('cFg2'), gradient: cval('cGrad'),
+      bg: cval('cBg'),
+      img: customImg, imgMode: cval('cImgMode'),
+      imgAlpha: (100 - Number(cval('cAlpha'))) / 100,
+      logoScale: 0.2,
+    };
+  }
+  cid('cImg').addEventListener('change', function (e) {
+    var f = e.target.files && e.target.files[0];
+    if (!f) return;
+    var im = new Image();
+    im.onload = function () {
+      customImg = im;
+      cid('cImgMode').style.display = 'inline-block';
+      cid('cAlphaRow').style.display = 'flex';
+      if ($phone.value.trim()) regenerate();
+    };
+    im.onerror = function () { toast('图片读取失败，请换一张', 'error'); };
+    im.src = URL.createObjectURL(f);
+  });
+  cid('cImgMode').addEventListener('change', function () { if ($phone.value.trim()) regenerate(); });
+  var alphaTimer = null;
+  cid('cAlpha').addEventListener('input', function () {
+    cid('cAlphaV').textContent = cid('cAlpha').value + '%';
+    clearTimeout(alphaTimer);
+    alphaTimer = setTimeout(function () { if (curTheme === 'custom' && $phone.value.trim()) regenerate(); }, 300);
+  });
+  ['cModule', 'cFinder', 'cFg', 'cFg2', 'cGrad', 'cBg'].forEach(function (id) {
+    cid(id).addEventListener('change', function () { if (curTheme === 'custom' && $phone.value.trim()) regenerate(); });
   });
 
   /* ---------- 号码簿（localStorage: at_virtual_numbers） ---------- */
@@ -260,7 +341,14 @@
     lastCanvas = null; lastLink = '';
 
     var finish = function (payload, link) {
-      var canvas = generateArtQR(payload, curTheme, { size: 1024 });
+      var canvas;
+      if (curTheme === 'custom') {
+        try { canvas = generateCustomQR(payload, collectCustom()); }
+        catch (err) { showError((err && err.message) || String(err), '自定义样式渲染失败，可换一种形状或先去掉图片重试。'); return; }
+      } else {
+        try { canvas = generateArtQR(payload, curTheme, { size: 1024 }); }
+        catch (err) { showError((err && err.message) || String(err)); return; }
+      }
       lastCanvas = canvas;
       $preview.innerHTML = '';
       $preview.appendChild(canvas);

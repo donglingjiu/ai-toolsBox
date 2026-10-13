@@ -66,7 +66,7 @@
       点击选择或拖入 <b>.xlsx / .xls / .csv</b> 文件<br>
       <span style="font-size:12px;">在你的浏览器本地解析，不会上传到任何服务器</span>
     </div>
-    <input type="file" id="file" accept=".xlsx,.xls,.csv" hidden>
+    <input type="file" id="file" accept=".xlsx,.xls,.csv,.docx,.pdf,.html,.htm" hidden>
     <div class="fileinfo" id="fileinfo"></div>
     <div id="sheetPick" class="hide">
       <label class="fl">工作表</label>
@@ -121,6 +121,9 @@
 </div>
 
 <script src="js/vendor/xlsx.full.min.js"></script>
+<script src="js/pdfjs/pdf.min.js"></script>
+<script src="js/mammoth.browser.min.js"></script>
+<script src="js/doc-tables.js"></script>
 <script src="js/app.js"></script>
 <script src="js/xlsx-core.js"></script>
 <script src="js/excel-page.js"></script>
