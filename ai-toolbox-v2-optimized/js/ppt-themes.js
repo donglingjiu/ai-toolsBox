@@ -5,13 +5,29 @@
  */
 'use strict';
 
+/* 对标市场流行款（Gamma 主题库 / Canva 高频 / 稻壳风行榜 / envato 2025 精选） */
 var PPT_THEMES = {
   business: { name: '深空商务', bg: 'FFFFFF', band: 'EFF4FF', accent: '2563EB', title: '1B2A4A', text: '334155', muted: '64748B', dark: false },
   tech:     { name: '青岳科技', bg: 'FFFFFF', band: 'E8F7F2', accent: '0D9488', title: '134E4A', text: '334155', muted: '64748B', dark: false },
   warm:     { name: '暖阳活力', bg: 'FFFFFF', band: 'FFF4EC', accent: 'EA580C', title: '7C2D12', text: '44403C', muted: '78716C', dark: false },
   academic: { name: '学术素雅', bg: 'FFFFFF', band: 'F5F5F4', accent: '57534E', title: '1C1917', text: '44403C', muted: '78716C', dark: false },
-  midnight: { name: '暗夜路演', bg: '0F172A', band: '1E293B', accent: '38BDF8', title: 'F1F5F9', text: 'CBD5E1', muted: '94A3B8', dark: true }
+  midnight: { name: '暗夜路演', bg: '0F172A', band: '1E293B', accent: '38BDF8', title: 'F1F5F9', text: 'CBD5E1', muted: '94A3B8', dark: true },
+  mono:     { name: '极简黑白', bg: 'FFFFFF', band: 'F4F4F5', accent: '18181B', title: '09090B', text: '3F3F46', muted: '71717A', dark: false },
+  morandi:  { name: '莫兰迪雾调', bg: 'F7F5F2', band: 'EDE9E3', accent: '8C7B6B', title: '4A4458', text: '5F5B66', muted: '948E96', dark: false },
+  klein:    { name: '克莱因蓝', bg: 'FFFFFF', band: 'EEF2FF', accent: '002FA7', title: '001C66', text: '1E293B', muted: '64748B', dark: false },
+  cream:    { name: '奶油拿铁', bg: 'FFFBF3', band: 'F5EBDD', accent: 'C08552', title: '5C4033', text: '6B5B4D', muted: '9C8B7A', dark: false },
+  cyber:    { name: '赛博霓虹', bg: '0D0221', band: '1A0B3B', accent: '22D3EE', title: 'F0E7FF', text: 'C4B5FD', muted: '8B7BB8', dark: true }
 };
+
+/* ---------- 主题合法性校验（AI 生成 / 本地恢复定制主题时用） ---------- */
+function validTheme(t) {
+  if (!t || typeof t !== 'object') return null;
+  var hex = function (v) { v = String(v == null ? '' : v).replace('#', ''); return /^[0-9A-Fa-f]{6}$/.test(v) ? v.toUpperCase() : null; };
+  var out = { name: String(t.name || '定制主题').slice(0, 8), dark: !!t.dark };
+  var ks = ['bg', 'band', 'accent', 'title', 'text', 'muted'];
+  for (var i = 0; i < ks.length; i++) { out[ks[i]] = hex(t[ks[i]]); if (!out[ks[i]]) return null; }
+  return out;
+}
 
 var PPT_LAYOUTS = ['title', 'toc', 'section', 'bullets', 'two', 'data', 'end'];
 

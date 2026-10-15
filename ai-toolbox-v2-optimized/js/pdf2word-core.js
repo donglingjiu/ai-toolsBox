@@ -197,7 +197,7 @@ function planToParagraphs(pars, medF) {
         runs.push({ text: text, bold: false });
       }
     }
-    return { kind: kind, runs: runs };
+    return { kind: kind, runs: runs, fontSize: p.fontSize };
   });
 }
 

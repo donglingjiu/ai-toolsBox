@@ -28,11 +28,11 @@
     font-size: 15px; outline: none; transition: border-color .2s;
   }
   input:focus { border-color: #2563eb; }
-  .themes { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 8px; }
+  .themes { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 8px; }
   @media (max-width: 420px) { .themes { grid-template-columns: repeat(2, 1fr); } }
   .theme { border: 2px solid #e5e7eb; border-radius: 12px; padding: 8px; cursor: pointer; text-align: center; transition: all .15s; }
   .theme.on { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, .12); }
-  .theme .sw { height: 44px; border-radius: 8px; margin-bottom: 6px; }
+  .theme .sw { display: block; width: 100%; height: auto; border-radius: 8px; margin-bottom: 6px; background: #f1f5f9; }
   .theme .nm { font-size: 12px; color: #374151; }
   .optrow { display: flex; align-items: flex-start; gap: 8px; margin-top: 14px; font-size: 13.5px; color: #374151; line-height: 1.5; }
   .optrow input { margin-top: 3px; }
@@ -93,7 +93,7 @@
 <div class="wrap">
   <a class="back" href="index.html">← 返回工具箱</a>
   <h1>🎨 艺术挪车码</h1>
-  <div class="sub">手机号 / 链接 → 四款主题艺术码，支持隐私中转与虚拟号保护</div>
+  <div class="sub">手机号 / 链接 → 多款主题艺术码，支持隐私中转与虚拟号保护</div>
 
   <div class="grid">
     <div class="card">
@@ -164,13 +164,14 @@
 </div>
 
 <!-- 二维码核心库（本地化，失败时页面会显示明确错误而不是静默空白） -->
-<script src="js/vendor/qrcode-generator.js"></script>
-<script src="js/app.js"></script>
-<script src="js/qr-deco.js"></script>
+<script src="js/vendor/qrcode-generator.js?v=9"></script>
+<script src="js/app.js?v=9"></script>
+<script src="js/qr-deco.js?v=9"></script>
 <script>
 (function () {
   'use strict';
-  var curTheme = localStorage.getItem('at_qr_theme') || 'aries';
+  var curTheme = localStorage.getItem('at_qr_theme') || 'ocean';
+  if (curTheme !== 'custom' && !THEMES[curTheme]) curTheme = 'ocean';
   var lastCanvas = null;
   var lastLink = '';
 
@@ -188,7 +189,11 @@
     var d = document.createElement('div');
     d.className = 'theme' + (key === curTheme ? ' on' : '');
     d.setAttribute('data-key', key);
-    d.innerHTML = '<div class="sw" style="background:' + t.sw + '"></div><div class="nm">' + t.name + '</div>';
+    d.innerHTML = '<canvas class="sw" width="128" height="128"></canvas><div class="nm">' + t.name + '</div>';
+    try {
+      var mini = generateArtQR('https://toolbox.demo/qr-preview', key, { size: 128 });
+      d.querySelector('canvas.sw').getContext('2d').drawImage(mini, 0, 0, 128, 128);
+    } catch (e) { d.querySelector('canvas.sw').style.background = t.sw; }
     d.addEventListener('click', function () {
       curTheme = key;
       localStorage.setItem('at_qr_theme', key);

@@ -307,27 +307,50 @@ function runeRing(ctx, cx, cy, R, color, rnd, W) {
 
 /* ---------- 四主题 ---------- */
 const THEMES = {
-  aries: {
-    name: '白羊座',
-    sw: 'linear-gradient(135deg,#f7b955,#e2762d)',
-    fg: '#7a4a12', disk: '#fdf6e8', ring: '#e6a23c',
-    draw: function (ctx, W) {
-      const rnd = rand(20240321);
-      const g = ctx.createRadialGradient(W / 2, W / 2, 40, W / 2, W / 1.4);
-      g.addColorStop(0, '#ffe9c4'); g.addColorStop(0.55, '#f6c169'); g.addColorStop(1, '#d97c2b');
-      ctx.fillStyle = g; ctx.fillRect(0, 0, W, W);
-      runeRing(ctx, W / 2, W / 2, W * 0.468, '#8a4d13', rnd, W);
-      drawHorn(ctx, W * 0.28, W * 0.38, 1, W / 1024, '#b8631e');
-      drawHorn(ctx, W * 0.72, W * 0.38, -1, W / 1024, '#b8631e');
-    },
+  /* —— 流行款：干净模块形状 + 精致配色 + 满版留白（对标主流美化器）—— */
+  ocean: {
+    name: '海洋渐变',
+    sw: 'linear-gradient(135deg,#2563eb,#06b6d4)',
+    layout: 'full', fg: '#1d4ed8', fg2: '#06b6d4', gradient: 'linear',
+    bg: '#ffffff', moduleStyle: 'dot', finderStyle: 'rounded',
+    draw: function (ctx, W) { ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, W, W); },
+  },
+  sunset: {
+    name: '日落渐变',
+    sw: 'linear-gradient(135deg,#f97316,#ec4899)',
+    layout: 'full', fg: '#ea580c', fg2: '#ec4899', gradient: 'linear',
+    bg: '#ffffff', moduleStyle: 'dot', finderStyle: 'rounded',
+    draw: function (ctx, W) { ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, W, W); },
+  },
+  midnight: {
+    name: '午夜蓝',
+    sw: 'linear-gradient(135deg,#475569,#4f46e5)',
+    layout: 'full', fg: '#312e81', fg2: '#4f46e5', gradient: 'linear',
+    bg: '#f8fafc', moduleStyle: 'rounded', finderStyle: 'rounded',
+    draw: function (ctx, W) { ctx.fillStyle = '#f8fafc'; ctx.fillRect(0, 0, W, W); },
+  },
+  emerald: {
+    name: '翡翠圆点',
+    sw: 'linear-gradient(135deg,#059669,#34d399)',
+    layout: 'full', fg: '#047857', fg2: '#10b981', gradient: 'linear',
+    bg: '#ffffff', moduleStyle: 'dot', finderStyle: 'circle',
+    draw: function (ctx, W) { ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, W, W); },
+  },
+  rosegold: {
+    name: '玫瑰金',
+    sw: 'linear-gradient(135deg,#b76e79,#e8b4a0)',
+    layout: 'full', fg: '#b76e79', fg2: '#e0a899', gradient: 'linear',
+    bg: '#fffaf7', moduleStyle: 'dot', finderStyle: 'rounded',
+    draw: function (ctx, W) { ctx.fillStyle = '#fffaf7'; ctx.fillRect(0, 0, W, W); },
   },
   hexagram: {
     name: '六芒星法阵',
+    layout: 'disk',
     sw: 'linear-gradient(135deg,#1e2a5e,#0f1530)',
     fg: '#1e3a8a', disk: '#f5efe0', ring: '#e6c15a',
     draw: function (ctx, W) {
       const rnd = rand(777);
-      const g = ctx.createRadialGradient(W / 2, W / 2, 40, W / 2, W / 1.3);
+      const g = ctx.createRadialGradient(W / 2, W / 2, 40, W / 2, W / 1.3, W * 0.85);
       g.addColorStop(0, '#243064'); g.addColorStop(1, '#0d1229');
       ctx.fillStyle = g; ctx.fillRect(0, 0, W, W);
       const cx = W / 2, cy = W / 2;
@@ -345,6 +368,7 @@ const THEMES = {
   },
   moonstar: {
     name: '星月夜',
+    layout: 'disk',
     sw: 'linear-gradient(135deg,#312e81,#1e1b4b)',
     fg: '#312e81', disk: '#f6f4ec', ring: '#c7b96b',
     draw: function (ctx, W) {
@@ -364,6 +388,7 @@ const THEMES = {
   },
   minimal: {
     name: '简约渐变',
+    layout: 'disk',
     sw: 'linear-gradient(135deg,#94a3b8,#475569)',
     fg: '#334155', disk: '#ffffff', ring: '#94a3b8',
     draw: function (ctx, W) {
@@ -382,37 +407,47 @@ const THEMES = {
 function generateArtQR(payload, themeKey, opts) {
   opts = opts || {};
   const W = opts.size || 1024;
-  const theme = THEMES[themeKey] || THEMES.aries;
+  const theme = THEMES[themeKey] || THEMES.ocean;
   const canvas = document.createElement('canvas');
   canvas.width = canvas.height = W;
   const ctx = canvas.getContext('2d');
-  theme.draw(ctx, W);
   const matrix = qrMatrix(payload); /* 可能抛错：调用方负责 catch */
   const fg = opts.fg || theme.fg;
-  const disk = opts.disk || theme.disk;
-  /* 主题模式下支持模块形状覆盖（默认保持各主题观感：圆点） */
-  const mStyle = opts.moduleStyle || 'dot';
-  const fStyle = opts.finderStyle || 'square';
-  const qrSide = Math.floor(W * (opts.scale || 0.62) / Math.SQRT2 * 0.97);
-  const cx = W / 2, cy = W / 2;
-  /* 圆盘承托 + 外环 */
-  ctx.beginPath();
-  ctx.arc(cx, cy, W * (opts.scale || 0.62) / 2, 0, Math.PI * 2);
-  ctx.fillStyle = disk; ctx.fill();
-  const ringWidth = opts.ringWidth != null ? opts.ringWidth : Math.round(W * 0.014);
-  if (ringWidth > 0) {
+  const mStyle = opts.moduleStyle || theme.moduleStyle || 'dot';
+  const fStyle = opts.finderStyle || theme.finderStyle || 'square';
+  if ((theme.layout || 'full') === 'disk') {
+    /* 圆盘装饰布局：背景装饰 + 圆盘承托 + 外环 */
+    theme.draw(ctx, W);
+    const disk = opts.disk || theme.disk;
+    const qrSide = Math.floor(W * (opts.scale || 0.62) / Math.SQRT2 * 0.97);
+    const cx = W / 2, cy = W / 2;
     ctx.beginPath();
-    ctx.arc(cx, cy, W * (opts.scale || 0.62) / 2 - ringWidth / 2 - 2, 0, Math.PI * 2);
-    ctx.lineWidth = ringWidth;
-    ctx.strokeStyle = opts.ring || theme.ring || fg;
-    ctx.stroke();
+    ctx.arc(cx, cy, W * (opts.scale || 0.62) / 2, 0, Math.PI * 2);
+    ctx.fillStyle = disk; ctx.fill();
+    const ringWidth = opts.ringWidth != null ? opts.ringWidth : Math.round(W * 0.014);
+    if (ringWidth > 0) {
+      ctx.beginPath();
+      ctx.arc(cx, cy, W * (opts.scale || 0.62) / 2 - ringWidth / 2 - 2, 0, Math.PI * 2);
+      ctx.lineWidth = ringWidth;
+      ctx.strokeStyle = opts.ring || theme.ring || fg;
+      ctx.stroke();
+    }
+    renderQrCore(ctx, matrix, cx - qrSide / 2, cy - qrSide / 2, qrSide, {
+      fg: fg, fg2: opts.fg2, gradient: opts.gradient || 'none',
+      bg: disk, disk: null, ringWidth: 0,
+      moduleStyle: mStyle, finderStyle: fStyle, quiet: 0,
+      logoImg: opts.logoImg, logoScale: opts.logoScale,
+    });
+  } else {
+    /* 满版布局：浅底 + 全幅码点（流行款） */
+    theme.draw(ctx, W);
+    renderQrCore(ctx, matrix, 0, 0, W, {
+      fg: fg, fg2: opts.fg2 || theme.fg2, gradient: opts.gradient || theme.gradient || 'none',
+      bg: opts.bg || theme.bg || '#ffffff', disk: null, ringWidth: 0,
+      moduleStyle: mStyle, finderStyle: fStyle, quiet: 4,
+      logoImg: opts.logoImg, logoScale: opts.logoScale,
+    });
   }
-  renderQrCore(ctx, matrix, cx - qrSide / 2, cy - qrSide / 2, qrSide, {
-    fg: fg, fg2: opts.fg2, gradient: opts.gradient || 'none',
-    bg: disk, disk: null, ringWidth: 0,
-    moduleStyle: mStyle, finderStyle: fStyle, quiet: 0,
-    logoImg: opts.logoImg, logoScale: opts.logoScale,
-  });
   return canvas;
 }
 

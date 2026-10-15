@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>全流程工作台 · AI 工具箱</title>
+<link rel="stylesheet" href="css/style.css?v=9">
+<style>
+  .flowgrid { display:grid; grid-template-columns:320px 1fr; gap:14px; align-items:start; }
+  @media (max-width:900px){ .flowgrid { grid-template-columns:1fr; } }
+  .stage-item { display:flex; gap:10px; align-items:center; padding:9px 10px; border:1.5px solid var(--line); border-radius:10px; margin-bottom:7px; cursor:pointer; transition:border-color .15s; }
+  .stage-item:hover { border-color:var(--accent); }
+  .stage-item.on { border-color:var(--accent); background:var(--band, #EFF4FF); }
+  .stage-item .ic { font-size:18px; }
+  .stage-item .nm { font-weight:600; font-size:13.5px; }
+  .stage-item .tm { font-size:11px; color:var(--mut); margin-top:1px; }
+  .stage-item .st { margin-left:auto; font-size:12px; color:var(--mut); }
+  .stage-item.done .st { color:#059669; font-weight:700; }
+  .outbox { border:1px solid var(--line); border-radius:10px; padding:14px 16px; background:#fff; min-height:120px; font-size:13.5px; line-height:1.75; overflow:auto; max-height:560px; }
+  .outbox h1 { font-size:1.25em; } .outbox h2 { font-size:1.12em; } .outbox h3 { font-size:1.03em; }
+  .outbox table { border-collapse:collapse; margin:.6em 0; }
+  .outbox th, .outbox td { border:1px solid var(--line); padding:4px 9px; font-size:.95em; }
+  .outbox pre { background:#0f172a; color:#e2e8f0; padding:10px 12px; border-radius:8px; overflow:auto; font-size:12px; }
+  .genbar { display:flex; gap:8px; align-items:center; margin-top:10px; }
+  .teambadge { display:inline-flex; align-items:center; gap:5px; font-size:11.5px; color:#fff; border-radius:6px; padding:2.5px 9px; font-weight:600; }
+  .teammap { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+  .teammap .mb { font-size:11px; border:1px solid var(--line); border-radius:7px; padding:4px 8px; color:var(--mut); }
+  .teammap .mb b { color:var(--tx); font-weight:600; }
+  details.teams { margin-top:12px; }
+  details.teams summary { cursor:pointer; font-weight:700; font-size:13.5px; }
+  .teamcard { border:1px solid var(--line); border-radius:10px; padding:10px 12px; margin-top:8px; }
+  .teamcard .hd { display:flex; align-items:center; gap:7px; font-weight:700; font-size:13px; }
+  .teamcard .ds { font-size:11.5px; color:var(--mut); margin:3px 0 6px 27px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="nav">
+    <a href="index.html">← 工具箱</a>
+    <span class="badge" id="llmBadge">检查模型…</span>
+  </div>
+
+  <div class="card">
+    <h1 style="margin-bottom:4px">🚀 全流程工作台</h1>
+    <p style="color:var(--mut);font-size:13.5px;margin:0">
+      需求分析 → 技术调研 → 方案设计 → 代码实现 → 交付评审，五个专家角色接力完成。
+      方法论提炼自产品专家团 / 技术调研专家团 / AutoDev 开发小队 / 长文审阅专家团四套 Agent 编排体系，上一步产物自动传入下一步。
+    </p>
+  </div>
+
+  <div class="flowgrid" style="margin-top:14px">
+    <div>
+      <div class="card">
+        <h3 style="margin-bottom:8px">① 产品需求</h3>
+        <textarea id="reqBox" rows="5" placeholder="一句话到一段话都行：要做什么、给谁用、有什么约束。这是整条流水线的起点。"></textarea>
+        <div class="row2" style="margin-top:8px">
+          <button class="btn ghost" style="flex:1" onclick="saveReq()">保存需求</button>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:12px">
+        <h3 style="margin-bottom:8px">② 流水线</h3>
+        <div id="stageList"></div>
+      </div>
+
+      <div class="card" style="margin-top:12px">
+        <h3 style="margin-bottom:8px">③ 导出交付</h3>
+        <div class="row2">
+          <button class="btn ghost" style="flex:1" onclick="exportMd()">⬇ 全流程报告 .md</button>
+        </div>
+        <div class="row2" style="margin-top:8px">
+          <button class="btn ghost" style="flex:1" onclick="exportReview()">⬇ 审阅网页 .html</button>
+        </div>
+        <div class="hint">审阅网页带目录锚点与划词批注，发同事收集意见后可导出批注清单。</div>
+      </div>
+
+      <details class="teams">
+        <summary>专家团图谱（17 角色）</summary>
+        <div id="teamsBox"></div>
+      </details>
+    </div>
+
+    <div class="card" id="workCard">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <h3 style="margin:0" id="stTitle">需求分析</h3>
+        <span class="teambadge" id="stTeam"></span>
+      </div>
+      <div class="hint" id="stDesc" style="margin-top:6px"></div>
+      <div id="extraWrap" style="margin-top:10px">
+        <label class="lbl" id="extraLabel">补充约束</label>
+        <textarea id="extraBox" rows="2"></textarea>
+      </div>
+      <div class="genbar">
+        <button class="btn" id="btnGen" style="flex:1" onclick="genStage()">生成</button>
+        <button class="btn ghost" id="btnCopy" onclick="copyOut()">复制产物</button>
+      </div>
+      <div class="outbox md" id="outBox" style="margin-top:12px"><span style="color:var(--mut)">尚未生成。点击左侧流水线任一阶段开始。</span></div>
+    </div>
+  </div>
+</div>
+
+<script src="js/app.js?v=9"></script>
+<script src="js/flow-prompts.js?v=9"></script>
+<script>
+'use strict';
+var state = { req: '', inputs: {}, outputs: {} };
+var curIdx = 0, generating = false;
+
+try {
+  var saved = JSON.parse(localStorage.getItem('at_flow_state') || 'null');
+  if (saved && typeof saved === 'object' && saved.outputs) state = saved;
+} catch (e) {}
+
+function persist() { localStorage.setItem('at_flow_state', JSON.stringify(state)); }
+
+function init() {
+  document.getElementById('reqBox').value = state.req || '';
+  /* 模型状态 */
+  var ready = typeof llmReady === 'function' && llmReady();
+  var b = document.getElementById('llmBadge');
+  b.textContent = ready ? '✓ 模型已就绪' : '⚠ 未配置模型 — 去「设置」页配置';
+  if (!ready) b.style.background = '#FEE2E2';
+  /* 步骤列表 */
+  var box = document.getElementById('stageList');
+  box.innerHTML = '';
+  FLOW_STAGES.forEach(function (st, i) {
+    var d = document.createElement('div');
+    d.className = 'stage-item' + (i === curIdx ? ' on' : '') + (state.outputs[st.key] ? ' done' : '');
+    d.id = 'stage-' + i;
+    d.innerHTML = '<span class="ic">' + st.icon + '</span><span><div class="nm">' + (i + 1) + '. ' + st.name + '</div><div class="tm">' + st.teamName + '</div></span><span class="st">' + (state.outputs[st.key] ? '✓' : (generating && i === curIdx ? '…' : '待执行')) + '</span>';
+    d.onclick = function () { if (!generating) { curIdx = i; renderStage(); markStages(); } };
+    box.appendChild(d);
+  });
+  /* 团队图谱 */
+  var tb = document.getElementById('teamsBox');
+  tb.innerHTML = FLOW_TEAMS.map(function (t) {
+    return '<div class="teamcard"><div class="hd"><span>' + t.icon + '</span><span style="color:' + t.color + '">' + t.name + '</span></div><div class="ds">' + t.desc + '</div><div class="teammap">' +
+      t.members.map(function (m) { return '<span class="mb"><b>' + m.n + '</b> ' + m.d + '</span>'; }).join('') + '</div></div>';
+  }).join('');
+}
+
+function markStages() {
+  FLOW_STAGES.forEach(function (_, i) {
+    var d = document.getElementById('stage-' + i);
+    if (!d) return;
+    d.classList.toggle('on', i === curIdx);
+    d.querySelector('.st').textContent = state.outputs[FLOW_STAGES[i].key] ? '✓' : (generating && i === curIdx ? '…' : '待执行');
+    d.classList.toggle('done', !!state.outputs[FLOW_STAGES[i].key]);
+  });
+}
+
+function renderStage() {
+  var st = FLOW_STAGES[curIdx];
+  document.getElementById('stTitle').textContent = st.icon + ' ' + st.name;
+  var badge = document.getElementById('stTeam');
+  badge.textContent = st.teamName;
+  var colors = { product: '#2563EB', research: '#0D9488', autodev: '#7C3AED', review: '#EA580C' };
+  badge.style.background = colors[st.team] || '#475569';
+  document.getElementById('stDesc').textContent = curIdx === 0
+    ? '基于下方需求产出需求分析文档（问题定义 / 假设与风险 / MoSCoW 功能清单 / 成功指标）。'
+    : '将自动携带需求描述与前序全部产物作为上下文，本段产物亦可直接修改后继续。';
+  document.getElementById('extraLabel').textContent = st.inputLabel;
+  document.getElementById('extraBox').value = state.inputs[st.key] || '';
+  document.getElementById('extraWrap').style.display = curIdx === 0 ? 'none' : '';
+  var out = state.outputs[st.key];
+  document.getElementById('outBox').innerHTML = out
+    ? mdRender(out)
+    : '<span style="color:var(--mut)">尚未生成。' + (curIdx === 0 ? '先在左侧写好产品需求并保存。' : '建议按顺序执行，也可直接生成。') + '</span>';
+}
+
+function saveReq() {
+  state.req = document.getElementById('reqBox').value.trim();
+  persist();
+  toast('需求已保存');
+}
+
+function copyOut() {
+  var out = state.outputs[FLOW_STAGES[curIdx].key];
+  if (!out) { toast('还没有产物'); return; }
+  navigator.clipboard.writeText(out).then(function () { toast('已复制'); }, function () { toast('复制失败，请手动选择'); });
+}
+
+async function genStage() {
+  if (generating) return;
+  if (curIdx === 0 && !(document.getElementById('reqBox').value.trim() || state.req)) { toast('先填写产品需求'); return; }
+  if (typeof llmReady !== 'function' || !llmReady()) { toast('请先在「设置」页配置文本模型 API'); return; }
+  generating = true;
+  var btn = document.getElementById('btnGen');
+  btn.disabled = true; btn.textContent = '生成中…';
+  if (curIdx === 0) { state.req = document.getElementById('reqBox').value.trim(); }
+  else { state.inputs[FLOW_STAGES[curIdx].key] = document.getElementById('extraBox').value.trim(); }
+  var box = document.getElementById('outBox');
+  box.innerHTML = '<span style="color:var(--mut)">思考中…</span>';
+  var acc = '';
+  try {
+    var st = FLOW_STAGES[curIdx];
+    await llmChat([
+      { role: 'system', content: st.system },
+      { role: 'user', content: flowBuildUserMessage(curIdx, state) },
+    ], {
+      temperature: 0.6,
+      onDelta: function (d) {
+        acc += d;
+        box.innerHTML = mdRender(acc);
+        box.scrollTop = box.scrollHeight;
+      },
+    });
+    if (!acc.trim()) throw new Error('模型未返回内容');
+    state.outputs[st.key] = acc.trim();
+    persist();
+    markStages();
+    toast('「' + st.name + '」完成 ✓');
+  } catch (e) {
+    box.innerHTML = mdRender(acc || '');
+    if (!acc) box.innerHTML = '<span style="color:#DC2626">生成失败：' + escapeHtml(e.message || String(e)) + '</span>';
+    toast('生成失败');
+  } finally {
+    generating = false;
+    btn.disabled = false; btn.textContent = '生成';
+  }
+}
+
+function buildReport() {
+  var lines = ['# 全流程交付报告', '', '- 需求：' + (state.req || '（未填写）').slice(0, 80), '- 生成时间：' + new Date().toLocaleString('zh-CN'), ''];
+  FLOW_STAGES.forEach(function (st) {
+    lines.push('---', '', '# ' + st.icon + ' ' + st.name + '（' + st.teamName + '）', '');
+    var out = state.outputs[st.key];
+    lines.push(out || '（未生成）', '');
+  });
+  return lines.join('\n');
+}
+
+function exportMd() {
+  var any = FLOW_STAGES.some(function (st) { return state.outputs[st.key]; });
+  if (!any) { toast('还没有任何产物'); return; }
+  downloadText('全流程交付报告.md', buildReport(), 'text/markdown');
+}
+
+/* ---------- 审阅网页：目录锚点 + 划词批注 + 批注导出 ---------- */
+function exportReview() {
+  var any = FLOW_STAGES.some(function (st) { return state.outputs[st.key]; });
+  if (!any) { toast('还没有任何产物'); return; }
+  var secs = FLOW_STAGES.filter(function (st) { return state.outputs[st.key]; })
+    .map(function (st, i) {
+      return '<section id="sec' + i + '"><h2><span class="anch">' + st.icon + ' ' + st.name + '</span><span class="anc">#sec' + i + '</span></h2>' + mdRender(state.outputs[st.key]) + '</section>';
+    }).join('\n');
+  var html = '<!DOCTYPE html>\n<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>全流程审阅 · ' + escapeHtml((state.req || '交付报告').slice(0, 30)) + '</title><style>'
+    + 'body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;display:flex;max-width:1200px;margin:0 auto;color:#1e293b;line-height:1.8}'
+    + 'nav{width:210px;flex-shrink:0;position:sticky;top:0;align-self:flex-start;height:100vh;padding:24px 14px;box-sizing:border-box;border-right:1px solid #e2e8f0;font-size:13px}'
+    + 'nav a{display:block;padding:7px 10px;border-radius:8px;color:#334155;text-decoration:none;margin-bottom:2px}'
+    + 'nav a:hover{background:#f1f5f9}main{flex:1;padding:32px 40px;min-width:0}'
+    + 'h2{border-bottom:2px solid #e2e8f0;padding-bottom:8px;margin-top:1.6em}.anch{cursor:pointer}.anc{font-size:11px;color:#94a3b8;margin-left:8px;user-select:all}'
+    + 'table{border-collapse:collapse;margin:.8em 0;width:100%}th,td{border:1px solid #e2e8f0;padding:6px 10px;font-size:14px}th{background:#f8fafc}'
+    + 'pre{background:#0f172a;color:#e2e8f0;padding:12px 14px;border-radius:8px;overflow:auto;font-size:12.5px}code{background:#f1f5f9;padding:1px 5px;border-radius:4px;font-size:.92em}pre code{background:none;padding:0}'
+    + '::selection{background:#FDE68A}'
+    + '#note{position:fixed;right:18px;bottom:18px;width:280px;max-height:45vh;overflow:auto;background:#fff;border:1px solid #e2e8f0;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.12);padding:14px;font-size:13px;display:none;z-index:9}'
+    + '#note .nt{font-weight:700;margin-bottom:8px}#note .ni{border-bottom:1px solid #f1f5f9;padding:6px 0;font-size:12px}#note .nq{color:#64748b;font-style:italic}'
+    + '#notebtns{position:fixed;right:18px;bottom:calc(45vh + 30px);display:none;flex-direction:column;gap:6px;z-index:10}'
+    + '#notebtns button{border:1px solid #cbd5e1;background:#fff;border-radius:8px;padding:6px 12px;cursor:pointer;font-size:12px}'
+    + '@media print{nav,#note,#notebtns{display:none}main{padding:0}section{page-break-after:always}}'
+    + '@media(max-width:800px){nav{display:none}main{padding:18px}}'
+    + '</style></head><body>'
+    + '<nav><b style="padding:0 10px 10px;display:block">📋 目录</b>' +
+    FLOW_STAGES.filter(function (st) { return state.outputs[st.key]; })
+      .map(function (st, i) { return '<a href="#sec' + i + '">' + st.icon + ' ' + st.name + '</a>'; }).join('') + '</nav>'
+    + '<main><h1>全流程审阅</h1><p style="color:#64748b;font-size:13px">需求：' + escapeHtml(state.req || '') + '</p>' + secs + '</main>'
+    + '<div id="notebtns"><button onclick="addNote()">💬 批注选中内容</button></div>'
+    + '<div id="note"><div class="nt">批注（<span id="nc"></span>）</div><div id="nl"></div><button onclick="exportNotes()" style="margin-top:8px;border:1px solid #cbd5e1;background:#f8fafc;border-radius:8px;padding:5px 10px;cursor:pointer;font-size:12px">导出批注为 Markdown</button></div>'
+    + '<script>\n'
+    + 'var notes=[];try{notes=JSON.parse(localStorage.getItem("at_review_notes")||"[]")}catch(e){}\n'
+    + 'var sel="";document.addEventListener("mouseup",function(){sel=String(window.getSelection()).trim();document.getElementById("notebtns").style.display=sel?"flex":"none"});\n'
+    + 'function addNote(){if(!sel)return;var t=prompt("批注内容：");if(!t)return;notes.push({q:sel.slice(0,120),c:t,sec:(document.getElementById("sec"+curSec())||{}).querySelector?document.querySelector("#sec"+curSec()+" h2").innerText:""});localStorage.setItem("at_review_notes",JSON.stringify(notes));renderNotes();}\n'
+    + 'function curSec(){var ss=document.querySelectorAll("section");for(var i=0;i<ss.length;i++){if(ss[i].getBoundingClientRect().top>0&&ss[i].getBoundingClientRect().top<200)return i}return 0}\n'
+    + 'function renderNotes(){document.getElementById("nl").innerHTML=notes.map(function(n,i){return "<div class=\'ni\'><div class=\'nq\'>「"+n.q+"」</div>"+n.c+"</div>"}).join("")||"<i style=\'color:#94a3b8\'>暂无批注</i>";document.getElementById("nc").textContent=notes.length+" 条";document.getElementById("note").style.display="block"}\n'
+    + 'function exportNotes(){var md="## 批注清单\\n\\n"+notes.map(function(n,i){return (i+1)+". **「"+n.q+"」**\\n   → "+n.c}).join("\\n\\n");var b=new Blob([md],{type:"text/markdown"});var a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="批注清单.md";a.click()}\n'
+    + 'renderNotes();\n<\\/script></body></html>';
+  downloadBlob('全流程审阅.html', new Blob([html], { type: 'text/html' }));
+}
+
+init();
+renderStage();
+</script>
+</body>
+</html>

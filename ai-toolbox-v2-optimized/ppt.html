@@ -30,10 +30,9 @@
   .btn:disabled { opacity:.55; cursor:not-allowed; }
   .row2 { display:flex; gap:8px; }
   .row2 > * { flex:1; }
-  .themes { display:flex; gap:8px; flex-wrap:wrap; }
-  .themes .th { width:86px; border:2px solid var(--line); border-radius:10px; padding:6px; cursor:pointer; text-align:center; font-size:11px; color:var(--mut); }
-  .themes .th .sw { height:30px; border-radius:6px; margin-bottom:5px; }
-  .themes .th.on { border-color:var(--accent); color:var(--tx); font-weight:600; }
+  .tprev { margin-top:8px; }
+  .aicard { border:1px dashed var(--line); border-radius:10px; padding:10px 12px; }
+  .aicard .hint { margin-top:6px; }
   .hint { font-size:12px; color:var(--mut); line-height:1.6; margin-top:8px; }
   .err { background:#FEF2F2; border:1px solid #FECACA; color:#B91C1C; padding:10px 12px; border-radius:10px; font-size:13px; line-height:1.6; margin-top:10px; }
   .stage { position:relative; }
@@ -108,7 +107,18 @@
       <input type="text" id="extra" placeholder="例如：突出成本数据；最后一页放联系方式">
 
       <h3 style="margin-top:16px">② 选择主题</h3>
-      <div class="themes" id="themeList"></div>
+      <div class="row2">
+        <select id="themeSel" style="flex:1" onchange="pickTheme(this.value)"></select>
+      </div>
+      <div id="themePrev" class="tprev"></div>
+      <div class="aicard" style="margin-top:10px">
+        <div style="font-size:12.5px;font-weight:700">✨ AI 定制主题 <span class="badge" id="aiThemeBadge"></span></div>
+        <div class="row2" style="margin-top:8px">
+          <input type="text" id="aiThemeDesc" style="flex:1" placeholder="描述想要的样子，如：新能源发布会，深色底+荧光绿">
+          <button class="btn ghost" id="btnAiTheme" onclick="aiTheme()" disabled>生成主题</button>
+        </div>
+        <div class="hint" id="aiThemeHint">在「设置」页配好模型后，用一句话生成专属配色，自动加入下拉。</div>
+      </div>
 
       <div style="margin-top:14px" class="row2">
         <button class="btn" id="btnOutline" onclick="genOutline()">生成大纲</button>
@@ -162,10 +172,10 @@
 
 <div id="printArea"></div>
 
-<script src="js/vendor/qrcode-generator.js"></script>
-<script src="js/pptxgen.bundle.js"></script>
-<script src="js/app.js"></script>
-<script src="js/ppt-themes.js"></script>
+<script src="js/vendor/qrcode-generator.js?v=9"></script>
+<script src="js/pptxgen.bundle.js?v=9"></script>
+<script src="js/app.js?v=9"></script>
+<script src="js/ppt-themes.js?v=9"></script>
 <script>
 'use strict';
 var MODE = 'topic';
@@ -181,22 +191,65 @@ function setMode(m) {
   document.getElementById('btnOutline').textContent = m === 'pptx' ? '分析并优化' : '生成大纲';
 }
 
-/* 主题色卡 */
+/* 主题下拉（10 款内置 + AI 定制） */
+function fillThemeSel(selKey) {
+  var sel = document.getElementById('themeSel');
+  sel.innerHTML = Object.keys(PPT_THEMES).map(function (k) {
+    return '<option value="' + k + '"' + (k === selKey ? ' selected' : '') + '>' + PPT_THEMES[k].name + (k === 'custom' ? ' · AI' : '') + '</option>';
+  }).join('');
+}
+function renderThemePrev() {
+  var t = PPT_THEMES[THEME] || PPT_THEMES.business;
+  var bars = ['bg', 'band', 'accent', 'title', 'text'].map(function (k) {
+    return '<span style="flex:1;background:#' + t[k] + '"></span>';
+  }).join('');
+  document.getElementById('themePrev').innerHTML =
+    '<div style="display:flex;height:26px;border-radius:8px;overflow:hidden;border:1px solid var(--line)">' + bars + '</div>' +
+    '<div style="font-size:11px;color:var(--mut);margin-top:4px">' + t.name + ' · 背景 / 辅助块 / 强调 / 标题 / 正文</div>';
+}
+function pickTheme(k) {
+  if (!PPT_THEMES[k]) k = 'business';
+  THEME = k; localStorage.setItem('at_ppt_theme', k);
+  document.getElementById('themeSel').value = k;
+  renderThemePrev();
+  if (deck) renderAll();
+}
+async function aiTheme() {
+  var desc = document.getElementById('aiThemeDesc').value.trim();
+  var hint = document.getElementById('aiThemeHint');
+  if (!desc) { hint.textContent = '先描述想要的样子，例如：新能源汽车发布会，深色底 + 荧光绿。'; return; }
+  var btn = document.getElementById('btnAiTheme');
+  btn.disabled = true; btn.textContent = '生成中…';
+  try {
+    var raw = await llmChat([
+      { role: 'system', content: '你是顶级 PPT 配色设计师。只输出一个 JSON 对象，禁止解释。字段：name（主题名，2-6 个中文字）、bg（背景色 hex，6 位、无 #）、band（辅助色块 hex）、accent（强调色 hex）、title（标题色 hex）、text（正文色 hex）、muted（次要文字 hex）、dark（布尔值，深色背景为 true）。要求：正文与背景对比度足够高；整体配色和谐高级，贴合用户描述的场景气质。' },
+      { role: 'user', content: '主题风格描述：' + desc }
+    ], { temperature: 0.7 });
+    var t = validTheme(extractJSON(raw));
+    if (!t) throw new Error('生成的配色不合法，请重试或换个说法');
+    PPT_THEMES.custom = t;
+    localStorage.setItem('at_ppt_custom_theme', JSON.stringify(t));
+    fillThemeSel('custom');
+    pickTheme('custom');
+    hint.textContent = '已生成「' + t.name + '」并应用；也可在下拉中切回内置主题。';
+  } catch (e) {
+    hint.textContent = '生成失败：' + (e.message || e);
+  } finally {
+    btn.disabled = false; btn.textContent = '生成主题';
+  }
+}
 (function () {
-  var box = document.getElementById('themeList');
-  Object.keys(PPT_THEMES).forEach(function (k) {
-    var t = PPT_THEMES[k];
-    var d = document.createElement('div');
-    d.className = 'th' + (k === THEME ? ' on' : '');
-    d.innerHTML = '<div class="sw" style="background:linear-gradient(135deg,#' + t.accent + ' 0%,#' + t.title + ' 100%)"></div>' + t.name;
-    d.onclick = function () {
-      THEME = k; localStorage.setItem('at_ppt_theme', k);
-      [].forEach.call(box.children, function (c) { c.classList.remove('on'); });
-      d.classList.add('on');
-      if (deck) renderAll();
-    };
-    box.appendChild(d);
-  });
+  try {
+    var saved = JSON.parse(localStorage.getItem('at_ppt_custom_theme') || 'null');
+    var t = validTheme(saved);
+    if (t) PPT_THEMES.custom = t;
+  } catch (e) {}
+  if (!PPT_THEMES[THEME]) THEME = 'business';
+  fillThemeSel(THEME);
+  renderThemePrev();
+  var ready = typeof llmReady === 'function' && llmReady();
+  document.getElementById('btnAiTheme').disabled = !ready;
+  document.getElementById('aiThemeBadge').textContent = ready ? '✓ 已接入模型' : '需在「设置」页配置模型';
 })();
 
 function showErr(boxId, msg) {

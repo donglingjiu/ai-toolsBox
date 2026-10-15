@@ -93,12 +93,12 @@
   </div>
 </div>
 
-<script src="js/pdf-lib.min.js"></script>
-<script src="js/pdfjs/pdf.min.js"></script>
-<script src="js/docx.js"></script>
-<script src="js/mammoth.browser.min.js"></script>
-<script src="js/app.js"></script>
-<script src="js/pdf2word-core.js"></script>
+<script src="js/pdf-lib.min.js?v=9"></script>
+<script src="js/pdfjs/pdf.min.js?v=9"></script>
+<script src="js/docx.js?v=9"></script>
+<script src="js/mammoth.browser.min.js?v=9"></script>
+<script src="js/app.js?v=9"></script>
+<script src="js/pdf2word-core.js?v=9"></script>
 <script>
 (function () {
   'use strict';
@@ -244,27 +244,43 @@
 
       ctl.busy('生成 Word 文档…');
       var LEVELS = { h1: docx.HeadingLevel.HEADING_1, h2: docx.HeadingLevel.HEADING_2, h3: docx.HeadingLevel.HEADING_3 };
+      var FONT = { ascii: 'Calibri', hAnsi: 'Calibri', eastAsia: '微软雅黑' };
+      var INK = '000000';
       var children = [];
       plan.paragraphs.forEach(function (p) {
-        if (p.kind === 'h1' || p.kind === 'h2' || p.kind === 'h3') {
+        /* 字号跟随原 PDF（half-points），页尾小字不再被放大成正文 */
+        var size = 22;
+        var isH = p.kind === 'h1' || p.kind === 'h2' || p.kind === 'h3';
+        if (p.fontSize && p.fontSize > 0) {
+          var hp = Math.round(p.fontSize * 2);
+          size = isH ? Math.max(24, Math.min(48, hp)) : Math.max(15, Math.min(30, hp));
+        } else if (isH) {
+          size = { h1: 32, h2: 28, h3: 24 }[p.kind];
+        }
+        var mkRun = function (r) {
+          return new docx.TextRun({ text: r.text, bold: isH ? true : !!r.bold, size: size, color: INK, font: FONT });
+        };
+        if (isH) {
           children.push(new docx.Paragraph({
-            text: p.runs.map(function (r) { return r.text; }).join(''),
             heading: LEVELS[p.kind],
+            spacing: { before: 220, after: 110 },
+            children: [mkRun({ text: p.runs.map(function (r) { return r.text; }).join('') })],
           }));
         } else if (p.kind === 'li') {
           children.push(new docx.Paragraph({
-            children: p.runs.map(function (r) { return new docx.TextRun({ text: r.text, bold: !!r.bold }); }),
-            indent: { left: 360 },
-            spacing: { after: 60 },
+            children: p.runs.map(mkRun),
+            indent: { left: 420, hanging: 220 },
+            spacing: { after: 80, line: 264, lineRule: 'auto' },
           }));
         } else {
           children.push(new docx.Paragraph({
-            children: p.runs.map(function (r) { return new docx.TextRun({ text: r.text, bold: !!r.bold }); }),
-            spacing: { after: 120, line: 300 },
+            children: p.runs.map(mkRun),
+            spacing: { after: 100, line: 264, lineRule: 'auto' },
           }));
         }
       });
       var doc = new docx.Document({
+        styles: { default: { document: { run: { size: 22, color: INK, font: FONT } } } },
         sections: [{ properties: {}, children: children }],
       });
       var blob = await docx.Packer.toBlob(doc);
