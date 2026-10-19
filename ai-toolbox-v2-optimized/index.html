@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AI 工具箱 · 简单好用的在线工具集</title>
-<link rel="stylesheet" href="css/style.css?v=9">
+<link rel="stylesheet" href="css/style.css?v=11">
 </head>
 <body>
 <nav class="nav"><div class="nav-inner">
@@ -29,6 +29,19 @@
   <div class="hero">
     <h1>你的 <span class="grad">AI 工具箱</span></h1>
     <p>隐私优先 · 本地处理 · 开箱即用。二维码、文档转换、AI 助手与 123 个专业提示词工具，全部在一个地方。</p>
+    <div class="searchbox">
+      <input id="q" type="text" placeholder="搜工具，如：二维码 / PPT / 简历 / 转换…" autocomplete="off">
+      <button id="qgo" title="搜索">🔍</button>
+    </div>
+    <div class="tags">
+      <button class="tag-chip" data-q="二维码">🎨 艺术二维码</button>
+      <button class="tag-chip" data-q="PPT">📊 AI 演示</button>
+      <button class="tag-chip" data-q="表格">📈 表格分析</button>
+      <button class="tag-chip" data-q="转换">📄 文档转换</button>
+      <button class="tag-chip" data-q="简历">📋 简历优化</button>
+      <button class="tag-chip" data-q="提示词">🎯 提示词库</button>
+      <button class="tag-chip" data-q="">全部</button>
+    </div>
     <div class="meta">数据默认只保存在你的浏览器本地 · AI 功能可接入任意 OpenAI 兼容模型</div>
   </div>
 
@@ -111,6 +124,37 @@
   AI 工具箱 · 纯静态实现，无后端服务器，敏感数据（日记、文档、密钥）只保存在你的设备本地<br>
   <a href="settings.html">模型接入说明</a>
 </footer>
-<script src="js/app.js?v=9"></script>
+<script src="js/app.js?v=11"></script>
+<script>
+(function () {
+  var input = document.getElementById('q');
+  var cards = Array.prototype.slice.call(document.querySelectorAll('.tool-card'));
+  var hint = document.createElement('div');
+  hint.className = 'muted mt16 hidden';
+  hint.style.textAlign = 'center';
+  hint.textContent = '没有匹配的工具，换个关键词试试～';
+  var grid = document.querySelector('.grid-tools');
+  grid.parentNode.insertBefore(hint, grid);
+  function filter(kw) {
+    kw = (kw || '').trim().toLowerCase();
+    var shown = 0;
+    cards.forEach(function (c) {
+      var hit = !kw || (c.textContent || '').toLowerCase().indexOf(kw) !== -1;
+      c.classList.toggle('hidden', !hit);
+      if (hit) shown++;
+    });
+    hint.classList.toggle('hidden', shown > 0);
+  }
+  input.addEventListener('input', function () { filter(input.value); });
+  document.getElementById('qgo').addEventListener('click', function () { filter(input.value); });
+  Array.prototype.forEach.call(document.querySelectorAll('.tag-chip'), function (chip) {
+    chip.addEventListener('click', function () {
+      input.value = chip.getAttribute('data-q') || '';
+      filter(input.value);
+      grid.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+})();
+</script>
 </body>
 </html>

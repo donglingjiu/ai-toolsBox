@@ -168,7 +168,7 @@
   </div>
 </div>
 
-<script src="js/app.js?v=9"></script>
+<script src="js/app.js?v=11"></script>
 <script>
 (function () {
   'use strict';
@@ -220,6 +220,17 @@
   };
   var $ = function (id) { return document.getElementById(id); };
   var editingId = null;
+
+  /* file:// 直开检测：浏览器会拦截本地页面发出的跨域 API 请求 */
+  if (location.protocol === 'file:') {
+    var fw = document.createElement('div');
+    fw.style.cssText = 'margin:0 0 16px;padding:13px 16px;border:1.5px solid #f59e0b;background:#fffbeb;border-radius:12px;font-size:13.5px;line-height:1.8;color:#92400e';
+    fw.innerHTML = '<b>⚠️ 你正在用「本地文件」方式打开本页（地址栏是 file:// 开头）</b><br>' +
+      '浏览器会拦截本地页面发出的跨域 API 请求，所有模型测试都会报「连不上」——这不是 Key 或配置的问题。<br>' +
+      '解决：① 把整个文件夹上传到你的网站空间后访问；或 ② 在本目录打开终端执行 <code style="background:#fef3c7;padding:1px 6px;border-radius:4px">python -m http.server 8000</code>，然后浏览器访问 <code style="background:#fef3c7;padding:1px 6px;border-radius:4px">http://127.0.0.1:8000/settings.html</code>';
+    var anchor = document.querySelector('.card') || document.body;
+    anchor.parentNode.insertBefore(fw, anchor);
+  }
 
   document.getElementById('applyPreset').addEventListener('click', function () {
     var p = PRESETS[$('presetSel').value];
