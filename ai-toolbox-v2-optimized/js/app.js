@@ -182,15 +182,31 @@ async function _llmCallProfile(profile, messages, opt) {
   const url = base + '/chat/completions';
   const body = { model: opt.model || profile.model, messages: messages, stream: opt.stream !== false };
   if (opt.temperature != null) body.temperature = opt.temperature;
-  const resp = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + profile.apiKey },
-    body: JSON.stringify(body),
-    signal: opt.signal,
-  });
+  let resp;
+  try {
+    resp = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + profile.apiKey },
+      body: JSON.stringify(body),
+      signal: opt.signal,
+    });
+  } catch (netErr) {
+    if (netErr && netErr.name === 'AbortError') throw netErr;
+    const e = new Error('连不上模型接口：网络不通 / 被浏览器拦截(CORS) / Base URL 写错。请检查地址是否 https 且平台可直连（海外平台需海外网络）');
+    e.httpStatus = 0;
+    throw e;
+  }
   if (!resp.ok) {
     const txt = await resp.text().catch(function () { return ''; });
-    const e = new Error('模型接口 HTTP ' + resp.status + (txt ? '：' + txt.slice(0, 300) : ''));
+    const WHY = {
+      401: 'Key 无效或已过期 → 去开放平台重新生成',
+      402: 'Key 有效但账户余额不足 → 去开放平台充值',
+      403: '无权限：Key 配额不足或该模型未开通 → 到平台控制台开通此模型',
+      404: '接口路径不存在 → Base URL 多半写错（检查版本路径 /v1、/compatible-mode/v1 等）',
+      429: '触发限流或免费额度用尽 → 稍后再试或升级配额',
+    };
+    const why = WHY[resp.status] || (resp.status >= 500 ? '平台服务端故障 → 稍后再试或切换其他配置' : '');
+    const e = new Error('模型接口 HTTP ' + resp.status + (why ? '：' + why : '') + (txt ? ' ｜ ' + txt.slice(0, 200) : ''));
     e.httpStatus = resp.status;
     throw e;
   }

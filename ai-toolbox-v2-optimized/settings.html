@@ -76,7 +76,8 @@
           <option value="chatglm">智谱 ChatGLM（兼容模式）</option>
           <option value="minimax">MiniMax（兼容模式）</option>
           <option value="moonshot">Kimi / Moonshot</option>
-          <option value="openai">OpenAI</option>
+          <option value="openai">OpenAI（需海外网络）</option>
+          <option value="google">Google Gemini（需海外网络）</option>
           <option value="coze">Coze（需自行确认是否提供兼容接口）</option>
           <option value="custom">自定义</option>
         </select>
@@ -199,14 +200,23 @@
 
   /* ---- 文本模型 Profile 管理 ---- */
   var PRESETS = {
-    deepseek: { name: 'DeepSeek', base: 'https://api.deepseek.com/v1', model: 'deepseek-chat' },
-    qwen: { name: '通义千问 Qwen', base: 'https://dashscope.aliyuncs.com/compatible-mode/v1', model: 'qwen-plus' },
-    chatglm: { name: '智谱 ChatGLM', base: 'https://open.bigmodel.cn/api/paas/v4', model: 'glm-4-plus' },
-    minimax: { name: 'MiniMax', base: 'https://api.minimax.chat/v1', model: 'abab6.5s-chat' },
-    moonshot: { name: 'Kimi / Moonshot', base: 'https://api.moonshot.cn/v1', model: 'moonshot-v1-8k' },
-    openai: { name: 'OpenAI', base: 'https://api.openai.com/v1', model: 'gpt-4o-mini' },
-    coze: { name: 'Coze', base: 'https://api.coze.cn/v1', model: '' },
-    custom: { name: '', base: '', model: '' },
+    deepseek: { name: 'DeepSeek', base: 'https://api.deepseek.com/v1', model: 'deepseek-chat',
+      tip: 'Key：platform.deepseek.com → API Keys（充值制）' },
+    qwen: { name: '通义千问 Qwen', base: 'https://dashscope.aliyuncs.com/compatible-mode/v1', model: 'qwen-plus',
+      tip: 'Key：百炼控制台 bailian.console.aliyun.com → API-KEY 管理；报 403 = 未开通该模型，到模型广场开通（新账号送额度）' },
+    chatglm: { name: '智谱 ChatGLM', base: 'https://open.bigmodel.cn/api/paas/v4', model: 'glm-4.7-flash',
+      tip: 'Key：open.bigmodel.cn/usercenter/apikeys（GLM-4.7-Flash 免费，注册即用）' },
+    minimax: { name: 'MiniMax', base: 'https://api.minimaxi.com/v1', model: 'MiniMax-M3',
+      tip: 'Key：platform.minimaxi.com → 接口密钥；报 402 = 余额不足，去钱包充值（注意 Key 与域名地区要匹配）' },
+    moonshot: { name: 'Kimi / Moonshot', base: 'https://api.moonshot.cn/v1', model: 'moonshot-v1-8k',
+      tip: 'Key：platform.moonshot.cn → API Key 管理' },
+    openai: { name: 'OpenAI', base: 'https://api.openai.com/v1', model: 'gpt-4o-mini',
+      tip: 'Key：platform.openai.com/api-keys（国内直连不通，需海外网络）' },
+    google: { name: 'Google Gemini', base: 'https://generativelanguage.googleapis.com/v1beta/openai', model: 'gemini-2.0-flash',
+      tip: 'Key：aistudio.google.com/apikey（国内直连会 Failed to fetch，需海外网络）' },
+    coze: { name: 'Coze', base: 'https://api.coze.cn/v1', model: '',
+      tip: 'Token：www.coze.cn → 扣子 API → 个人访问令牌（Pat）' },
+    custom: { name: '', base: '', model: '', tip: '' },
   };
   var $ = function (id) { return document.getElementById(id); };
   var editingId = null;
@@ -216,7 +226,7 @@
     if (!p) { setStatus('请先选择一个模板', false); return; }
     $('pfName').value = p.name; $('pfBase').value = p.base; $('pfModel').value = p.model; $('pfKey').value = '';
     editingId = null;
-    setStatus('已填入模板，请补全 API Key 后点「添加」', true);
+    setStatus('已填入模板，请补全 API Key 后点「添加」' + (p.tip ? ' ｜ ' + p.tip : ''), true);
   });
   document.getElementById('resetEdit').addEventListener('click', function () {
     $('pfName').value = ''; $('pfBase').value = ''; $('pfModel').value = ''; $('pfKey').value = ''; editingId = null;
