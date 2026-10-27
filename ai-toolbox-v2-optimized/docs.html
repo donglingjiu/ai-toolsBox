@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nova Docs · 星文 — 文档工作台</title>
+<meta name="description" content="Nova Docs — 文件处理队列、格式转换与 Nova Vault 本地文档库。全部本地执行，数据不出端。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%2345E0C8' d='M12 2 14.4 9.6 22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4Z'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/nova.css">
+<link rel="stylesheet" href="css/nova-docs.css">
+</head>
+<body>
+<a class="skip-link" href="#main">跳到主要内容</a>
+
+<header class="topbar">
+  <div class="topbar__inner">
+    <a class="logo" href="index.html" aria-label="返回 Nova 首页">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M12 2 14.4 9.6 22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4Z"/></svg>
+      Nova <span class="logo__cn">Docs · 星文</span>
+    </a>
+    <nav class="nav" aria-label="主导航">
+      <a href="docs.html" aria-current="page">Docs</a><a href="data.html">Data</a><a href="flow.html">Flow</a><a href="mind.html">Mind</a>
+    </nav>
+    <span class="topbar__spacer"></span>
+    <button class="cmdk-btn" data-cmdk-open aria-label="打开 Nova Command 命令面板">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      搜索… <kbd>Ctrl K</kbd>
+    </button>
+  </div>
+</header>
+
+<main id="main" class="docs-main">
+  <div class="tabs" role="tablist" aria-label="Docs 功能区">
+    <button class="tab" role="tab" data-tab="convert" aria-selected="true">文件处理</button>
+    <button class="tab" role="tab" data-tab="ai" aria-selected="false">AI 演示</button>
+    <button class="tab" role="tab" data-tab="vault" aria-selected="false">Nova Vault 星库</button>
+  </div>
+
+  <!-- 文件处理 -->
+  <section id="tab-convert" role="tabpanel" aria-label="文件处理">
+    <div id="dropzone" class="dropzone" tabindex="0" role="button" aria-label="点击或拖入文件">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 16V4m0 0 -4 4m4-4 4 4"/><path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+      <p><strong>拖入文件</strong>，或点击选择（支持多选 · 建议单文件 &lt; 20MB）</p>
+      <p class="dropzone__hint">docx → HTML/TXT · pdf → TXT/MD · xlsx/xls → CSV/JSON/XLSX · csv → JSON/XLSX · html → 打印导出PDF · 任意文件仅存星库</p>
+      <input id="file-input" type="file" multiple hidden>
+    </div>
+
+    <div class="bar">
+      <button id="run-all" class="btn btn--primary">▶ 全部开始</button>
+      <button id="clear-done" class="btn btn--ghost">清空已完成</button>
+      <span class="bar__note">转换全程本地执行；产物自动存入 Nova Vault</span>
+    </div>
+
+    <div class="table-wrap">
+      <table class="qtable" aria-label="处理队列">
+        <thead><tr><th>文件</th><th>转换为</th><th>状态</th><th>操作</th></tr></thead>
+        <tbody id="queue-body"></tbody>
+      </table>
+      <div id="queue-empty" class="empty">队列空空如也 —— 拖入第一个文件，开始一次新星爆发 ✦</div>
+    </div>
+
+    <p class="boundary">边界说明：docx→pdf 需要排版引擎，浏览器内无法诚实完成，故不提供；需要 PDF 的 docx 请先转 HTML 再用系统打印导出。PDF 转换依赖内置 pdf.js，若提示未找到请把 <code>ls js/pdfjs/</code> 结果反馈给开发者。</p>
+  </section>
+
+  <!-- AI 演示 -->
+  <section id="tab-ai" role="tabpanel" aria-label="AI 演示" hidden>
+    <div class="ai-cards">
+      <a class="ai-card" href="ppt.html">
+        <div class="ai-card__head"><span class="ai-card__no">A1</span><strong>AI 演示 PPT</strong></div>
+        <p>三入口生成 + 上传 PPT 解析，完整能力在经典工具页，点击直达。</p>
+        <span class="ai-card__go">打开 ppt.html →</span>
+      </a>
+      <div class="ai-card ai-card--soon">
+        <div class="ai-card__head"><span class="ai-card__no">A2</span><strong>Docs 内嵌 AI 演示</strong></div>
+        <p>规划中：在工作台内直接调 API Profile 生成演示。B5 Mind 完成统一 API 层后并入。</p>
+        <span class="ai-card__go ai-card__go--dim">待 B5 后并入</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Nova Vault -->
+  <section id="tab-vault" role="tabpanel" aria-label="Nova Vault 星库" hidden>
+    <div class="bar">
+      <strong>Nova Vault · 星库</strong>
+      <span class="bar__note">IndexedDB 本地文档库 · 清浏览器数据会清空星库，重要产物请及时下载</span>
+      <span class="topbar__spacer"></span>
+      <button id="vault-refresh" class="btn btn--ghost">↻ 刷新</button>
+      <button id="vault-clear" class="btn btn--ghost btn--danger-ghost">清空星库</button>
+    </div>
+    <div class="table-wrap">
+      <table class="qtable" aria-label="星库文档列表">
+        <thead><tr><th>文档</th><th>来源</th><th>大小</th><th>时间</th><th>操作</th></tr></thead>
+        <tbody id="vault-body"></tbody>
+      </table>
+      <div id="vault-empty" class="empty">星库为空 —— 完成一次转换后产物会自动收入</div>
+    </div>
+  </section>
+</main>
+
+<!-- 预览弹窗 -->
+<div class="pv-overlay" id="pv-overlay" data-open="false">
+  <div class="pv" role="dialog" aria-modal="true" aria-label="文档预览">
+    <div class="pv__head"><strong id="pv-title">预览</strong><button id="pv-close" class="btn btn--ghost" aria-label="关闭预览">✕</button></div>
+    <div class="pv__body" id="pv-body"></div>
+  </div>
+</div>
+
+<script src="js/mammoth.browser.min.js"></script>
+<script src="js/vendor/xlsx.full.min.js"></script>
+<script src="js/nova-core.js"></script>
+<script src="js/nova-docs.js"></script>
+</body>
+</html>
