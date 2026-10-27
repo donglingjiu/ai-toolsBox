@@ -1,14 +1,14 @@
 /* ============================================================
-   Nova Docs v1.2 · 文件处理队列 / 确定性转换引擎 / Nova Vault(IndexedDB)
+   Nova Docs v1.3 · 文件处理队列 / 确定性转换引擎 / Nova Vault(IndexedDB)
    v1.0: mammoth(docx→html)、SheetJS(xlsx/csv)、pdf.js(pdf→txt/md)
    v1.1: pdf→docx（复用 pdf2word-core，纯文本流重建）
-   v1.2: 自研版面引擎（基于 pdf.js 坐标）：
-        · 行聚类（y 容差）+ 行内 x 排序 + 字体名粗体识别
-        · 列间隙检测：同 y 远距文字拆为多 cell，不再左右拼串
-        · 连续对齐行 → 合成为真 Word 表格（无边框），发票/报表可用
-        · 标题分级（字号中位数 + 首行加权）、列表识别
-        · 新增「高保真图片版 DOCX」：canvas 渲染嵌入，视觉 100% 还原
-   诚实边界：docx→pdf 不提供；扫描版 PDF 文本模式会明确报错（图片模式可用）
+   v1.2: 自研版面引擎（行聚类/列拆分/表格合成/图片版 DOCX）
+   v1.3: 版面引擎三修（发票类高密度表格版式）：
+        · 表格列宽自适应：按列内容最大宽度加权分配 dxa，不再均分挤压
+        · 竖排文字合并：连续单字行且 x 相近 → 合并为一个段落
+        · 表头吸附：整行跨度重叠率 >55% 即并入表格（容忍列内居中）
+        · 标题拆分：大字行多区块时首块做标题、其余独立成段
+   诚实边界：docx→pdf 不提供；扫描版 PDF 文本模式明确报错（图片版可用）
    ============================================================ */
 "use strict";
 
@@ -20,6 +20,8 @@ const baseOf = (n) => n.replace(/\.[^.]+$/, "");
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 const safeName = (s) => s.replace(/[\\/:*?"<>|]/g, "_");
 const median = (arr) => { if (!arr.length) return 0; const s = [...arr].sort((a,b)=>a-b); return s[Math.floor(s.length/2)]; };
+/* 估算显示宽度：CJK 全角算 2，半角算 1（用于表格列宽加权） */
+const estW = (s) => [...String(s)].reduce((w, ch) => w + (/[\u2e80-\u9fff\u3000-\u303f\uff00-\uffef]/.test(ch) ? 2 : 1), 0);
 
 function loadScript(src) {
   return new Promise((res, rej) => {
@@ -114,10 +116,10 @@ const Vault = {
 };
 
 /* ============================================================
-   Nova 版面引擎 v1.2（基于 pdf.js 原始坐标）
+   Nova 版面引擎 v1.3（基于 pdf.js 原始坐标）
    ============================================================ */
 
-/* 统一解析：返回 pages[{ items:[{str,x,y,w,h,bold,fs}], width, height }] */
+/* 统一解析：pages[{ items:[{str,x,y,w,h,bold,fs}], width, height }] */
 async function extractLayout(file) {
   const pdfjs = await ensurePdfJs();
   const pdf = await pdfjs.getDocument({ data: await readAB(file) }).promise;
@@ -129,7 +131,7 @@ async function extractLayout(file) {
     const items = [];
     for (const it of tc.items) {
       if (!it.str || !it.str.trim()) continue;
-      const t = it.transform;                 /* [a,b,c,d,e,f]: e=x f=基线y */
+      const t = it.transform;
       const fs = Math.hypot(t[2], t[3]) || Math.abs(t[3]) || 10;
       const style = (tc.styles && tc.styles[it.fontName]) || {};
       const fam = String(style.fontFamily || "");
@@ -162,7 +164,7 @@ function clusterRows(items) {
   return rows.sort((a, b) => b.y - a.y);
 }
 
-/* 行内列拆分：间隙 > max(24, 行高*1.6) 视为分栏/表格列，返回 cells[{x,text,fs,bold}] */
+/* 行内列拆分：间隙 > max(24, 行高*1.6) 视为分栏/表格列 */
 function splitCells(row, medH) {
   const gapTh = Math.max(24, medH * 1.6);
   const cells = [];
@@ -191,12 +193,24 @@ function splitCells(row, medH) {
   }
 }
 
-/* 页 → 块序列：para / table / heading（供 docx 组装） */
+/* 行跨度与重叠率（v1.3 表格吸附判定） */
+function rowSpan(cells) {
+  let min = Infinity, max = -Infinity;
+  for (const c of cells) { min = Math.min(min, c.x); max = Math.max(max, c.x + c.w); }
+  return { min, max };
+}
+function spanOverlap(a, b) {
+  const inter = Math.min(a.max, b.max) - Math.max(a.min, b.min);
+  const union = Math.max(a.max, b.max) - Math.min(a.min, b.min);
+  return union > 0 ? inter / union : 0;
+}
+
+/* 页 → 块序列：para / table / heading */
 function pageToBlocks(page, medF) {
   const medH = median(page.items.map((i) => i.h)) || 10;
   const rows = clusterRows(page.items);
   const blocks = [];
-  let paraBuf = [];            /* 连续单 cell 文本行缓存 */
+  let paraBuf = [];
 
   const flushPara = () => {
     if (!paraBuf.length) return;
@@ -208,12 +222,14 @@ function pageToBlocks(page, medF) {
     const cells = splitCells(rows[ri], medH);
     const fs = median(cells.map((c) => c.fs));
 
-    /* 表格判定：本行 ≥2 cell，且与上一/下一行形成连续对齐（首 cell x 相近） */
     if (cells.length >= 2) {
-      const nextCells = ri + 1 < rows.length ? splitCells(rows[ri + 1], medH) : [];
       const prevBlock = blocks[blocks.length - 1];
-      const alignedWithNext = nextCells.length >= 2 && Math.abs(nextCells[0].x - cells[0].x) < 30;
-      const alignedWithPrevTable = prevBlock && prevBlock.type === "table" && Math.abs(prevBlock.rows[0][0].x - cells[0].x) < 30;
+      const span = rowSpan(cells);
+      const nextCells = ri + 1 < rows.length ? splitCells(rows[ri + 1], medH) : [];
+      /* v1.3：整行跨度重叠率 >55% 即视为同一表格（容忍表头列内居中） */
+      const alignedWithNext = nextCells.length >= 2 && spanOverlap(span, rowSpan(nextCells)) > 0.55;
+      const alignedWithPrevTable = prevBlock && prevBlock.type === "table"
+        && spanOverlap(span, rowSpan(prevBlock.rows[0])) > 0.55;
       if (alignedWithNext || alignedWithPrevTable) {
         flushPara();
         if (alignedWithPrevTable) prevBlock.rows.push(cells);
@@ -222,20 +238,26 @@ function pageToBlocks(page, medF) {
       }
     }
 
-    /* 单 cell 文本行：进段落缓存 */
     flushParaIfNeeded(cells, fs);
   }
   flushPara();
   return blocks;
 
   function flushParaIfNeeded(cells, fs) {
-    /* 标题判定：字号显著大于正文中位数，或文档首行且字号大 */
     const ratio = fs / (medF || 10);
     const isHeading = ratio >= 1.35;
-    if (isHeading) { flushPara(); blocks.push({ type: "heading", level: ratio >= 1.7 ? 1 : 2, text: joinCells(cells), bold: true }); return; }
+    if (isHeading) {
+      flushPara();
+      /* v1.3：大字行多区块时拆开——首块做标题，其余独立成段 */
+      blocks.push({ type: "heading", level: ratio >= 1.7 ? 1 : 2, text: cells[0].parts.join("").trim(), bold: true });
+      for (let k = 1; k < cells.length; k++) {
+        const t = cells[k].parts.join("").trim();
+        if (t) blocks.push({ type: "para", lines: [{ cells: [cells[k]], fs }] });
+      }
+      return;
+    }
     paraBuf.push({ cells, fs });
   }
-  function joinCells(cs) { return cs.map((c) => c.parts.join("")).join("  ").trim(); }
 }
 
 const LIST_RE = /^([•·‣◦▪▸●○◆■□\-–—*]|\d{1,2}[.)、]|[（(]\d{1,2}[)）]|[a-zA-Z][.)])\s+/;
@@ -251,6 +273,9 @@ function joinLineParts(parts) {
   return text;
 }
 
+/* A4 可用宽度（twips/dxa）：11906 - 2×1440 页边距 */
+const PAGE_DXA = 9026;
+
 /* 块 → docx children */
 function blocksToDocxChildren(blocks) {
   const { Paragraph, TextRun, Table, TableRow, TableCell, WidthType, HeadingLevel } = window.docx;
@@ -265,8 +290,17 @@ function blocksToDocxChildren(blocks) {
       }));
       continue;
     }
+
     if (b.type === "table") {
       const maxCols = Math.max(...b.rows.map((r) => r.length));
+      /* v1.3：列宽按内容最大显示宽度加权（dxa），不再均分 */
+      const colW = new Array(maxCols).fill(4);
+      for (const r of b.rows) r.forEach((c, ci) => {
+        if (c && ci < maxCols) colW[ci] = Math.max(colW[ci], estW(c.parts.join("")) + 2);
+      });
+      const total = colW.reduce((a, x) => a + x, 0) || 1;
+      const columnWidths = colW.map((w) => Math.max(360, Math.round(PAGE_DXA * w / total)));
+
       const trows = b.rows.map((cells) => {
         const tds = [];
         for (let c = 0; c < maxCols; c++) {
@@ -277,25 +311,60 @@ function blocksToDocxChildren(blocks) {
         }
         return new TableRow({ children: tds });
       });
-      out.push(new Table({ rows: trows, width: { size: 100, type: WidthType.PERCENTAGE } }));
-      out.push(new Paragraph({ children: [] }));   /* 表后空行，避免粘连 */
+
+      const tOpts = { rows: trows, width: { size: 100, type: WidthType.PERCENTAGE }, columnWidths };
+      if (window.docx.TableLayoutType) tOpts.layout = window.docx.TableLayoutType.FIXED;
+      out.push(new Table(tOpts));
+      out.push(new Paragraph({ children: [] }));
       continue;
     }
-    /* para：逐行成段；行内多 cell（非表格对齐的偶发分栏）用制表位隔开 */
-    for (const line of b.lines) {
+
+    /* para：v1.3 支持竖排单字行合并（如发票“购方信息”“备注”标签） */
+    const lines = b.lines;
+    let i = 0;
+    while (i < lines.length) {
+      const line = lines[i];
+      const text0 = line.cells.length === 1 ? line.cells[0].parts.join("") : null;
+      const isSingleChar = text0 !== null && [...text0.trim()].length === 1;
+
+      if (isSingleChar && line.cells.length === 1) {
+        /* 收集连续“单字 + x 相近”的行 → 合并为一个竖排词 */
+        const x0 = line.cells[0].x;
+        const chars = [text0.trim()];
+        let j = i + 1;
+        while (j < lines.length) {
+          const l2 = lines[j];
+          if (l2.cells.length === 1) {
+            const t2 = l2.cells[0].parts.join("").trim();
+            if ([...t2].length === 1 && Math.abs(l2.cells[0].x - x0) < 5) {
+              chars.push(t2); j++; continue;
+            }
+          }
+          break;
+        }
+        if (chars.length >= 2) {
+          out.push(new Paragraph({ children: [new TextRun({ text: chars.join("") })] }));
+          i = j;
+          continue;
+        }
+      }
+
+      /* 常规行：单 cell 直出；多 cell（非表格对齐）用制表位隔开 */
       const text = line.cells.length === 1
         ? line.cells[0].parts.join("")
         : line.cells.map((c) => c.parts.join("")).join("\t");
       const clean = text.trim();
-      if (!clean) continue;
-      if (LIST_RE.test(clean)) {
-        out.push(new Paragraph({
-          children: [new TextRun({ text: clean.replace(LIST_RE, "") })],
-          bullet: { level: 0 },
-        }));
-      } else {
-        out.push(new Paragraph({ children: [new TextRun({ text: clean })] }));
+      if (clean) {
+        if (LIST_RE.test(clean)) {
+          out.push(new Paragraph({
+            children: [new TextRun({ text: clean.replace(LIST_RE, "") })],
+            bullet: { level: 0 },
+          }));
+        } else {
+          out.push(new Paragraph({ children: [new TextRun({ text: clean })] }));
+        }
       }
+      i++;
     }
   }
   return out;
@@ -331,7 +400,6 @@ async function convPdfToDocxImage(file) {
 
   for (let i = 1; i <= pdf.numPages; i++) {
     const page = await pdf.getPage(i);
-    /* 渲染 2x，限制最大宽 1600 防内存爆 */
     let scale = 2;
     const vp1 = page.getViewport({ scale: 1 });
     if (vp1.width * scale > 1600) scale = 1600 / vp1.width;
@@ -343,7 +411,6 @@ async function convPdfToDocxImage(file) {
     if (!blob) throw new Error("页面渲染失败（第 " + i + " 页）");
     const buf = await blob.arrayBuffer();
 
-    /* 显示尺寸：宽 720px，按页面比例；页间分隔空行。type:"jpg" 兼容 docx 库 v8/v9 */
     const dispW = 720, dispH = Math.round(720 * vp1.height / vp1.width);
     children.push(new Paragraph({
       children: [new ImageRun({ type: "jpg", data: buf, transformation: { width: dispW, height: dispH } })],
@@ -351,11 +418,9 @@ async function convPdfToDocxImage(file) {
     if (i < pdf.numPages) children.push(new Paragraph({ children: [] }));
   }
 
-  /* Document/Packer 已在函数顶部解构，不再重复声明 */
   const doc = new Document({ sections: [{ children }] });
   return [{ name: baseOf(file.name) + ".docx", blob: await Packer.toBlob(doc) }];
 }
-
 
 /* ---------- pdf → txt / md ---------- */
 async function convPdfText(file, to) {
@@ -376,7 +441,7 @@ async function convPdfText(file, to) {
   return [{ name: base + ".txt", blob: new Blob([txt], { type: "text/plain" }) }];
 }
 
-/* ---------- 其他格式（v1.0 逻辑不变） ---------- */
+/* ---------- 其他格式 ---------- */
 async function readAB(file) { return file.arrayBuffer(); }
 
 async function convDocx(file, to) {
