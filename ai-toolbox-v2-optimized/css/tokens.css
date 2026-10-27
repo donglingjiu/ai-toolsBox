@@ -1,0 +1,66 @@
+/* ============================================================
+   Nova Design Tokens v1.0
+   深空星夜系 · 四工作台 accent · 4pt 间距 · 三档动效
+   ============================================================ */
+:root {
+  /* —— 色彩：深空底 —— */
+  --bg-base:    #0A0F1E;
+  --bg-surface: #101731;
+  --bg-elevated:#162042;
+  --glass:      rgba(22, 32, 66, .55);
+
+  /* —— 文本 —— */
+  --text-1: #E9EDF7;
+  --text-2: #A6B0CC;
+  --text-3: #66708F;
+  --line:   rgba(233, 237, 247, .08);
+
+  /* —— 品牌 —— */
+  --brand:   #45E0C8;                       /* 星光青 */
+  --brand-2: #8B7CFF;                       /* 极光紫 */
+  --cta:     linear-gradient(135deg, #45E0C8, #8B7CFF);
+
+  /* —— 语义 —— */
+  --danger: #FF6B81;
+  --warn:   #FFC24B;
+  --ok:     #4ADE80;
+
+  /* —— 四工作台 accent —— */
+  --accent-docs: #5B9DFF;                   /* 星蓝 */
+  --accent-data: #B78CFF;                   /* 星紫 */
+  --accent-flow: #3DDC97;                   /* 星绿 */
+  --accent-mind: #FF8A5C;                   /* 星焰 */
+
+  /* —— 内容纸面（文档/表格画布） —— */
+  --paper:     #F7F9FD;
+  --paper-ink: #1B2340;
+
+  /* —— 圆角 —— */
+  --r-btn:   10px;
+  --r-inner: 14px;
+  --r-card:  18px;
+  --r-modal: 24px;
+
+  /* —— 阴影 / 光晕 —— */
+  --shadow-card: 0 2px 10px rgba(3, 7, 18, .45);
+  --glow-brand:  0 0 24px rgba(69, 224, 200, .25);
+
+  /* —— 字体 —— */
+  --font-ui:   "Inter", "HarmonyOS Sans SC", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "Cascadia Code", Consolas, monospace;
+
+  /* —— 动效 —— */
+  --e-out:   cubic-bezier(.22, 1, .36, 1);
+  --t-fast:  140ms;
+  --t-mid:   240ms;
+  --t-slow:  420ms;
+
+  /* —— 间距（4pt 基数） —— */
+  --s1: 4px;  --s2: 8px;  --s3: 12px; --s4: 16px;
+  --s5: 24px; --s6: 32px; --s7: 48px; --s8: 64px;
+
+  /* —— 布局 —— */
+  --page:    1280px;
+  --sidebar: 248px;
+  --cmdk:    640px;
+}

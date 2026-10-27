@@ -3,158 +3,116 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AI 工具箱 · 简单好用的在线工具集</title>
-<link rel="stylesheet" href="css/style.css?v=11">
+<title>Nova · AI 智能工作空间</title>
+<meta name="description" content="Nova — 纯浏览器端 AI 智能工作空间。文档、数据、流程、AI 全流程，本地执行，数据不出端。">
+<link rel="stylesheet" href="css/nova-tokens.css">
+<link rel="stylesheet" href="css/nova.css">
 </head>
 <body>
-<nav class="nav"><div class="nav-inner">
-  <a href="index.html" class="nav-logo"><span class="dot">⚡</span>AI 工具箱</a>
-  <div class="nav-links">
-    <a href="qr.html">艺术挪车码</a>
-    <a href="excel.html">表格分析</a>
-    <a href="convert.html">文档转换</a>
-    <a href="ppt.html">AI 演示</a>
-    <a href="stone.html">石人居</a>
-    <a href="resume.html">简历优化</a>
-    <a href="brain.html">第二大脑</a>
-    <a href="advisor.html">副业顾问</a>
-    <a href="mood.html">情绪日记</a>
-    <a href="tryon.html">AI 试衣</a>
-    <a href="prompts.html">提示词库</a>
-    <a href="settings.html">设置</a>
-  </div>
-</div></nav>
+<a class="skip-link" href="#main">跳到主要内容</a>
 
-<div class="wrap">
-  <div class="hero">
-    <h1>你的 <span class="grad">AI 工具箱</span></h1>
-    <p>隐私优先 · 本地处理 · 开箱即用。二维码、文档转换、AI 助手与 123 个专业提示词工具，全部在一个地方。</p>
-    <div class="searchbox">
-      <input id="q" type="text" placeholder="搜工具，如：二维码 / PPT / 简历 / 转换…" autocomplete="off">
-      <button id="qgo" title="搜索">🔍</button>
+<header class="topbar">
+  <div class="topbar__inner">
+    <a class="logo" href="index.html" aria-label="Nova 首页">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M12 2 14.4 9.6 22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4Z"/></svg>
+      Nova
+    </a>
+    <nav class="nav" aria-label="主导航">
+      <a href="docs.html">Docs</a><a href="data.html">Data</a><a href="flow.html">Flow</a><a href="mind.html">Mind</a>
+    </nav>
+    <span class="topbar__spacer"></span>
+    <button class="cmdk-btn" data-cmdk-open aria-label="打开 Nova Command 命令面板">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      搜索… <kbd>Ctrl K</kbd>
+    </button>
+    <a class="cmdk-btn" href="settings.html" aria-label="设置">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.01a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h.01a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.01a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>
+    </a>
+  </div>
+</header>
+
+<main id="main">
+  <section class="hero" aria-label="Nova 品牌主视觉">
+    <div class="hero__inner">
+      <div>
+        <p class="eyebrow">Nova · AI 智能工作空间</p>
+        <h1>每一次任务，<br>都是一次<span class="grad">新星爆发</span>。</h1>
+        <p class="hero__sub">纯浏览器端的一站式 AI 工作空间——文档、数据、流程、AI 全流程。全部本地执行，数据不出端，无需后端。</p>
+        <div class="hero__cta">
+          <button class="btn btn--primary" data-cmdk-open>按 Ctrl + K 唤起 Nova Command</button>
+          <a class="btn btn--ghost" href="docs.html">进入文档工作台 →</a>
+        </div>
+      </div>
+      <div class="nova-core" aria-hidden="true">
+        <div class="nova-core__wave"></div><div class="nova-core__wave"></div><div class="nova-core__wave"></div>
+        <div class="nova-core__star"></div>
+        <span class="nova-core__dust" style="top:8%;left:30%"></span>
+        <span class="nova-core__dust" style="top:22%;left:78%;animation-delay:.7s"></span>
+        <span class="nova-core__dust" style="top:64%;left:12%;animation-delay:1.4s"></span>
+        <span class="nova-core__dust" style="top:82%;left:58%;animation-delay:2.1s"></span>
+        <span class="nova-core__dust" style="top:40%;left:6%;animation-delay:1s"></span>
+      </div>
     </div>
-    <div class="tags">
-      <button class="tag-chip" data-q="二维码">🎨 艺术二维码</button>
-      <button class="tag-chip" data-q="PPT">📊 AI 演示</button>
-      <button class="tag-chip" data-q="表格">📈 表格分析</button>
-      <button class="tag-chip" data-q="转换">📄 文档转换</button>
-      <button class="tag-chip" data-q="简历">📋 简历优化</button>
-      <button class="tag-chip" data-q="提示词">🎯 提示词库</button>
-      <button class="tag-chip" data-q="">全部</button>
+  </section>
+
+  <section class="stations-sec" aria-label="四大工作台">
+    <h2 class="sec-title">STATIONS · 四大工作台</h2>
+    <div class="stations">
+      <a class="station" data-station="docs" href="docs.html">
+        <div class="station__head"><span class="station__no">01</span><span class="station__name">Nova Docs</span><span class="station__cn">星文</span></div>
+        <p class="station__desc">文件处理队列、Word↔PDF 转换、PPT 解析、AI 演示生成，配 Nova Vault 本地文档库。</p>
+        <div class="station__tags"><span class="tag">Word↔PDF</span><span class="tag">AI 演示</span><span class="tag">文档库</span></div>
+        <span class="station__arrow"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></span>
+      </a>
+      <a class="station" data-station="data" href="data.html">
+        <div class="station__head"><span class="station__no">02</span><span class="station__name">Nova Data</span><span class="station__cn">星数</span></div>
+        <p class="station__desc">本地解析 CSV/XLSX，数据画像、受限 DSL 步骤链、SVG 图表与一键脱敏导出。</p>
+        <div class="station__tags"><span class="tag">数据画像</span><span class="tag">DSL 处理</span><span class="tag">图表</span><span class="tag">脱敏</span></div>
+        <span class="station__arrow"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></span>
+      </a>
+      <a class="station" data-station="flow" href="flow.html">
+        <div class="station__head"><span class="station__no">03</span><span class="station__name">Nova Flow</span><span class="station__cn">星流</span></div>
+        <p class="station__desc">浏览器内数据流水线：数据源 → 步骤链 → 运行导出，全程本地确定性执行，模板可存。</p>
+        <div class="station__tags"><span class="tag">流水线</span><span class="tag">模板</span><span class="tag">本地执行</span></div>
+        <span class="station__arrow"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></span>
+      </a>
+      <a class="station" data-station="mind" href="mind.html">
+        <div class="station__head"><span class="station__no">04</span><span class="station__name">Nova Mind</span><span class="station__cn">星智</span></div>
+        <p class="station__desc">六专家流水线主打 + 沉浸对话双入口；挂载 123 条提示词与第二大脑知识库，Lab 收纳场景工具。</p>
+        <div class="station__tags"><span class="tag">六专家流水线</span><span class="tag">AI 对话</span><span class="tag">Nova Lab</span></div>
+        <span class="station__arrow"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></span>
+      </a>
     </div>
-    <div class="meta">数据默认只保存在你的浏览器本地 · AI 功能可接入任意 OpenAI 兼容模型</div>
-  </div>
 
-  <div class="grid grid-tools">
-    <a class="card tool-card" href="flow.html">
-      <span class="tag">全流程</span>
-      <div class="icon">🚀</div>
-      <h3>AI 交付流水线</h3>
-      <p>需求分析 → 技术调研 → 方案设计 → 代码实现 → 交付评审，五个专家角色接力产出，导出交付报告与审阅网页。</p>
-    </a>
-    <a class="card tool-card" href="qr.html">
-      <span class="tag">隐私增强</span>
-      <div class="icon">🅠</div>
-      <h3>艺术挪车码</h3>
-      <p>生成白羊座 / 六芒星法阵等主题二维码，支持隐私中转页，扫码直达拨号，不直接暴露手机号。</p>
-    </a>
-        <a class="card tool-card" href="stone.html">
-      <span class="tag">石人居</span>
-      <div class="icon">🪨</div>
-      <h3>石人居 · 石刻手作</h3>
-      <p>石刻入门手册、工具清单与预算方案、成品风格展示、八步操作指南——从一块鹅卵石开始的手作创业站。</p>
-    </a>
-    <a class="card tool-card" href="ppt.html">
-      <span class="tag">AI 演示</span>
-      <div class="icon">📊</div>
-      <h3>AI 演示工坊</h3>
-      <p>一句话或一份大纲生成整套幻灯片：五种主题一键换装、网页实时预览与放映，导出可编辑的 .pptx / 演示网页。</p>
-    </a>
-    <a class="card tool-card" href="excel.html">
-      <span class="tag">本地解析</span>
-      <div class="icon">📈</div>
-      <h3>表格分析工具</h3>
-      <p>上传 Excel / CSV，本地解析与数据画像；按你的目标让 AI 给出整理方案，确认后本地执行并导出，整表数据默认不上传。</p>
-    </a>
-    <a class="card tool-card" href="convert.html">
-      <div class="icon">📄</div>
-      <h3>Word ⇄ PDF 转换</h3>
-      <p>Word 转 PDF、PDF 转 Word，全程在浏览器本地完成，文件不上传服务器。</p>
-    </a>
-    <a class="card tool-card" href="resume.html">
-      <div class="icon">📋</div>
-      <h3>AI 简历优化助手</h3>
-      <p>对照目标岗位 JD 重写简历：关键词覆盖率分析、要点重写、模拟面试官追问。</p>
-    </a>
-    <a class="card tool-card" href="brain.html">
-      <div class="icon">🧠</div>
-      <h3>AI 第二大脑</h3>
-      <p>把笔记、文档导入本地知识库，语义检索问答，自动生成周报，数据不出设备。</p>
-    </a>
-    <a class="card tool-card" href="advisor.html">
-      <div class="icon">💼</div>
-      <h3>AI 副业顾问</h3>
-      <p>输入你的技能与时间，产出 3 个可落地副业方向（含成本估算）与 30 天起步计划。</p>
-    </a>
-    <a class="card tool-card" href="mood.html">
-      <div class="icon">📔</div>
-      <h3>AI 情绪日记</h3>
-      <p>每晚 3 句话，周末获得情绪曲线与 AI 分析报告，低落时主动提醒，数据仅存本地。</p>
-    </a>
-    <a class="card tool-card" href="tryon.html">
-      <div class="icon">👗</div>
-      <h3>AI 试衣间</h3>
-      <p>上传人像与服装照片，AI 生成试穿效果，多件搭配、不同体型一键预览。</p>
-    </a>
-    <a class="card tool-card" href="prompts.html">
-      <span class="tag">123 个</span>
-      <div class="icon">🎯</div>
-      <h3>提示词工具库</h3>
-      <p>合同审查、会议纪要、小红书文案、代码审查…12 大类 123 个专业提示词，即选即用。</p>
-    </a>
-    <a class="card tool-card" href="settings.html">
-      <div class="icon">⚙️</div>
-      <h3>API 设置</h3>
-      <p>接入 DeepSeek / 通义 / 智谱 / Kimi / OpenAI 等模型，支持多套配置、默认切换与失败自动兜底；Key 仅明文保存在本机浏览器，不上传服务器。</p>
-    </a>
-  </div>
-</div>
+    <!-- 经典工具直达：旧 12 工具零删除，过渡期保留入口 -->
+    <div class="trust" role="list" aria-label="经典工具直达" style="margin-top:var(--s5)">
+      <span class="trust__item" role="listitem"><a href="excel.html">表格分析</a></span>
+      <span class="trust__item" role="listitem"><a href="ppt.html">AI 演示</a></span>
+      <span class="trust__item" role="listitem"><a href="convert.html">Word↔PDF</a></span>
+      <span class="trust__item" role="listitem"><a href="prompts.html">提示词库</a></span>
+      <span class="trust__item" role="listitem"><a href="brain.html">第二大脑</a></span>
+      <span class="trust__item" role="listitem"><a href="resume.html">简历</a></span>
+      <span class="trust__item" role="listitem"><a href="mood.html">情绪日记</a></span>
+      <span class="trust__item" role="listitem"><a href="advisor.html">副业顾问</a></span>
+      <span class="trust__item" role="listitem"><a href="tryon.html">试衣间</a></span>
+      <span class="trust__item" role="listitem"><a href="qr.html">挪车码</a></span>
+      <span class="trust__item" role="listitem"><a href="index-legacy.html">经典版首页 ↩</a></span>
+    </div>
 
-<footer class="footer">
-  AI 工具箱 · 纯静态实现，无后端服务器，敏感数据（日记、文档、密钥）只保存在你的设备本地<br>
-  <a href="settings.html">模型接入说明</a>
-</footer>
-<script src="js/app.js?v=11"></script>
-<script>
-(function () {
-  var input = document.getElementById('q');
-  var cards = Array.prototype.slice.call(document.querySelectorAll('.tool-card'));
-  var hint = document.createElement('div');
-  hint.className = 'muted mt16 hidden';
-  hint.style.textAlign = 'center';
-  hint.textContent = '没有匹配的工具，换个关键词试试～';
-  var grid = document.querySelector('.grid-tools');
-  grid.parentNode.insertBefore(hint, grid);
-  function filter(kw) {
-    kw = (kw || '').trim().toLowerCase();
-    var shown = 0;
-    cards.forEach(function (c) {
-      var hit = !kw || (c.textContent || '').toLowerCase().indexOf(kw) !== -1;
-      c.classList.toggle('hidden', !hit);
-      if (hit) shown++;
-    });
-    hint.classList.toggle('hidden', shown > 0);
-  }
-  input.addEventListener('input', function () { filter(input.value); });
-  document.getElementById('qgo').addEventListener('click', function () { filter(input.value); });
-  Array.prototype.forEach.call(document.querySelectorAll('.tag-chip'), function (chip) {
-    chip.addEventListener('click', function () {
-      input.value = chip.getAttribute('data-q') || '';
-      filter(input.value);
-      grid.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    });
-  });
-})();
-</script>
+    <div class="trust" role="list" aria-label="隐私与架构特性">
+      <span class="trust__item" role="listitem"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>本地确定性执行</span>
+      <span class="trust__item" role="listitem"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>API Key 仅存浏览器</span>
+      <span class="trust__item" role="listitem"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>无后端 · 无 CDN · 离线可用</span>
+    </div>
+  </section>
+
+  <section class="stations-sec" aria-label="最近使用" style="padding-top:0">
+    <h2 class="sec-title">RECENT · 最近使用</h2>
+    <div data-recent-zone style="display:flex;gap:8px;flex-wrap:wrap"></div>
+  </section>
+</main>
+
+<footer class="footer">Nova · 星坊系列 —— 星文 / 星数 / 星流 / 星智 · 本地执行，数据不出端</footer>
+<script src="js/nova-core.js"></script>
 </body>
 </html>
