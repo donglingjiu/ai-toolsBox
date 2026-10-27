@@ -343,18 +343,19 @@ async function convPdfToDocxImage(file) {
     if (!blob) throw new Error("页面渲染失败（第 " + i + " 页）");
     const buf = await blob.arrayBuffer();
 
-    /* 显示尺寸：宽 720px，按页面比例；页间分隔空行 */
+    /* 显示尺寸：宽 720px，按页面比例；页间分隔空行。type:"jpg" 兼容 docx 库 v8/v9 */
     const dispW = 720, dispH = Math.round(720 * vp1.height / vp1.width);
     children.push(new Paragraph({
-      children: [new ImageRun({ data: buf, transformation: { width: dispW, height: dispH } })],
+      children: [new ImageRun({ type: "jpg", data: buf, transformation: { width: dispW, height: dispH } })],
     }));
     if (i < pdf.numPages) children.push(new Paragraph({ children: [] }));
   }
 
-  const { Document } = window.docx;
+  /* Document/Packer 已在函数顶部解构，不再重复声明 */
   const doc = new Document({ sections: [{ children }] });
   return [{ name: baseOf(file.name) + ".docx", blob: await Packer.toBlob(doc) }];
 }
+
 
 /* ---------- pdf → txt / md ---------- */
 async function convPdfText(file, to) {
