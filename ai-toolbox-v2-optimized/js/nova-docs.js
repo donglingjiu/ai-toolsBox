@@ -256,7 +256,7 @@ function pageToBlocks(page, medF) {
       }
       return;
     }
-    paraBuf.push({ cells, fs });
+    paraBuf.push({ cells, fs, y: rows[ri].y });
   }
 }
 
@@ -277,15 +277,24 @@ function joinLineParts(parts) {
 const PAGE_DXA = 10466;
 
 /* 块 → docx children */
+/* 块 → docx children（v1.4：竖排合并 + 段落回流，行碎片并回自然段） */
 function blocksToDocxChildren(blocks) {
   const { Paragraph, TextRun, Table, TableRow, TableCell, WidthType, HeadingLevel } = window.docx;
   const out = [];
+  const TERM = /[。！？!?；;："”）》】>]$/;   /* 句末标点 → 段落终止 */
+
+  const para = (text, isList) => isList
+    ? new Paragraph({ children: [new TextRun({ text: text.replace(LIST_RE, "") })], bullet: { level: 0 } })
+    : new Paragraph({ children: [new TextRun({ text })] });
+
+  const lineText = (line) => line.cells.length === 1
+    ? line.cells[0].parts.join("")
+    : line.cells.map((c) => c.parts.join("")).join("\t");
 
   for (const b of blocks) {
     if (b.type === "heading") {
-      const run = new TextRun({ text: b.text, bold: true });
       out.push(new Paragraph({
-        children: [run],
+        children: [new TextRun({ text: b.text, bold: true })],
         heading: b.level === 1 ? HeadingLevel.HEADING_1 : HeadingLevel.HEADING_2,
       }));
       continue;
@@ -293,14 +302,12 @@ function blocksToDocxChildren(blocks) {
 
     if (b.type === "table") {
       const maxCols = Math.max(...b.rows.map((r) => r.length));
-      /* v1.3：列宽按内容最大显示宽度加权（dxa），不再均分 */
       const colW = new Array(maxCols).fill(4);
       for (const r of b.rows) r.forEach((c, ci) => {
         if (c && ci < maxCols) colW[ci] = Math.max(colW[ci], estW(c.parts.join("")) + 2);
       });
       const total = colW.reduce((a, x) => a + x, 0) || 1;
       const columnWidths = colW.map((w) => Math.max(360, Math.round(PAGE_DXA * w / total)));
-
       const trows = b.rows.map((cells) => {
         const tds = [];
         for (let c = 0; c < maxCols; c++) {
@@ -311,7 +318,6 @@ function blocksToDocxChildren(blocks) {
         }
         return new TableRow({ children: tds });
       });
-
       const tOpts = { rows: trows, width: { size: 100, type: WidthType.PERCENTAGE }, columnWidths };
       if (window.docx.TableLayoutType) tOpts.layout = window.docx.TableLayoutType.FIXED;
       out.push(new Table(tOpts));
@@ -319,63 +325,67 @@ function blocksToDocxChildren(blocks) {
       continue;
     }
 
-    /* para：v1.3 支持竖排单字行合并（如发票“购方信息”“备注”标签） */
-    const lines = b.lines;
+    /* —— para：第一步，竖排单字行合并成词行 —— */
+    const lines = b.lines, norm = [];
     let i = 0;
     while (i < lines.length) {
       const line = lines[i];
-      const text0 = line.cells.length === 1 ? line.cells[0].parts.join("") : null;
-      const isSingleChar = text0 !== null && [...text0.trim()].length === 1;
-
-      if (isSingleChar && line.cells.length === 1) {
-        /* 收集连续“单字 + x 相近”的行 → 合并为一个竖排词 */
+      const text0 = line.cells.length === 1 ? line.cells[0].parts.join("").trim() : null;
+      if (text0 !== null && [...text0].length === 1) {
         const x0 = line.cells[0].x;
-        const chars = [text0.trim()];
+        const chars = [text0];
         let j = i + 1;
         while (j < lines.length) {
           const l2 = lines[j];
           if (l2.cells.length === 1) {
             const t2 = l2.cells[0].parts.join("").trim();
-            if ([...t2].length === 1 && Math.abs(l2.cells[0].x - x0) < 5) {
-              chars.push(t2); j++; continue;
-            }
+            if ([...t2].length === 1 && Math.abs(l2.cells[0].x - x0) < 5) { chars.push(t2); j++; continue; }
           }
           break;
         }
         if (chars.length >= 2) {
-          out.push(new Paragraph({ children: [new TextRun({ text: chars.join("") })] }));
-          i = j;
-          continue;
+          norm.push({ cells: [{ parts: [chars.join("")] }], fs: line.fs, y: line.y });
+          i = j; continue;
         }
       }
-
-      /* 常规行：单 cell 直出；多 cell（非表格对齐）用制表位隔开 */
-      const text = line.cells.length === 1
-        ? line.cells[0].parts.join("")
-        : line.cells.map((c) => c.parts.join("")).join("\t");
-      const clean = text.trim();
-      if (clean) {
-        if (LIST_RE.test(clean)) {
-          out.push(new Paragraph({
-            children: [new TextRun({ text: clean.replace(LIST_RE, "") })],
-            bullet: { level: 0 },
-          }));
-        } else {
-          out.push(new Paragraph({ children: [new TextRun({ text: clean })] }));
-        }
-      }
-      i++;
+      norm.push(line); i++;
     }
+
+    /* —— 第二步：段落回流（无句末标点 + 行距紧凑 → 并段） —— */
+    let cur = null;
+    for (const line of norm) {
+      const clean = lineText(line).trim();
+      if (!clean) continue;
+      const isList = LIST_RE.test(clean);
+      const multiCell = line.cells.length > 1;
+      const bigGap = cur && cur.prevY != null && line.y != null && (cur.prevY - line.y) > cur.lh * 1.8;
+
+      if (!cur || isList || multiCell || TERM.test(cur.text) || bigGap) {
+        if (cur) { out.push(para(cur.text, false)); cur = null; }
+        if (isList || multiCell) out.push(para(clean, isList));
+        else cur = { text: clean, prevY: line.y, lh: line.fs || 10 };
+      } else {
+        const tail = cur.text.slice(-1), head = clean.slice(0, 1);
+        cur.text += (CJK.test(tail) && CJK.test(head) ? "" : " ") + clean;
+        cur.prevY = line.y;
+      }
+    }
+    if (cur) out.push(para(cur.text, false));
   }
   return out;
 }
+
 
 /* ---------- pdf → docx：智能文本重建 ---------- */
 async function convPdfToDocxSmart(file) {
   await ensureDocxLib();
   const { pages } = await extractLayout(file);
   const hasText = pages.some((p) => p.items.length);
-  if (!hasText) throw new Error("扫描版 PDF（图片型）无法提取文字：请改用「高保真图片版」，或先用 OCR 处理");
+  if (!hasText) {
+    /* v1.4：扫描版不再硬失败 —— 自动降级图片版，Toast 明确告知 */
+    novaToast("未检测到文字层，已自动改用「高保真图片版」输出", "warn");
+    return convPdfToDocxImage(file);
+  }
 
   const medF = median(pages.flat().map((p) => p.items).flat().map((i) => i.fs)) || 10;
   const children = [];
