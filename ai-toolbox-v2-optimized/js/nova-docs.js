@@ -274,7 +274,7 @@ function joinLineParts(parts) {
 }
 
 /* A4 可用宽度（twips/dxa）：11906 - 2×1440 页边距 */
-const PAGE_DXA = 9026;
+const PAGE_DXA = 10466;
 
 /* 块 → docx children */
 function blocksToDocxChildren(blocks) {
@@ -400,27 +400,35 @@ async function convPdfToDocxImage(file) {
 
   for (let i = 1; i <= pdf.numPages; i++) {
     const page = await pdf.getPage(i);
-    let scale = 2;
     const vp1 = page.getViewport({ scale: 1 });
-    if (vp1.width * scale > 1600) scale = 1600 / vp1.width;
+    /* 按 2400px 目标宽度渲染（约 200+ DPI），发票小字清晰且防内存爆 */
+    const scale = 2400 / vp1.width;
     const vp = page.getViewport({ scale });
     const canvas = document.createElement("canvas");
     canvas.width = Math.round(vp.width); canvas.height = Math.round(vp.height);
     await page.render({ canvasContext: canvas.getContext("2d"), viewport: vp }).promise;
-    const blob = await new Promise((res) => canvas.toBlob(res, "image/jpeg", 0.85));
+    const blob = await new Promise((res) => canvas.toBlob(res, "image/jpeg", 0.9));
     if (!blob) throw new Error("页面渲染失败（第 " + i + " 页）");
     const buf = await blob.arrayBuffer();
 
-    const dispW = 720, dispH = Math.round(720 * vp1.height / vp1.width);
+    /* 显示宽 680px：0.5 英寸边距下内容区约 697px，留 17px 余量确保右侧不被裁 */
+    const dispW = 680, dispH = Math.round(680 * vp1.height / vp1.width);
     children.push(new Paragraph({
       children: [new ImageRun({ type: "jpg", data: buf, transformation: { width: dispW, height: dispH } })],
     }));
     if (i < pdf.numPages) children.push(new Paragraph({ children: [] }));
   }
 
-  const doc = new Document({ sections: [{ children }] });
+  /* 0.5 英寸页边距：给宽幅发票留最大显示空间 */
+  const doc = new Document({
+    sections: [{
+      properties: { page: { margin: { top: 720, right: 720, bottom: 720, left: 720 } } },
+      children,
+    }],
+  });
   return [{ name: baseOf(file.name) + ".docx", blob: await Packer.toBlob(doc) }];
 }
+
 
 /* ---------- pdf → txt / md ---------- */
 async function convPdfText(file, to) {
