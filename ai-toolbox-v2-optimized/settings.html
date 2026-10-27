@@ -153,13 +153,13 @@ function render(){const L=load();document.getElementById("count").textContent="�
   d.querySelector('[data-a=test]').onclick=async function(){const m=d.querySelector(".msg");m.className="msg";m.textContent="测试中…";m.style.display="block";
    const r=await testProfile(p);m.textContent=r.msg;m.className="msg "+(r.ok?"ok":"bad")};
   d.querySelector('[data-a=def]').onclick=function(){setDef(p);render()};
-  d.querySelector('[data-a=tog]').onclick=function(){p.enabled=!isOn(p);saveList(load().map(function(x){return x.id===p.id?p:x}));render()};
+  var tg=d.querySelector('[data-a=tog]');if(tg)tg.onclick=function(){p.enabled=!isOn(p);saveList(load().map(function(x){return x.id===p.id?p:x}));render()};
   const up=d.querySelector('[data-a=up]');if(up)up.onclick=function(){const t=load();const x=t[i-1];t[i-1]=t[i];t[i]=x;saveList(t);render()};
   const dnB=d.querySelector('[data-a=down]');if(dnB)dnB.onclick=function(){const t=load();const x=t[i+1];t[i+1]=t[i];t[i]=x;saveList(t);render()};
-  d.querySelector('[data-a=edit]').onclick=function(){editing=p.id;fName.value=p.name||"";fUrl.value=of(p);fModel.value=p.model||"";fKey.value="";
+  var eb=d.querySelector('[data-a=edit]');if(eb)eb.onclick=function(){editing=p.id;fName.value=p.name||"";fUrl.value=of(p);fModel.value=p.model||"";fKey.value="";
    const t=document.getElementById("editTag");t.hidden=false;t.textContent="正在编辑："+(p.name||of(p))+"（Key 留空则不修改）";
    document.getElementById("formTitle").textContent="编辑配置";showGuide();window.scrollTo({top:0,behavior:"smooth"})};
-  d.querySelector('[data-a=del]').onclick=function(){if(!confirm("删除「"+(p.name||of(p))+"」？"))return;const t=load().filter(function(x){return x.id!==p.id});saveList(t);render()};
+  var db=d.querySelector('[data-a=del]');if(db)db.onclick=function(){if(!confirm("删除「"+(p.name||of(p))+"」？"))return;const t=load().filter(function(x){return x.id!==p.id});saveList(t);render()};
   box.appendChild(d)})}
 /* 测试路径与 app.js 真实调用一致：baseUrl + /chat/completions（Bearer） */
 async function testProfile(p){const base=of(p).replace(/\/+$/,"");
