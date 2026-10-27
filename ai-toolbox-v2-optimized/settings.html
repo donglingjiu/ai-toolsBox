@@ -142,13 +142,10 @@ function render(){const L=load();document.getElementById("count").textContent="�
   const g=guideFor(of(p));
   d.innerHTML='<div><b>'+esc(p.name||"(未命名)")+'</b><span>'+
    (p.id===dn?'<span class="badge b-def">默认</span>':"")+(p.id===window.NOVA_BUILTIN_ID?'<span class="badge b-def" style="background:#fef3c7;color:#92400e">内置</span>':"")+(isOn(p)?"":'<span class="badge b-off">已停用</span>')+'</span>'+
-   ' <button data-a="test">测试</button> <button data-a="def">设为默认</button> <button data-a="tog">'+(isOn(p)?"停用":"启用")+'</button> '+
-   (i>0?'<button data-a="up">↑</button>':"")+(i<L.length-1?'<button data-a="down">↓</button>':"")+
    ' <button data-a="test">测试</button> <button data-a="def">设为默认</button> '+(p.id===window.NOVA_BUILTIN_ID?"":'<button data-a="tog">'+(isOn(p)?"停用":"启用")+'</button> ')+
    (i>0?'<button data-a="up">↑</button>':"")+(i<L.length-1?'<button data-a="down">↓</button>':"")+
    (p.id===window.NOVA_BUILTIN_ID?"":' <button data-a="edit">编辑</button> ')+(g?'<a target="_blank" rel="noopener" href="'+g[0]+'"><button>获取Key↗</button></a>':"")+
    (p.id===window.NOVA_BUILTIN_ID?"":' <button data-a="del" style="color:#dc2626">删除</button>')+
-   ' <button data-a="del" style="color:#dc2626">删除</button>'+
    '<div class="m">'+esc(p.model||"")+" · "+esc(of(p))+'</div><div class="msg"></div></div>';
   d.querySelector('[data-a=test]').onclick=async function(){const m=d.querySelector(".msg");m.className="msg";m.textContent="测试中…";m.style.display="block";
    const r=await testProfile(p);m.textContent=r.msg;m.className="msg "+(r.ok?"ok":"bad")};
