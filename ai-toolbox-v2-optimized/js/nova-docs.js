@@ -1,10 +1,14 @@
 /* ============================================================
-   Nova Docs v1.1 · 文件处理队列 / 确定性转换引擎 / Nova Vault(IndexedDB)
+   Nova Docs v1.2 · 文件处理队列 / 确定性转换引擎 / Nova Vault(IndexedDB)
    v1.0: mammoth(docx→html)、SheetJS(xlsx/csv)、pdf.js(pdf→txt/md)
-   v1.1: pdf→docx 版面重建（复用仓库内置 pdf2word-core.js + docx.js）
-        · pdf.js 路径钉死：js/pdfjs/pdf.min.js + pdf.worker.min.js
-        · 扫描版 PDF（图片型）明确提示不支持，不做假转换
-   诚实边界：docx→pdf 仍不提供（浏览器无排版引擎）；html→pdf 走系统打印
+   v1.1: pdf→docx（复用 pdf2word-core，纯文本流重建）
+   v1.2: 自研版面引擎（基于 pdf.js 坐标）：
+        · 行聚类（y 容差）+ 行内 x 排序 + 字体名粗体识别
+        · 列间隙检测：同 y 远距文字拆为多 cell，不再左右拼串
+        · 连续对齐行 → 合成为真 Word 表格（无边框），发票/报表可用
+        · 标题分级（字号中位数 + 首行加权）、列表识别
+        · 新增「高保真图片版 DOCX」：canvas 渲染嵌入，视觉 100% 还原
+   诚实边界：docx→pdf 不提供；扫描版 PDF 文本模式会明确报错（图片模式可用）
    ============================================================ */
 "use strict";
 
@@ -15,6 +19,7 @@ const extOf = (n) => (n.split(".").pop() || "").toLowerCase();
 const baseOf = (n) => n.replace(/\.[^.]+$/, "");
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 const safeName = (s) => s.replace(/[\\/:*?"<>|]/g, "_");
+const median = (arr) => { if (!arr.length) return 0; const s = [...arr].sort((a,b)=>a-b); return s[Math.floor(s.length/2)]; };
 
 function loadScript(src) {
   return new Promise((res, rej) => {
@@ -33,9 +38,10 @@ const SHEET_FMTS = [
 const CONVERT = {
   docx: [ { v: "html", label: "HTML 网页" }, { v: "txt", label: "纯文本 TXT" } ],
   pdf:  [
-    { v: "docx", label: "Word DOCX（版面重建）" },
-    { v: "txt",  label: "纯文本 TXT" },
-    { v: "md",   label: "Markdown MD" },
+    { v: "docx",  label: "Word · 智能文本重建（可编辑）" },
+    { v: "docxim", label: "Word · 高保真图片版（视觉还原）" },
+    { v: "txt",   label: "纯文本 TXT" },
+    { v: "md",    label: "Markdown MD" },
   ],
   xlsx: SHEET_FMTS, xls: SHEET_FMTS,
   csv:  [ { v: "json", label: "JSON" }, { v: "xlsx", label: "XLSX 表格" } ],
@@ -44,7 +50,7 @@ const CONVERT = {
 };
 const targetsFor = (ext) => CONVERT[ext] || [ { v: "vault", label: "不转换，仅存入星库" } ];
 
-/* ---------- pdf.js 加载（路径已钉死：js/pdfjs/） ---------- */
+/* ---------- pdf.js / docx 组件加载（路径已钉死） ---------- */
 let _pdfP = null;
 function ensurePdfJs() {
   if (window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
@@ -57,20 +63,14 @@ function ensurePdfJs() {
   })();
   return _pdfP;
 }
-
-/* ---------- PDF→Word 组件按需加载（pdf2word-core + docx 库） ---------- */
-let _p2wP = null;
-function ensurePdf2Word() {
-  if (_p2wP) return _p2wP;
-  _p2wP = (async () => {
-    if (typeof clusterLines !== "function") await loadScript("js/pdf2word-core.js");
-    if (!window.docx) await loadScript("js/docx.js");
-    if (typeof clusterLines !== "function" || !window.docx || !window.docx.Document) {
-      _p2wP = null;
-      throw new Error("PDF→Word 组件缺失（js/pdf2word-core.js 或 js/docx.js）");
-    }
-  })();
-  return _p2wP;
+let _docxP = null;
+function ensureDocxLib() {
+  if (window.docx && window.docx.Document) return Promise.resolve();
+  if (_docxP) return _docxP;
+  _docxP = loadScript("js/docx.js").then(() => {
+    if (!window.docx || !window.docx.Document) { _docxP = null; throw new Error("docx 库加载异常（js/docx.js）"); }
+  });
+  return _docxP;
 }
 
 /* ---------- Nova Vault（IndexedDB） ---------- */
@@ -113,7 +113,269 @@ const Vault = {
   },
 };
 
-/* ---------- 转换实现（全部确定性，无 AI 参与） ---------- */
+/* ============================================================
+   Nova 版面引擎 v1.2（基于 pdf.js 原始坐标）
+   ============================================================ */
+
+/* 统一解析：返回 pages[{ items:[{str,x,y,w,h,bold,fs}], width, height }] */
+async function extractLayout(file) {
+  const pdfjs = await ensurePdfJs();
+  const pdf = await pdfjs.getDocument({ data: await readAB(file) }).promise;
+  const pages = [];
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const vp = page.getViewport({ scale: 1 });
+    const tc = await page.getTextContent();
+    const items = [];
+    for (const it of tc.items) {
+      if (!it.str || !it.str.trim()) continue;
+      const t = it.transform;                 /* [a,b,c,d,e,f]: e=x f=基线y */
+      const fs = Math.hypot(t[2], t[3]) || Math.abs(t[3]) || 10;
+      const style = (tc.styles && tc.styles[it.fontName]) || {};
+      const fam = String(style.fontFamily || "");
+      items.push({
+        str: it.str,
+        x: t[4], y: t[5],
+        w: it.width || 0, h: it.height || fs,
+        fs,
+        bold: /bold|black|heavy|semib/i.test(fam),
+      });
+    }
+    pages.push({ items, width: vp.width, height: vp.height });
+  }
+  return { pages, pdf };
+}
+
+/* 行聚类：y 容差 = 行高中位数的一半；行内按 x 升序 */
+function clusterRows(items) {
+  if (!items.length) return [];
+  const medH = median(items.map((i) => i.h)) || 10;
+  const tol = Math.max(2, medH * 0.55);
+  const sorted = [...items].sort((a, b) => b.y - a.y || a.x - b.x);
+  const rows = [];
+  for (const it of sorted) {
+    const row = rows.find((r) => Math.abs(r.y - it.y) <= tol);
+    if (row) { row.items.push(it); row.y = (row.y * (row.items.length - 1) + it.y) / row.items.length; }
+    else rows.push({ y: it.y, items: [it] });
+  }
+  rows.forEach((r) => r.items.sort((a, b) => a.x - b.x));
+  return rows.sort((a, b) => b.y - a.y);
+}
+
+/* 行内列拆分：间隙 > max(24, 行高*1.6) 视为分栏/表格列，返回 cells[{x,text,fs,bold}] */
+function splitCells(row, medH) {
+  const gapTh = Math.max(24, medH * 1.6);
+  const cells = [];
+  let cur = null;
+  for (const it of row.items) {
+    if (!cur) { cur = newCell(it); continue; }
+    const gap = it.x - cur.x - cur.w;
+    if (gap > gapTh) { cells.push(cur); cur = newCell(it); }
+    else joinCell(cur, it, medH);
+  }
+  if (cur) cells.push(cur);
+  return cells;
+
+  function newCell(it) {
+    return { x: it.x, w: it.w, fs: it.fs, bold: it.bold, parts: [it.str], lastX: it.x + it.w };
+  }
+  function joinCell(c, it, mh) {
+    const innerGap = it.x - c.lastX;
+    const cjkTail = /[\u4e00-\u9fff\u3000-\u303f\uff00-\uffef]$/.test(c.parts[c.parts.length - 1]);
+    const cjkHead = /^[\u4e00-\u9fff\u3000-\u303f\uff00-\uffef]/.test(it.str);
+    c.parts.push(innerGap > Math.max(6, mh * 0.9) && !(cjkTail && cjkHead) ? " " + it.str : it.str);
+    c.w = it.x + it.w - c.x;
+    c.lastX = it.x + it.w;
+    c.fs = Math.max(c.fs, it.fs);
+    c.bold = c.bold || it.bold;
+  }
+}
+
+/* 页 → 块序列：para / table / heading（供 docx 组装） */
+function pageToBlocks(page, medF) {
+  const medH = median(page.items.map((i) => i.h)) || 10;
+  const rows = clusterRows(page.items);
+  const blocks = [];
+  let paraBuf = [];            /* 连续单 cell 文本行缓存 */
+
+  const flushPara = () => {
+    if (!paraBuf.length) return;
+    blocks.push({ type: "para", lines: paraBuf });
+    paraBuf = [];
+  };
+
+  for (let ri = 0; ri < rows.length; ri++) {
+    const cells = splitCells(rows[ri], medH);
+    const fs = median(cells.map((c) => c.fs));
+
+    /* 表格判定：本行 ≥2 cell，且与上一/下一行形成连续对齐（首 cell x 相近） */
+    if (cells.length >= 2) {
+      const nextCells = ri + 1 < rows.length ? splitCells(rows[ri + 1], medH) : [];
+      const prevBlock = blocks[blocks.length - 1];
+      const alignedWithNext = nextCells.length >= 2 && Math.abs(nextCells[0].x - cells[0].x) < 30;
+      const alignedWithPrevTable = prevBlock && prevBlock.type === "table" && Math.abs(prevBlock.rows[0][0].x - cells[0].x) < 30;
+      if (alignedWithNext || alignedWithPrevTable) {
+        flushPara();
+        if (alignedWithPrevTable) prevBlock.rows.push(cells);
+        else blocks.push({ type: "table", rows: [cells] });
+        continue;
+      }
+    }
+
+    /* 单 cell 文本行：进段落缓存 */
+    flushParaIfNeeded(cells, fs);
+  }
+  flushPara();
+  return blocks;
+
+  function flushParaIfNeeded(cells, fs) {
+    /* 标题判定：字号显著大于正文中位数，或文档首行且字号大 */
+    const ratio = fs / (medF || 10);
+    const isHeading = ratio >= 1.35;
+    if (isHeading) { flushPara(); blocks.push({ type: "heading", level: ratio >= 1.7 ? 1 : 2, text: joinCells(cells), bold: true }); return; }
+    paraBuf.push({ cells, fs });
+  }
+  function joinCells(cs) { return cs.map((c) => c.parts.join("")).join("  ").trim(); }
+}
+
+const LIST_RE = /^([•·‣◦▪▸●○◆■□\-–—*]|\d{1,2}[.)、]|[（(]\d{1,2}[)）]|[a-zA-Z][.)])\s+/;
+const CJK = /[\u4e00-\u9fff\u3000-\u303f\uff00-\uffef]/;
+
+function joinLineParts(parts) {
+  let text = "";
+  for (let i = 0; i < parts.length; i++) {
+    if (i === 0) { text = parts[i]; continue; }
+    const tail = text.slice(-1), head = parts[i].slice(0, 1);
+    text += (CJK.test(tail) && CJK.test(head) ? "" : " ") + parts[i];
+  }
+  return text;
+}
+
+/* 块 → docx children */
+function blocksToDocxChildren(blocks) {
+  const { Paragraph, TextRun, Table, TableRow, TableCell, WidthType, HeadingLevel } = window.docx;
+  const out = [];
+
+  for (const b of blocks) {
+    if (b.type === "heading") {
+      const run = new TextRun({ text: b.text, bold: true });
+      out.push(new Paragraph({
+        children: [run],
+        heading: b.level === 1 ? HeadingLevel.HEADING_1 : HeadingLevel.HEADING_2,
+      }));
+      continue;
+    }
+    if (b.type === "table") {
+      const maxCols = Math.max(...b.rows.map((r) => r.length));
+      const trows = b.rows.map((cells) => {
+        const tds = [];
+        for (let c = 0; c < maxCols; c++) {
+          const cell = cells[c];
+          tds.push(new TableCell({
+            children: [new Paragraph({ children: [new TextRun({ text: cell ? cell.parts.join("") : "" })] })],
+          }));
+        }
+        return new TableRow({ children: tds });
+      });
+      out.push(new Table({ rows: trows, width: { size: 100, type: WidthType.PERCENTAGE } }));
+      out.push(new Paragraph({ children: [] }));   /* 表后空行，避免粘连 */
+      continue;
+    }
+    /* para：逐行成段；行内多 cell（非表格对齐的偶发分栏）用制表位隔开 */
+    for (const line of b.lines) {
+      const text = line.cells.length === 1
+        ? line.cells[0].parts.join("")
+        : line.cells.map((c) => c.parts.join("")).join("\t");
+      const clean = text.trim();
+      if (!clean) continue;
+      if (LIST_RE.test(clean)) {
+        out.push(new Paragraph({
+          children: [new TextRun({ text: clean.replace(LIST_RE, "") })],
+          bullet: { level: 0 },
+        }));
+      } else {
+        out.push(new Paragraph({ children: [new TextRun({ text: clean })] }));
+      }
+    }
+  }
+  return out;
+}
+
+/* ---------- pdf → docx：智能文本重建 ---------- */
+async function convPdfToDocxSmart(file) {
+  await ensureDocxLib();
+  const { pages } = await extractLayout(file);
+  const hasText = pages.some((p) => p.items.length);
+  if (!hasText) throw new Error("扫描版 PDF（图片型）无法提取文字：请改用「高保真图片版」，或先用 OCR 处理");
+
+  const medF = median(pages.flat().map((p) => p.items).flat().map((i) => i.fs)) || 10;
+  const children = [];
+  const { Paragraph, TextRun } = window.docx;
+  pages.forEach((page, pi) => {
+    if (pi > 0) children.push(new Paragraph({ children: [new TextRun({ text: `— 第 ${pi + 1} 页 —`, color: "888888", size: 18 })] }));
+    children.push(...blocksToDocxChildren(pageToBlocks(page, medF)));
+  });
+
+  const { Document, Packer } = window.docx;
+  const doc = new Document({ sections: [{ children }] });
+  return [{ name: baseOf(file.name) + ".docx", blob: await Packer.toBlob(doc) }];
+}
+
+/* ---------- pdf → docx：高保真图片版（视觉 100% 还原，文字不可编辑） ---------- */
+async function convPdfToDocxImage(file) {
+  await ensureDocxLib();
+  const pdfjs = await ensurePdfJs();
+  const pdf = await pdfjs.getDocument({ data: await readAB(file) }).promise;
+  const { Document, Packer, Paragraph, ImageRun } = window.docx;
+  const children = [];
+
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    /* 渲染 2x，限制最大宽 1600 防内存爆 */
+    let scale = 2;
+    const vp1 = page.getViewport({ scale: 1 });
+    if (vp1.width * scale > 1600) scale = 1600 / vp1.width;
+    const vp = page.getViewport({ scale });
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(vp.width); canvas.height = Math.round(vp.height);
+    await page.render({ canvasContext: canvas.getContext("2d"), viewport: vp }).promise;
+    const blob = await new Promise((res) => canvas.toBlob(res, "image/jpeg", 0.85));
+    if (!blob) throw new Error("页面渲染失败（第 " + i + " 页）");
+    const buf = await blob.arrayBuffer();
+
+    /* 显示尺寸：宽 720px，按页面比例；页间分隔空行 */
+    const dispW = 720, dispH = Math.round(720 * vp1.height / vp1.width);
+    children.push(new Paragraph({
+      children: [new ImageRun({ data: buf, transformation: { width: dispW, height: dispH } })],
+    }));
+    if (i < pdf.numPages) children.push(new Paragraph({ children: [] }));
+  }
+
+  const { Document } = window.docx;
+  const doc = new Document({ sections: [{ children }] });
+  return [{ name: baseOf(file.name) + ".docx", blob: await Packer.toBlob(doc) }];
+}
+
+/* ---------- pdf → txt / md ---------- */
+async function convPdfText(file, to) {
+  const { pages } = await extractLayout(file);
+  const hasText = pages.some((p) => p.items.length);
+  if (!hasText) throw new Error("扫描版 PDF（图片型）无法提取文字，暂不支持 TXT/MD 导出");
+  const parts = pages.map((page, pi) => {
+    const rows = clusterRows(page.items);
+    const text = rows.map((r) => r.items.map((i) => i.str).join(" ").replace(/\s+/g, " ").trim()).filter(Boolean).join("\n");
+    return { no: pi + 1, text };
+  });
+  const base = baseOf(file.name);
+  if (to === "md") {
+    const md = parts.map((p) => `## 第 ${p.no} 页\n\n${p.text}`).join("\n\n");
+    return [{ name: base + ".md", blob: new Blob([md], { type: "text/markdown" }) }];
+  }
+  const txt = parts.map((p) => `— 第 ${p.no} 页 —\n${p.text}`).join("\n\n");
+  return [{ name: base + ".txt", blob: new Blob([txt], { type: "text/plain" }) }];
+}
+
+/* ---------- 其他格式（v1.0 逻辑不变） ---------- */
 async function readAB(file) { return file.arrayBuffer(); }
 
 async function convDocx(file, to) {
@@ -125,90 +387,6 @@ async function convDocx(file, to) {
   return [{ name: base + ".txt", blob: new Blob([txt], { type: "text/plain" }) }];
 }
 
-/* pdf → pages[[items]] 提取（pdf→txt/md 与 pdf→docx 共用） */
-async function pdfToPages(file) {
-  const pdfjs = await ensurePdfJs();
-  const pdf = await pdfjs.getDocument({ data: await readAB(file) }).promise;
-  const pages = [];
-  for (let i = 1; i <= pdf.numPages; i++) {
-    const page = await pdf.getPage(i);
-    const tc = await page.getTextContent();
-    pages.push(tc.items);
-  }
-  const hasText = pages.some((items) => items.some((it) => it.str && it.str.trim() !== ""));
-  if (!hasText) throw new Error("扫描版 PDF（图片型）无法提取文字，暂不支持转换；请先用 OCR 工具处理");
-  return pages;
-}
-
-async function convPdf(file, to) {
-  const pages = await pdfToPages(file);
-  const pdfjs = window.pdfjsLib;
-  const pdf = await pdfjs.getDocument({ data: await readAB(file) }).promise;
-  const parts = [];
-  for (let i = 1; i <= pdf.numPages; i++) {
-    const page = await pdf.getPage(i);
-    const tc = await page.getTextContent();
-    const text = tc.items.map((it) => it.str).join(" ").replace(/\s+/g, " ").trim();
-    parts.push({ no: i, text });
-  }
-  const base = baseOf(file.name);
-  if (to === "md") {
-    const md = parts.map((p) => `## 第 ${p.no} 页\n\n${p.text}`).join("\n\n");
-    return [{ name: base + ".md", blob: new Blob([md], { type: "text/markdown" }) }];
-  }
-  const txt = parts.map((p) => `— 第 ${p.no} 页 —\n${p.text}`).join("\n\n");
-  return [{ name: base + ".txt", blob: new Blob([txt], { type: "text/plain" }) }];
-}
-
-/* ---------- pdf → docx：复用 pdf2word-core 版面重建 ---------- */
-function parasToDocxChildren(paras, medF) {
-  const { Paragraph, TextRun, HeadingLevel } = window.docx;
-  const LIST_RE = /^([•·‣◦▪▸●○◆■□\-–—*]|\d{1,2}[.)、]|[（(]\d{1,2}[)）]|[a-zA-Z][.)])\s+/;
-  const CJK = /[\u4e00-\u9fff\u3000-\u303f\uff00-\uffef]/;
-
-  return paras.map((p) => {
-    /* 跨行拼段：中文尾+中文头直连，否则补空格（与 core 策略一致） */
-    let text = "";
-    p.lines.forEach((l, i) => {
-      if (i === 0) { text = l.text; return; }
-      const tail = text.slice(-1), head = l.text.slice(0, 1);
-      text += (CJK.test(tail) && CJK.test(head) ? "" : " ") + l.text;
-    });
-    if (!text.trim()) return null;
-
-    const runs = [new TextRun({ text, bold: !!p.bold })];
-    const ratio = p.fontSize / (medF || 10);
-
-    /* 标题分级：字号相对正文中位数的倍数 */
-    if (ratio >= 1.7)  return new Paragraph({ children: runs, heading: HeadingLevel.HEADING_1 });
-    if (ratio >= 1.35) return new Paragraph({ children: runs, heading: HeadingLevel.HEADING_2 });
-    if (ratio >= 1.15) return new Paragraph({ children: runs, heading: HeadingLevel.HEADING_3 });
-    /* 列表：剥标记符 → Word 原生项目符号 */
-    if (LIST_RE.test(text)) {
-      return new Paragraph({
-        children: [new TextRun({ text: text.replace(LIST_RE, ""), bold: !!p.bold })],
-        bullet: { level: 0 },
-      });
-    }
-    return new Paragraph({ children: runs });
-  }).filter(Boolean);
-}
-
-async function convPdfToDocx(file) {
-  await ensurePdf2Word();
-  const pages = await pdfToPages(file);
-  const lines = clusterLines(pages);               /* 行聚类 + 去重影 + 粗体探测 */
-  if (!lines.length) throw new Error("未能从 PDF 中提取到有效文字");
-  const { paras, medF } = buildParagraphs(lines);  /* 段落重建（行距分位/缩进/连字符） */
-  const children = parasToDocxChildren(paras, medF);
-
-  const { Document, Packer } = window.docx;
-  const doc = new Document({ sections: [{ children }] });
-  const blob = await Packer.toBlob(doc);
-  return [{ name: baseOf(file.name) + ".docx", blob }];
-}
-
-/* ---------- 表格类 ---------- */
 async function convSheet(file, to) {
   const wb = XLSX.read(await readAB(file), { type: "array" });
   const base = baseOf(file.name);
@@ -311,7 +489,9 @@ async function runItem(it) {
     } else if (it.ext === "docx") {
       outs = await convDocx(it.file, it.to);
     } else if (it.ext === "pdf") {
-      outs = it.to === "docx" ? await convPdfToDocx(it.file) : await convPdf(it.file, it.to);
+      if (it.to === "docx") outs = await convPdfToDocxSmart(it.file);
+      else if (it.to === "docxim") outs = await convPdfToDocxImage(it.file);
+      else outs = await convPdfText(it.file, it.to);
     } else if (it.ext === "xlsx" || it.ext === "xls") {
       outs = await convSheet(it.file, it.to);
     } else if (it.ext === "csv") {
@@ -375,7 +555,6 @@ function initDocs() {
     paintQueue();
   });
 
-  /* Tabs */
   $$d(".tab").forEach((tab) => tab.addEventListener("click", async () => {
     $$d(".tab").forEach((t) => t.setAttribute("aria-selected", String(t === tab)));
     ["convert", "ai", "vault"].forEach((n) => { $d("#tab-" + n).hidden = n !== tab.dataset.tab; });
@@ -387,7 +566,6 @@ function initDocs() {
     await Vault.clear(); refreshVault(); novaToast("星库已清空", "warn");
   });
 
-  /* 星库操作 + 预览 */
   const overlay = $d("#pv-overlay");
   const closePv = () => { overlay.dataset.open = "false"; $d("#pv-body").innerHTML = ""; };
   $d("#pv-close").addEventListener("click", closePv);

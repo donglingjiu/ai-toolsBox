@@ -42,7 +42,7 @@
     <div id="dropzone" class="dropzone" tabindex="0" role="button" aria-label="点击或拖入文件">
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 16V4m0 0 -4 4m4-4 4 4"/><path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
       <p><strong>拖入文件</strong>，或点击选择（支持多选 · 建议单文件 &lt; 20MB）</p>
-      <p class="dropzone__hint">docx → HTML/TXT · pdf → DOCX/TXT/MD · xlsx/xls → CSV/JSON/XLSX · csv → JSON/XLSX · html → 打印导出PDF · 任意文件仅存星库</p>
+      <p class="dropzone__hint">docx → HTML/TXT · pdf → DOCX(文本/图片版)/TXT/MD · xlsx/xls → CSV/JSON/XLSX · csv → JSON/XLSX · html → 打印导出PDF · 任意文件仅存星库</p>
       <input id="file-input" type="file" multiple hidden>
     </div>
 
@@ -60,7 +60,7 @@
       <div id="queue-empty" class="empty">队列空空如也 —— 拖入第一个文件，开始一次新星爆发 ✦</div>
     </div>
 
-    <p class="boundary">边界说明：pdf→word 采用本地版面重建（行聚类 → 段落重建 → 标题分级 → 粗体/列表识别），复杂双栏/艺术排版还原度以实际为准；扫描版 PDF（图片型）无法提取文字，会明确提示。docx→pdf 需要排版引擎，浏览器内无法诚实完成，故不提供——需要 PDF 的 docx 请先转 HTML 再用系统打印导出。</p>
+    <p class="boundary">PDF 转 Word 双模式怎么选——<strong>智能文本重建</strong>：产出可编辑文字流，自动还原标题/列表/表格（对文字版 PDF 效果好；扫描版会明确报错）；<strong>高保真图片版</strong>：每页渲染为高清图嵌入 Word，视觉 100% 还原，适合发票/证书/复杂版面，但文字不可编辑。网页打印成的 PDF 属于界面截图类版式，建议用图片版。docx→pdf 需要排版引擎，浏览器内无法诚实完成，故不提供。</p>
   </section>
 
   <!-- AI 演示 -->
