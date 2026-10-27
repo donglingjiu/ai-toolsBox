@@ -1,8 +1,13 @@
 /* ============================================================
-   Nova core · 命令面板 / Toast / 最近使用（B1 · 适配 ai-toolbox-v2-optimized 结构）
-   复用 js/app.js 的全局环境；本文件不修改任何现有文件
+   Nova core v1.1 · 命令面板 / Toast / 最近使用 / 自检
+   v1.1: Mac ⌘K 加固（window 捕获 + e.code 兜底）、平台快捷键提示、
+        tokens 自检、全局错误可见化、控制台测试入口
    ============================================================ */
 "use strict";
+
+/* —— 平台检测 —— */
+const IS_MAC = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent || "");
+const HOTKEY_LABEL = IS_MAC ? "⌘ K" : "Ctrl K";
 
 /* —— 命令索引：四大工作台 + 旧工具直达（零删除承诺） —— */
 const NovaCommandIndex = [
@@ -23,8 +28,8 @@ const NovaCommandIndex = [
   { t: "AI 试衣间",          k: "tryon 试衣 图像",                     u: "tryon.html",   h: "Lab" },
   { t: "艺术挪车码",         k: "qr call 挪车码 二维码",               u: "qr.html",      h: "工具" },
   { group: "全局" },
-  { t: "设置 · API Profile 与隐私", k: "settings 设置 key api profile 兜底", u: "settings.html",      h: "⚙" },
-  { t: "经典版首页（12 工具平铺）", k: "legacy 经典 旧版 工具列表",          u: "index-legacy.html",  h: "↩" },
+  { t: "设置 · API Profile 与隐私", k: "settings 设置 key api profile 兜底", u: "settings.html",     h: "⚙" },
+  { t: "经典版首页（12 工具平铺）", k: "legacy 经典 旧版 工具列表",          u: "index-legacy.html", h: "↩" },
 ];
 
 const Cmdk = {
@@ -45,18 +50,31 @@ const Cmdk = {
     this.input = this.el.querySelector("input");
     this.listEl = this.el.querySelector(".cmdk__list");
 
-    document.addEventListener("keydown", (e) => {
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") { e.preventDefault(); this.toggle(); }
+    /* v1.1: window + 捕获阶段 + e.code 兜底（防中文输入法 e.key=Process） */
+    window.addEventListener("keydown", (e) => {
+      const k = (e.key || "").toLowerCase();
+      if ((e.ctrlKey || e.metaKey) && (k === "k" || e.code === "KeyK")) {
+        e.preventDefault();
+        e.stopPropagation();
+        this.toggle();
+        return;
+      }
       if (e.key === "Escape" && this.el.dataset.open === "true") this.close();
-    });
+    }, true);
+
     this.el.addEventListener("click", (e) => { if (e.target === this.el) this.close(); });
     this.input.addEventListener("input", () => this.render(this.input.value.trim().toLowerCase()));
     this.input.addEventListener("keydown", (e) => {
-      if (e.key === "ArrowDown")   { e.preventDefault(); this.move(1); }
-      else if (e.key === "ArrowUp"){ e.preventDefault(); this.move(-1); }
+      if (e.key === "ArrowDown")    { e.preventDefault(); this.move(1); }
+      else if (e.key === "ArrowUp") { e.preventDefault(); this.move(-1); }
       else if (e.key === "Enter" && this.items[this.sel]) { e.preventDefault(); this.go(this.items[this.sel]); }
     });
     document.querySelectorAll("[data-cmdk-open]").forEach((b) => b.addEventListener("click", () => this.open()));
+
+    /* v1.1: 按平台改写快捷键提示文案 */
+    document.querySelectorAll(".cmdk-btn kbd").forEach((el) => (el.textContent = HOTKEY_LABEL));
+    const heroBtn = document.querySelector(".hero__cta .btn--primary");
+    if (heroBtn) heroBtn.textContent = `按 ${IS_MAC ? "⌘ K" : "Ctrl + K"} 唤起 Nova Command`;
   },
 
   open()  { this.el.dataset.open = "true"; this.input.value = ""; this.render(""); this.input.focus(); },
@@ -89,10 +107,10 @@ const Cmdk = {
     for (const i of NovaCommandIndex) { if (i.group) g = i.group; else if (i === item) return g; }
     return "";
   },
-  move(d)  { this.sel = (this.sel + d + this.items.length) % this.items.length; this.paint(); this.scrollSel(); },
-  paint()  { this.listEl.querySelectorAll(".cmdk__item").forEach((b, i) => b.dataset.selected = String(i === this.sel)); },
+  move(d)    { this.sel = (this.sel + d + this.items.length) % this.items.length; this.paint(); this.scrollSel(); },
+  paint()    { this.listEl.querySelectorAll(".cmdk__item").forEach((b, i) => b.dataset.selected = String(i === this.sel)); },
   scrollSel(){ const el = this.listEl.querySelector(`[data-idx="${this.sel}"]`); if (el) el.scrollIntoView({ block: "nearest" }); },
-  go(item) { this.markRecent(item); this.close(); location.href = item.u; },
+  go(item)   { this.markRecent(item); this.close(); location.href = item.u; },
   escapeHtml(s){ return String(s).replace(/[&<>"']/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c])); },
 
   markRecent(item) {
@@ -103,17 +121,36 @@ const Cmdk = {
   getRecent(){ try { return JSON.parse(localStorage.getItem("nova.recent")) || []; } catch { return []; } },
 };
 
+/* —— Toast —— */
 function novaToast(msg, type = "ok") {
   let zone = document.querySelector(".toast-zone");
   if (!zone) { zone = document.createElement("div"); zone.className = "toast-zone"; document.body.appendChild(zone); }
   const t = document.createElement("div");
   t.className = "toast"; t.dataset.type = type; t.textContent = msg;
   zone.appendChild(t);
-  setTimeout(() => { t.classList.add("is-leaving"); setTimeout(() => t.remove(), 300); }, 2600);
+  setTimeout(() => { t.classList.add("is-leaving"); setTimeout(() => t.remove(), 300); }, 3200);
 }
 
+/* —— 自检 —— */
+let _errShown = false;
+function novaSelfCheck() {
+  /* 令牌存在性：上次 css 404 静默降级的教训 */
+  const brand = getComputedStyle(document.documentElement).getPropertyValue("--brand").trim();
+  if (!brand) novaToast("⚠ 设计令牌未加载：检查 css/tokens.css 路径与部署", "error");
+  /* 全局脚本错误可见化 */
+  window.addEventListener("error", (e) => {
+    if (_errShown) return; _errShown = true;
+    novaToast("脚本错误：" + (e.message || "未知"), "error");
+  });
+}
+
+/* —— 启动 —— */
 document.addEventListener("DOMContentLoaded", () => {
   Cmdk.init();
+  novaSelfCheck();
+  window.NovaCmdk = Cmdk;   /* 控制台直测入口：NovaCmdk.open() */
+  console.log(`[Nova] 命令面板就绪：${HOTKEY_LABEL} 唤起；控制台可执行 NovaCmdk.open() 直测`);
+
   const zone = document.querySelector("[data-recent-zone]");
   if (zone) {
     const rec = Cmdk.getRecent();
