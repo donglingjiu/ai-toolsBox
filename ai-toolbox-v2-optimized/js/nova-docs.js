@@ -1,11 +1,15 @@
 /* ============================================================
-   Nova Docs v1.0 · 文件处理队列 / 确定性转换引擎 / Nova Vault(IndexedDB)
-   零新增依赖：mammoth(docx→html)、SheetJS(xlsx/csv)、pdf.js(自适应加载)
-   诚实边界：docx→pdf 不提供；html→pdf 走系统打印；产物自动存星库
+   Nova Docs v1.1 · 文件处理队列 / 确定性转换引擎 / Nova Vault(IndexedDB)
+   v1.0: mammoth(docx→html)、SheetJS(xlsx/csv)、pdf.js(pdf→txt/md)
+   v1.1: pdf→docx 版面重建（复用仓库内置 pdf2word-core.js + docx.js）
+        · pdf.js 路径钉死：js/pdfjs/pdf.min.js + pdf.worker.min.js
+        · 扫描版 PDF（图片型）明确提示不支持，不做假转换
+   诚实边界：docx→pdf 仍不提供（浏览器无排版引擎）；html→pdf 走系统打印
    ============================================================ */
 "use strict";
 
 const $d = (s) => document.querySelector(s);
+const $$d = (s) => Array.from(document.querySelectorAll(s));
 const fmtSize = (b) => b < 1024 ? b + " B" : b < 1048576 ? (b/1024).toFixed(1) + " KB" : (b/1048576).toFixed(2) + " MB";
 const extOf = (n) => (n.split(".").pop() || "").toLowerCase();
 const baseOf = (n) => n.replace(/\.[^.]+$/, "");
@@ -28,7 +32,11 @@ const SHEET_FMTS = [
 ];
 const CONVERT = {
   docx: [ { v: "html", label: "HTML 网页" }, { v: "txt", label: "纯文本 TXT" } ],
-  pdf:  [ { v: "txt", label: "纯文本 TXT" }, { v: "md", label: "Markdown MD" } ],
+  pdf:  [
+    { v: "docx", label: "Word DOCX（版面重建）" },
+    { v: "txt",  label: "纯文本 TXT" },
+    { v: "md",   label: "Markdown MD" },
+  ],
   xlsx: SHEET_FMTS, xls: SHEET_FMTS,
   csv:  [ { v: "json", label: "JSON" }, { v: "xlsx", label: "XLSX 表格" } ],
   html: [ { v: "print", label: "打印 / 导出 PDF（系统打印）" } ],
@@ -36,25 +44,33 @@ const CONVERT = {
 };
 const targetsFor = (ext) => CONVERT[ext] || [ { v: "vault", label: "不转换，仅存入星库" } ];
 
-/* ---------- pdf.js 自适应加载（路径未知，多候选 + 优雅降级） ---------- */
+/* ---------- pdf.js 加载（路径已钉死：js/pdfjs/） ---------- */
 let _pdfP = null;
 function ensurePdfJs() {
   if (window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
   if (_pdfP) return _pdfP;
-  const mains = ["js/pdfjs/pdf.min.js", "js/pdfjs/pdf.js", "js/pdfjs/build/pdf.min.js", "js/vendor/pdf.min.js"];
   _pdfP = (async () => {
-    for (const src of mains) {
-      try { await loadScript(src); } catch { continue; }
-      if (window.pdfjsLib) {
-        const base = src.replace(/pdf(\.min)?\.js$/, "");
-        window.pdfjsLib.GlobalWorkerOptions.workerSrc = base + "pdf.worker.min.js";
-        return window.pdfjsLib;
-      }
-    }
-    _pdfP = null;
-    throw new Error("未找到本地 pdf.js（js/pdfjs/），PDF 转换暂不可用，其余格式不受影响");
+    await loadScript("js/pdfjs/pdf.min.js");
+    if (!window.pdfjsLib) { _pdfP = null; throw new Error("pdf.js 加载异常（js/pdfjs/pdf.min.js）"); }
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc = "js/pdfjs/pdf.worker.min.js";
+    return window.pdfjsLib;
   })();
   return _pdfP;
+}
+
+/* ---------- PDF→Word 组件按需加载（pdf2word-core + docx 库） ---------- */
+let _p2wP = null;
+function ensurePdf2Word() {
+  if (_p2wP) return _p2wP;
+  _p2wP = (async () => {
+    if (typeof clusterLines !== "function") await loadScript("js/pdf2word-core.js");
+    if (!window.docx) await loadScript("js/docx.js");
+    if (typeof clusterLines !== "function" || !window.docx || !window.docx.Document) {
+      _p2wP = null;
+      throw new Error("PDF→Word 组件缺失（js/pdf2word-core.js 或 js/docx.js）");
+    }
+  })();
+  return _p2wP;
 }
 
 /* ---------- Nova Vault（IndexedDB） ---------- */
@@ -104,14 +120,29 @@ async function convDocx(file, to) {
   const { value: html } = await mammoth.convertToHtml({ arrayBuffer: await readAB(file) });
   const base = baseOf(file.name);
   if (to === "html") return [{ name: base + ".html", blob: new Blob([wrapHtml(html, base)], { type: "text/html" }) }];
-  /* txt：HTML 剥标签（表格结构建议转 HTML 查看） */
   const dom = new DOMParser().parseFromString(html, "text/html");
   const txt = (dom.body.textContent || "").replace(/\n{3,}/g, "\n\n").trim();
   return [{ name: base + ".txt", blob: new Blob([txt], { type: "text/plain" }) }];
 }
 
-async function convPdf(file, to) {
+/* pdf → pages[[items]] 提取（pdf→txt/md 与 pdf→docx 共用） */
+async function pdfToPages(file) {
   const pdfjs = await ensurePdfJs();
+  const pdf = await pdfjs.getDocument({ data: await readAB(file) }).promise;
+  const pages = [];
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const tc = await page.getTextContent();
+    pages.push(tc.items);
+  }
+  const hasText = pages.some((items) => items.some((it) => it.str && it.str.trim() !== ""));
+  if (!hasText) throw new Error("扫描版 PDF（图片型）无法提取文字，暂不支持转换；请先用 OCR 工具处理");
+  return pages;
+}
+
+async function convPdf(file, to) {
+  const pages = await pdfToPages(file);
+  const pdfjs = window.pdfjsLib;
   const pdf = await pdfjs.getDocument({ data: await readAB(file) }).promise;
   const parts = [];
   for (let i = 1; i <= pdf.numPages; i++) {
@@ -129,6 +160,55 @@ async function convPdf(file, to) {
   return [{ name: base + ".txt", blob: new Blob([txt], { type: "text/plain" }) }];
 }
 
+/* ---------- pdf → docx：复用 pdf2word-core 版面重建 ---------- */
+function parasToDocxChildren(paras, medF) {
+  const { Paragraph, TextRun, HeadingLevel } = window.docx;
+  const LIST_RE = /^([•·‣◦▪▸●○◆■□\-–—*]|\d{1,2}[.)、]|[（(]\d{1,2}[)）]|[a-zA-Z][.)])\s+/;
+  const CJK = /[\u4e00-\u9fff\u3000-\u303f\uff00-\uffef]/;
+
+  return paras.map((p) => {
+    /* 跨行拼段：中文尾+中文头直连，否则补空格（与 core 策略一致） */
+    let text = "";
+    p.lines.forEach((l, i) => {
+      if (i === 0) { text = l.text; return; }
+      const tail = text.slice(-1), head = l.text.slice(0, 1);
+      text += (CJK.test(tail) && CJK.test(head) ? "" : " ") + l.text;
+    });
+    if (!text.trim()) return null;
+
+    const runs = [new TextRun({ text, bold: !!p.bold })];
+    const ratio = p.fontSize / (medF || 10);
+
+    /* 标题分级：字号相对正文中位数的倍数 */
+    if (ratio >= 1.7)  return new Paragraph({ children: runs, heading: HeadingLevel.HEADING_1 });
+    if (ratio >= 1.35) return new Paragraph({ children: runs, heading: HeadingLevel.HEADING_2 });
+    if (ratio >= 1.15) return new Paragraph({ children: runs, heading: HeadingLevel.HEADING_3 });
+    /* 列表：剥标记符 → Word 原生项目符号 */
+    if (LIST_RE.test(text)) {
+      return new Paragraph({
+        children: [new TextRun({ text: text.replace(LIST_RE, ""), bold: !!p.bold })],
+        bullet: { level: 0 },
+      });
+    }
+    return new Paragraph({ children: runs });
+  }).filter(Boolean);
+}
+
+async function convPdfToDocx(file) {
+  await ensurePdf2Word();
+  const pages = await pdfToPages(file);
+  const lines = clusterLines(pages);               /* 行聚类 + 去重影 + 粗体探测 */
+  if (!lines.length) throw new Error("未能从 PDF 中提取到有效文字");
+  const { paras, medF } = buildParagraphs(lines);  /* 段落重建（行距分位/缩进/连字符） */
+  const children = parasToDocxChildren(paras, medF);
+
+  const { Document, Packer } = window.docx;
+  const doc = new Document({ sections: [{ children }] });
+  const blob = await Packer.toBlob(doc);
+  return [{ name: baseOf(file.name) + ".docx", blob }];
+}
+
+/* ---------- 表格类 ---------- */
 async function convSheet(file, to) {
   const wb = XLSX.read(await readAB(file), { type: "array" });
   const base = baseOf(file.name);
@@ -141,7 +221,6 @@ async function convSheet(file, to) {
     const out = XLSX.write(wb, { bookType: "xlsx", type: "array" });
     return [{ name: base + ".xlsx", blob: new Blob([out], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }) }];
   }
-  /* csv：每个工作表一份 */
   return wb.SheetNames.map((n) => {
     const csv = XLSX.utils.sheet_to_csv(wb.Sheets[n]);
     return { name: safeName(base + "." + n) + ".csv", blob: new Blob(["\uFEFF" + csv], { type: "text/csv" }) };
@@ -232,7 +311,7 @@ async function runItem(it) {
     } else if (it.ext === "docx") {
       outs = await convDocx(it.file, it.to);
     } else if (it.ext === "pdf") {
-      outs = await convPdf(it.file, it.to);
+      outs = it.to === "docx" ? await convPdfToDocx(it.file) : await convPdf(it.file, it.to);
     } else if (it.ext === "xlsx" || it.ext === "xls") {
       outs = await convSheet(it.file, it.to);
     } else if (it.ext === "csv") {
@@ -297,8 +376,8 @@ function initDocs() {
   });
 
   /* Tabs */
-  $d$(".tab").forEach((tab) => tab.addEventListener("click", async () => {
-    $d$(".tab").forEach((t) => t.setAttribute("aria-selected", String(t === tab)));
+  $$d(".tab").forEach((tab) => tab.addEventListener("click", async () => {
+    $$d(".tab").forEach((t) => t.setAttribute("aria-selected", String(t === tab)));
     ["convert", "ai", "vault"].forEach((n) => { $d("#tab-" + n).hidden = n !== tab.dataset.tab; });
     if (tab.dataset.tab === "vault") refreshVault();
   }));

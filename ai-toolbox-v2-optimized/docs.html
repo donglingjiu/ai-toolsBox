@@ -42,7 +42,7 @@
     <div id="dropzone" class="dropzone" tabindex="0" role="button" aria-label="点击或拖入文件">
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 16V4m0 0 -4 4m4-4 4 4"/><path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
       <p><strong>拖入文件</strong>，或点击选择（支持多选 · 建议单文件 &lt; 20MB）</p>
-      <p class="dropzone__hint">docx → HTML/TXT · pdf → TXT/MD · xlsx/xls → CSV/JSON/XLSX · csv → JSON/XLSX · html → 打印导出PDF · 任意文件仅存星库</p>
+      <p class="dropzone__hint">docx → HTML/TXT · pdf → DOCX/TXT/MD · xlsx/xls → CSV/JSON/XLSX · csv → JSON/XLSX · html → 打印导出PDF · 任意文件仅存星库</p>
       <input id="file-input" type="file" multiple hidden>
     </div>
 
@@ -60,7 +60,7 @@
       <div id="queue-empty" class="empty">队列空空如也 —— 拖入第一个文件，开始一次新星爆发 ✦</div>
     </div>
 
-    <p class="boundary">边界说明：docx→pdf 需要排版引擎，浏览器内无法诚实完成，故不提供；需要 PDF 的 docx 请先转 HTML 再用系统打印导出。PDF 转换依赖内置 pdf.js，若提示未找到请把 <code>ls js/pdfjs/</code> 结果反馈给开发者。</p>
+    <p class="boundary">边界说明：pdf→word 采用本地版面重建（行聚类 → 段落重建 → 标题分级 → 粗体/列表识别），复杂双栏/艺术排版还原度以实际为准；扫描版 PDF（图片型）无法提取文字，会明确提示。docx→pdf 需要排版引擎，浏览器内无法诚实完成，故不提供——需要 PDF 的 docx 请先转 HTML 再用系统打印导出。</p>
   </section>
 
   <!-- AI 演示 -->
