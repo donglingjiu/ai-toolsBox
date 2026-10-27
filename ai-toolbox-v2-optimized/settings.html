@@ -1,357 +1,195 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>设置 · AI 工具箱</title>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Nova · 模型服务配置</title>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
-    background: linear-gradient(160deg, #f4f6fb 0%, #e8edf7 100%);
-    min-height: 100vh; color: #1f2937; padding: 16px 12px 48px;
-  }
-  .wrap { max-width: 760px; margin: 0 auto; }
-  .back { display: inline-flex; align-items: center; gap: 6px; color: #2563eb; text-decoration: none; font-size: 14px; margin-bottom: 14px; }
-  h1 { font-size: 22px; margin-bottom: 4px; }
-  .sub { color: #6b7280; font-size: 13px; margin-bottom: 18px; }
-  .card { background: #fff; border-radius: 16px; padding: 20px 22px; box-shadow: 0 4px 20px rgba(30, 58, 138, .07); margin-bottom: 16px; }
-  .card h2 { font-size: 15px; margin-bottom: 4px; }
-  .card .desc { font-size: 12.5px; color: #9ca3af; margin-bottom: 12px; line-height: 1.6; }
-  label.fl { display: block; font-size: 13px; color: #4b5563; margin: 12px 0 6px; }
-  input[type="text"], input[type="password"] {
-    width: 100%; padding: 11px 12px; border: 1.5px solid #e5e7eb; border-radius: 10px;
-    font-size: 14px; outline: none; transition: border-color .2s;
-  }
-  input:focus { border-color: #2563eb; }
-  .row { display: flex; gap: 10px; }
-  .row > div { flex: 1; }
-  .btns { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
-  .btn {
-    padding: 11px 18px; border: none; border-radius: 10px; color: #fff; font-size: 14px;
-    cursor: pointer; background: linear-gradient(135deg, #2563eb, #4f46e5); font-weight: 600;
-  }
-  .btn.ghost { background: #fff; color: #374151; border: 1.5px solid #e5e7eb; font-weight: 400; }
-  .btn.danger { background: #fff; color: #e5484d; border: 1.5px solid #fecaca; font-weight: 400; }
-  .status { margin-top: 10px; font-size: 13px; min-height: 18px; }
-  .status.ok { color: #16a34a; }
-  .status.err { color: #e5484d; }
-  .tip { font-size: 12px; color: #9ca3af; line-height: 1.7; margin-top: 10px; }
-  .tip b { color: #6b7280; }
-  details { margin-top: 12px; }
-  details summary { font-size: 13px; color: #6b7280; cursor: pointer; }
-  .pf { border: 1.5px solid #e5e7eb; border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-  .pf.active { border-color: #2563eb; background: #f5f8ff; }
-  .pf .pf-main { flex: 1; min-width: 180px; }
-  .pf .pf-name { font-size: 14px; font-weight: 600; }
-  .pf .pf-meta { font-size: 12px; color: #9ca3af; margin-top: 2px; word-break: break-all; }
-  .pf .pf-badge { font-size: 11px; padding: 1px 7px; border-radius: 6px; background: #2563eb; color: #fff; margin-left: 6px; }
-  .pf .pf-off { background: #9ca3af; }
-  .pf button { font-size: 12px; padding: 5px 10px; border-radius: 8px; border: 1.5px solid #e5e7eb; background: #fff; cursor: pointer; color: #374151; }
-  .pf button.pf-test { border-color: #bfdbfe; color: #2563eb; }
-  .pf button.pf-del { border-color: #fecaca; color: #e5484d; }
-  .pf .pf-status { flex-basis: 100%; font-size: 12px; margin-top: 4px; min-height: 0; }
+:root{--bg:#f6f7fb;--card:#fff;--ink:#1c2333;--mut:#6b7280;--line:#e5e7eb;--pri:#4f6ef7}
+*{box-sizing:border-box}body{margin:0;font:15px/1.6 system-ui,"Segoe UI","PingFang SC",sans-serif;background:var(--bg);color:var(--ink)}
+header{background:#0f1530;color:#fff;padding:14px 20px;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+header b{font-size:17px}header a{color:#c7d2fe;text-decoration:none;font-size:13px}
+main{max-width:880px;margin:0 auto;padding:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:14px 0}
+h2{font-size:16px;margin:2px 0 10px}label{display:block;font-size:13px;color:var(--mut);margin:10px 0 4px}
+input{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;font-size:14px}
+button{border:1px solid var(--line);background:#fff;border-radius:9px;padding:8px 14px;font-size:13px;cursor:pointer}
+button:hover{border-color:var(--pri)}.primary{background:var(--pri);border-color:var(--pri);color:#fff;font-weight:600}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:12px}
+.muted{color:var(--mut);font-size:12px}.chip{font-size:12px;border-radius:99px;padding:5px 12px;background:#eef1ff;border-color:#dfe4ff}
+.hint{font-size:12px;color:#92400e;background:#fef3c7;border-radius:8px;padding:6px 10px;margin-top:6px;display:none}
+.tag{font-size:12px;color:var(--pri)}
+.profile{border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:10px 0}
+.profile .m{color:var(--mut);font-size:12px;margin:2px 0 8px}
+.badge{font-size:11px;border-radius:99px;padding:2px 8px;margin-left:6px}
+.b-def{background:#dbeafe;color:#1d4ed8}.b-off{background:#f3f4f6;color:#6b7280}
+.msg{font-size:12px;margin-top:6px;display:none;border-radius:8px;padding:6px 10px}
+.ok{background:#dcfce7;color:#166534;display:block}.bad{background:#fee2e2;color:#991b1b;display:block}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <a class="back" href="index.html">← 返回工具箱</a>
-  <h1>⚙️ 设置</h1>
-  <div class="sub">所有配置保存在本机浏览器（localStorage），不会上传</div>
+<header><b>✦ Nova 设置</b><span class="muted" style="color:#9aa5d1">模型服务 · Key 仅存本机 localStorage，数据不出端</span>
+<a href="index.html">首页</a><a href="flow.html">Flow 星流</a><a href="data.html">Data 星数</a><a href="docs.html">Docs 星文</a></header>
+<main>
+<div class="card muted" id="diag">存储诊断中…</div>
 
-  <div class="card">
-    <h2>🤖 文本模型配置（可添加多个，支持默认切换与故障转移）</h2>
-    <div class="desc">
-      每条配置对应一个 <b>OpenAI 兼容</b> 的模型接口（填入各平台官方的 <code style="background:#f4f4f5;padding:1px 5px;border-radius:4px;">Base URL</code>、模型名、你自己的 API Key）。
-      配置只保存在本机浏览器，<b>不做任何加密</b>，请仅在你本人可控的设备上使用。<br>
-      注意：这里需要各平台<b>官方开放的 API Key</b>，无法读取你在网页端的登录态 / Cookie / 会话，也不会替你抓取任何已登录页面。
-    </div>
-    <label class="fl">快速模板（选择后自动填入建议地址，仍需你手动填 Key）</label>
-    <div class="row" style="align-items:flex-end;">
-      <div style="flex:2;">
-        <select id="presetSel" style="width:100%;padding:11px 12px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:14px;background:#fff;">
-          <option value="">— 选择模板 —</option>
-          <option value="deepseek">DeepSeek</option>
-          <option value="qwen">通义千问 Qwen（兼容模式）</option>
-          <option value="chatglm">智谱 ChatGLM（兼容模式）</option>
-          <option value="minimax">MiniMax（兼容模式）</option>
-          <option value="moonshot">Kimi / Moonshot</option>
-          <option value="openai">OpenAI（需海外网络）</option>
-          <option value="google">Google Gemini（需海外网络）</option>
-          <option value="coze">Coze（需自行确认是否提供兼容接口）</option>
-          <option value="custom">自定义</option>
-        </select>
-      </div>
-      <div style="flex:1;">
-        <button class="btn ghost" id="applyPreset" type="button">填入模板</button>
-      </div>
-    </div>
-    <div id="editArea" style="margin-top:6px;">
-      <div class="row">
-        <div><label class="fl">配置名称</label><input type="text" id="pfName" placeholder="如 我的 DeepSeek"></div>
-        <div><label class="fl">模型名</label><input type="text" id="pfModel" placeholder="如 deepseek-chat"></div>
-      </div>
-      <label class="fl">API 地址（Base URL，需 https://，会自动去掉多余路径与参数）</label>
-      <input type="text" id="pfBase" placeholder="如 https://api.deepseek.com/v1">
-      <label class="fl">API Key</label>
-      <input type="password" id="pfKey" placeholder="sk-…" autocomplete="off">
-      <div class="btns">
-        <button class="btn" id="addBtn" type="button">＋ 添加 / 保存此配置</button>
-        <button class="btn ghost" id="resetEdit" type="button">清空表单</button>
-      </div>
-    </div>
-    <div id="profileList" style="margin-top:14px;"></div>
-    <label class="fl" style="display:flex;align-items:center;gap:8px;margin-top:14px;cursor:pointer;">
-      <input type="checkbox" id="failoverChk" style="width:auto;">
-      <span>开启故障自动切换：当默认配置出现网络错误 / 超时 / 限流 / 5xx 时，自动改用其它已启用配置（每个至多试一次）。<b>开启后本次请求内容可能被发送到备用平台</b>，敏感场景请谨慎。</span>
-    </label>
-  </div>
-
-  <div class="card">
-    <h2>🖼️ 图像模型（AI 试衣）</h2>
-    <div class="desc">OpenAI 兼容 /images/edits 图像接口。</div>
-    <div class="row">
-      <div>
-        <label class="fl">API 地址（Base URL）</label>
-        <input type="text" id="imgBase" placeholder="如 https://api.openai.com/v1">
-      </div>
-      <div>
-        <label class="fl">模型名</label>
-        <input type="text" id="imgModel" placeholder="如 gpt-image-1">
-      </div>
-    </div>
-    <label class="fl">API Key</label>
-    <input type="password" id="imgKey" placeholder="sk-…" autocomplete="off">
-  </div>
-
-  <div class="card">
-    <h2>📱 虚拟号平台接入（预留）</h2>
-    <div class="desc">
-      为「艺术挪车码」接入运营商副号 / 隐私虚拟号做准备。配置后，隐私中转模式会先把真实号码绑定到虚拟号，再把虚拟号编码进二维码。
-      建议自建一层<b>适配网关</b>统一接口：网关需实现 <code style="background:#f4f4f5;padding:1px 5px;border-radius:4px;">POST /bind</code>，
-      请求体 <code style="background:#f4f4f5;padding:1px 5px;border-radius:4px;">{mode, phoneA, expire}</code>，
-      响应 <code style="background:#f4f4f5;padding:1px 5px;border-radius:4px;">{virtual_number}</code>（阿里隐私号 AXN、移动和多号等都可包一层转换）。未配置时自动使用内置 AES 加密中转，同样不暴露真实号码。
-    </div>
-    <label class="fl">平台网关地址（Base URL，如 https://your-gateway.example.com）</label>
-    <input type="text" id="virtualApiBase" placeholder="留空 = 使用内置加密中转">
-    <div class="row">
-      <div>
-        <label class="fl">网关密钥（Bearer Token）</label>
-        <input type="password" id="virtualApiKey" placeholder="可选" autocomplete="off">
-      </div>
-      <div>
-        <label class="fl">绑定模式</label>
-        <input type="text" id="virtualMode" placeholder="AXN（默认）">
-      </div>
-    </div>
-    <div class="tip"><b>说明：</b>网关地址与密钥仅保存在本机；生成码时由你的浏览器直接调用网关。平台侧产生的副号费用与实名要求以运营商规则为准。</div>
-  </div>
-
-  <div class="btns">
-    <button class="btn" id="saveBtn">保存图像 / 虚拟号设置</button>
-    <button class="btn danger" id="clearBtn">清空本地数据</button>
-    <button class="btn danger" id="clearKeysBtn">仅清除模型凭据</button>
-  </div>
-  <div class="status" id="status"></div>
-
-  <div class="card" style="margin-top:16px;">
-    <h2>🧹 本地数据</h2>
-    <div class="desc">清空浏览器中保存的所有工具数据（API 配置、知识库文档、情绪日记、号码簿、收藏等）。</div>
-    <details>
-      <summary>清空范围说明</summary>
-      <div class="tip">
-        · localStorage：API 设置、号码簿、提示词收藏、主题选择；<br>
-        · IndexedDB：第二大脑文档（ai-brain）、情绪日记（ai-mood）。<br>
-        清空不可恢复，请确认后再操作。
-      </div>
-    </details>
-  </div>
+<div class="card">
+ <h2 id="formTitle">添加模型服务配置</h2>
+ <div class="row" style="margin:0 0 6px" id="chips"></div>
+ <label>名称</label><input id="f-name" placeholder="如：智谱GLM(代理)"/>
+ <label>Base URL（填到 /v1 或 /api/paas/v4 这一级，结尾不带 /chat/completions）</label>
+ <input id="f-url" placeholder="https://ai.donglingjiu.top/llm/bigmodel/api/paas/v4"/>
+ <div class="hint" id="urlHint"></div>
+ <label>模型 ID</label><input id="f-model" placeholder="如 glm-4-flash / deepseek-chat"/>
+ <label>API Key（留空=保留原 Key，编辑时适用）</label>
+ <input id="f-key" type="password" placeholder="sk-…"/>
+ <div class="hint" id="keyGuide"></div>
+ <div class="row">
+  <button class="primary" id="btn-save">添加 / 保存此配置</button>
+  <button id="btn-clear">清空表单</button>
+  <span class="tag" id="editTag" hidden></span>
+ </div>
 </div>
 
-<script src="js/app.js?v=11"></script>
+<div class="card">
+ <h2>已保存配置 <span class="muted" id="count"></span><span class="muted">（上下顺序即故障切换顺序）</span></h2>
+ <div id="list"></div>
+</div>
+
+<div class="card">
+ <h2>备份 / 迁移（防换浏览器、换机丢失）</h2>
+ <p class="muted">导出包含全部本地设置（含 Key），文件等同密码，请勿外传；换机后导入即恢复。</p>
+ <div class="row">
+  <button class="primary" id="btn-export">导出全部配置 (.json)</button>
+  <button id="btn-import">导入配置</button>
+  <input type="file" id="file" accept=".json,application/json" hidden/>
+ </div>
+</div>
+</main>
 <script>
-(function () {
-  'use strict';
-  var $status = document.getElementById('status');
-  function setStatus(msg, ok) { $status.textContent = msg; $status.className = 'status ' + (ok ? 'ok' : 'err'); }
+"use strict";
+/* ===== 存储适配层：自动发现应用既有的 localStorage 结构，保证与 Flow 等页面共用同一份数据 ===== */
+let PKEY=null,WRAP=null,UF="baseUrl",DF="enabled",DKEY="nova_default_profile",DFIELD="name",USE_ID=false;
+const looksLike=o=>o&&typeof o==="object"&&!Array.isArray(o)&&(o.baseUrl||o.baseURL||o.url||o.model);
+function detect(){
+ for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);let v;
+  try{v=JSON.parse(localStorage.getItem(k));}catch{continue;}
+  if(Array.isArray(v)&&v.length&&v.some(looksLike)){PKEY=k;break;}
+  if(v&&typeof v==="object"&&!Array.isArray(v)){const a=v.profiles||v.list||v.items||v.data;
+   if(Array.isArray(a)&&a.length&&a.some(looksLike)){PKEY=k;WRAP=v.profiles?"profiles":v.list?"list":v.items?"items":"data";break;}}}
+ if(!PKEY)PKEY="nova_profiles_v1";
+ const L=load();
+ if(L.length){
+  UF=L[0].baseURL!==undefined?"baseURL":"baseUrl";
+  DF=L[0].enabled!==undefined?"enabled":L[0].disabled!==undefined?"disabled":L[0].active!==undefined?"active":"enabled";
+  USE_ID=L[0].id!==undefined;
+  const ids=new Set();L.forEach(p=>{ids.add(String(p.id??""));ids.add(String(p.name??""));});
+  for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k===PKEY)continue;
+   const raw=localStorage.getItem(k);
+   if(raw&&!/[{\[",:]/.test(raw)&&ids.has(raw)){DKEY=k;DFIELD=String(L.find(p=>String(p.id??p.name)===raw).id)===raw?"id":"name";break;}}}
+ document.getElementById("diag").textContent="存储诊断：配置键="+PKEY+(WRAP?"(包裹:"+WRAP+")":"")+" · 开关字段="+DF+" · 默认标记键="+DKEY+" · 当前 "+load().length+" 条（与 Flow 页共用）";
+}
+function load(){try{const v=JSON.parse(localStorage.getItem(PKEY)||"[]");return WRAP?(v&&v[WRAP])||[]:(Array.isArray(v)?v:[]);}catch{return[]}}
+function saveList(L){if(WRAP){const v=JSON.parse(localStorage.getItem(PKEY)||"{}");v[WRAP]=L;localStorage.setItem(PKEY,JSON.stringify(v));}else localStorage.setItem(PKEY,JSON.stringify(L));}
+const of=p=>p[UF]||p.baseUrl||p.baseURL||"";
+const isOn=p=>DF==="enabled"?p.enabled!==false:DF==="disabled"?!p.disabled:(p.active!==false);
+function setOn(p,val){if(DF==="enabled")p.enabled=val;else if(DF==="disabled")p.disabled=!val;else p.active=val;}
+const pid=p=>p.id!==undefined?p.id:(p.name||of(p));
 
-  /* ---- 图像 / 虚拟号（沿用旧字段） ---- */
-  var s0 = getSettings();
-  ['imgBase', 'imgKey', 'imgModel', 'virtualApiBase', 'virtualApiKey', 'virtualMode'].forEach(function (k) {
-    var input = document.getElementById(k);
-    if (input && s0[k]) input.value = s0[k];
-  });
-  document.getElementById('failoverChk').checked = !!s0.llmFailover;
+/* ===== 主流服务商：Key 获取指引 + 预填模板 ===== */
+const GUIDE={
+ "open.bigmodel.cn":["https://bigmodel.cn/usercenter/apikeys","智谱开放平台 → 控制台 → API Keys。GLM-Flash 系列免费；官方域名不支持浏览器直连，Base URL 请用本站代理 https://ai.donglingjiu.top/llm/bigmodel/api/paas/v4"],
+ "dashscope.aliyuncs.com":["https://bailian.console.aliyun.com/?apiKey=1#/api-key","阿里云百炼 → API-KEY → 创建。Base URL 用 https://dashscope.aliyuncs.com/compatible-mode/v1"],
+ "api.deepseek.com":["https://platform.deepseek.com/api_keys","DeepSeek 开放平台 → API Keys（需充值，价格很低）。Base URL 用 https://api.deepseek.com"],
+ "api.moonshot.cn":["https://platform.moonshot.cn/apikeys","Moonshot 开放平台 → API Key 管理。Base URL 用 https://api.moonshot.cn/v1"],
+ "api.siliconflow.cn":["https://cloud.siliconflow.cn/account/ak","硅基流动 → API 密钥 → 新建。按量计费需余额（402=欠费）。模型 ID 以「模型广场」显示的完整名称为准"],
+ "api.minimaxi.com":["https://platform.minimaxi.com/user-center/basic-information/interface-key","MiniMax 开放平台 → 接口密钥。Base URL 用 https://api.minimaxi.com"],
+ "generativelanguage.googleapis.com":["https://aistudio.google.com/apikey","Google AI Studio → Get API key（国内需海外网络）。Base URL 用 https://generativelanguage.googleapis.com/v1beta/openai"],
+ "api.openai.com":["https://platform.openai.com/api-keys","OpenAI Platform → API keys。Base URL 用 https://api.openai.com/v1"],
+ "openrouter.ai":["https://openrouter.ai/keys","OpenRouter → Keys → Create Key，一个 Key 调数百模型。Base URL 用 https://openrouter.ai/api/v1"]};
+const ALIAS={bigmodel:"open.bigmodel.cn",dashscope:"dashscope.aliyuncs.com",deepseek:"api.deepseek.com",moonshot:"api.moonshot.cn",siliconflow:"api.siliconflow.cn",openai:"api.openai.com",openrouter:"openrouter.ai"};
+const PRESETS=[["智谱GLM(代理)","https://ai.donglingjiu.top/llm/bigmodel/api/paas/v4","glm-4-flash"],
+ ["DeepSeek","https://api.deepseek.com","deepseek-chat"],["千问","https://dashscope.aliyuncs.com/compatible-mode/v1","qwen-plus"],
+ ["Kimi","https://api.moonshot.cn/v1","moonshot-v1-8k"],["硅基流动","https://api.siliconflow.cn/v1","deepseek-ai/DeepSeek-V3"],
+ ["MiniMax","https://api.minimaxi.com","MiniMax-Text-01"],["OpenAI","https://api.openai.com/v1","gpt-4o-mini"],
+ ["OpenRouter","https://openrouter.ai/api/v1","openai/gpt-4o-mini"]];
+function guideFor(url){let h="";try{h=new URL(url).hostname;}catch{return null;}
+ if(h==="ai.donglingjiu.top"){const m=String(url).match(/\/llm\/([a-z0-9-]+)/i);const g=GUIDE[ALIAS[(m||[])[1]||""]];
+  return g?[g[0],"走本站代理转发（不存 Key）。上游获取方式："+g[1]]:["#","本站代理路径 /llm/<厂商>/…，按厂商到其官网获取 Key"];}
+ return GUIDE[h]||null;}
+function showGuide(){const u=document.getElementById("f-url").value.trim(),el=document.getElementById("keyGuide"),g=guideFor(u);
+ if(g&&u){el.style.display="block";el.innerHTML='获取 Key：<a target="_blank" rel="noopener" href="'+g[0]+'">'+g[0]+"</a> —— "+g[1];}
+ else if(u){el.style.display="block";el.textContent="未识别的服务商，请核对 Base URL（OpenAI 兼容端点）。";}
+ else el.style.display="none";}
+document.getElementById("f-url").addEventListener("input",showGuide);
+PRESETS.forEach(([n,u,m])=>{const b=document.createElement("button");b.className="chip";b.textContent=n;
+ b.onclick=()=>{fName.value=n;fUrl.value=u;fModel.value=m;showGuide();};document.getElementById("chips").appendChild(b);});
 
-  document.getElementById('saveBtn').addEventListener('click', function () {
-    var patch = {};
-    ['imgBase', 'imgKey', 'imgModel', 'virtualApiBase', 'virtualApiKey', 'virtualMode'].forEach(function (k) {
-      patch[k] = document.getElementById(k).value.trim();
-    });
-    if (patch.virtualMode === '') patch.virtualMode = 'AXN';
-    saveSettings(patch);
-    setStatus('✅ 已保存到本机', true);
-    toast('设置已保存');
-  });
-  document.getElementById('failoverChk').addEventListener('change', function () {
-    saveSettings({ llmFailover: this.checked });
-    toast(this.checked ? '已开启故障自动切换' : '已关闭故障自动切换');
-  });
+/* ===== 增删改查 + 测试 ===== */
+const fName=document.getElementById("f-name"),fUrl=document.getElementById("f-url"),fModel=document.getElementById("f-model"),fKey=document.getElementById("f-key");
+let editing=null;
+function esc(s){return String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+function render(){const L=load();document.getElementById("count").textContent="共 "+L.length+" 条";
+ const box=document.getElementById("list");box.innerHTML="";
+ if(!L.length){box.innerHTML='<p class="muted">暂无配置。点上方预设一键填好地址和模型，再去对应官网拿 Key。</p>';return;}
+ const def=localStorage.getItem(DKEY);
+ L.forEach((p,i)=>{const d=document.createElement("div");d.className="profile";
+  const g=guideFor(of(p));
+  d.innerHTML='<div class="t"><b>'+esc(p.name||"(未命名)")+'</b><span>'+
+   (String(pid(p))===def?'<span class="badge b-def">默认</span>':"")+(isOn(p)?"":'<span class="badge b-off">已停用</span>')+
+   '<button data-a="test">测试</button> <button data-a="def">设为默认</button> <button data-a="tog">'+(isOn(p)?"停用":"启用")+'</button> '+
+   (i>0?'<button data-a="up">↑</button>':"")+(i<L.length-1?'<button data-a="down">↓</button>':"")+
+   ' <button data-a="edit">编辑</button> '+(g?'<a target="_blank" rel="noopener" href="'+g[0]+'"><button>获取Key↗</button></a>':"")+
+   ' <button data-a="del" style="color:#dc2626">删除</button></span></div>'+
+   '<div class="m">'+esc(p.model||"")+" · "+esc(of(p))+"</div><div class=\"msg\"></div>";
+  d.querySelector('[data-a=test]').onclick=async()=>{const m=d.querySelector(".msg");m.className="msg";m.textContent="测试中…";m.style.display="block";
+   const r=await testProfile(p);m.textContent=r.msg;m.className="msg "+(r.ok?"ok":"bad");};
+  d.querySelector('[data-a=def]').onclick=()=>{localStorage.setItem(DKEY,String(p[DFIELD]??pid(p)));render();};
+  d.querySelector('[data-a=tog]').onclick=()=>{setOn(p,!isOn(p));const t=load();t[i]=p;saveList(t);render();};
+  const up=d.querySelector('[data-a=up]');if(up)up.onclick=()=>{const t=load();[t[i-1],t[i]]=[t[i],t[i-1]];saveList(t);render();};
+  const dn=d.querySelector('[data-a=down]');if(dn)dn.onclick=()=>{const t=load();[t[i+1],t[i]]=[t[i],t[i+1]];saveList(t);render();};
+  d.querySelector('[data-a=edit]').onclick=()=>{editing=pid(p);fName.value=p.name||"";fUrl.value=of(p);fModel.value=p.model||"";fKey.value="";
+   document.getElementById("editTag").hidden=false;document.getElementById("editTag").textContent="正在编辑："+(p.name||of(p))+"（Key 留空则不修改）";
+   document.getElementById("formTitle").textContent="编辑配置";showGuide();window.scrollTo({top:0,behavior:"smooth"});};
+  d.querySelector('[data-a=del]').onclick=()=>{if(!confirm("删除「"+(p.name||of(p))+"」？"))return;const t=load();t.splice(i,1);saveList(t);render();};
+  box.appendChild(d);});}
+const TESTPATH=h=>h.includes("bigmodel")?"/api/paas/v4/chat/completions":h.includes("dashscope")?"/compatible-mode/v1/chat/completions":h.includes("minimaxi")?"/v1/text/chatcompletion_v2":"/chat/completions";
+async function testProfile(p){const base=of(p).replace(/\/+$/,"");let h="";
+ try{h=new URL(base).hostname;}catch{return{ok:false,msg:"Base URL 不合法（需 https:// 开头）"}}
+ const t0=Date.now();
+ try{const r=await fetch(base+TESTPATH(h),{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+(p.key||"")},
+  body:JSON.stringify({model:p.model||"gpt-3.5-turbo",messages:[{role:"user",content:"ping"}],max_tokens:8,stream:false})});
+  const txt=await r.text().catch(()=> "");
+  if(r.ok)return{ok:true,msg:"✅ 连通，返回 OK（"+(Date.now()-t0)+"ms）"};
+  if(r.status===401||r.status===403)return{ok:false,msg:"Key 无效或无权限("+r.status+")"};
+  if(r.status===402)return{ok:false,msg:"Key 有效但余额不足(402)：去服务商控制台充值，或换免费模型（如智谱 Flash 走本站代理）"};
+  if(r.status===404)return{ok:false,msg:"路径不存在(404)：核对 Base URL 层级与模型 ID"};
+  if(r.status===429)return{ok:true,msg:"连通(429 限流)：地址与 Key 均有效，稍后重试即可"};
+  return{ok:false,msg:"HTTP "+r.status+"："+txt.slice(0,140)};
+ }catch(e){return{ok:false,msg:"网络/CORS 失败："+e.message+" —— 若填的是 open.bigmodel.cn 直连，请改用 https://ai.donglingjiu.top/llm/bigmodel/api/paas/v4"}}}
+document.getElementById("btn-save").onclick=()=>{const L=load(),name=fName.value.trim(),url=fUrl.value.trim().replace(/\/+$/,""),model=fModel.value.trim(),key=fKey.value.trim();
+ if(!/^https:\/\//.test(url)){alert("Base URL 需以 https:// 开头");return;}
+ let p;
+ if(editing!==null){const i=L.findIndex(x=>String(pid(x))===String(editing));if(i<0){alert("原配置不存在");return;}
+  p={...L[i],name:name||L[i].name,[UF]:url,model:model||L[i].model};if(key)p.key=key;L[i]=p;}
+ else{p={name:name||url.replace(/^https?:\/\//,"").split("/")[0],[UF]:url,model,key};if(USE_ID)p.id="p"+Date.now();setOn(p,true);L.push(p);}
+ saveList(L);clearForm();render();};
+function clearForm(){editing=null;fName.value=fUrl.value=fModel.value=fKey.value="";
+ document.getElementById("editTag").hidden=true;document.getElementById("formTitle").textContent="添加模型服务配置";showGuide();}
+document.getElementById("btn-clear").onclick=clearForm;
 
-  /* ---- 文本模型 Profile 管理 ---- */
-  var PRESETS = {
-    deepseek: { name: 'DeepSeek', base: 'https://api.deepseek.com/v1', model: 'deepseek-chat',
-      tip: 'Key：platform.deepseek.com → API Keys（充值制）' },
-    qwen: { name: '通义千问 Qwen', base: 'https://dashscope.aliyuncs.com/compatible-mode/v1', model: 'qwen-plus',
-      tip: 'Key：百炼控制台 bailian.console.aliyun.com → API-KEY 管理；报 403 = 未开通该模型，到模型广场开通（新账号送额度）' },
-    chatglm: { name: '智谱 ChatGLM', base: 'https://open.bigmodel.cn/api/paas/v4', model: 'glm-4.7-flash',
-      tip: 'Key：open.bigmodel.cn/usercenter/apikeys（GLM-4.7-Flash 免费，注册即用）' },
-    minimax: { name: 'MiniMax', base: 'https://api.minimaxi.com/v1', model: 'MiniMax-M3',
-      tip: 'Key：platform.minimaxi.com → 接口密钥；报 402 = 余额不足，去钱包充值（注意 Key 与域名地区要匹配）' },
-    moonshot: { name: 'Kimi / Moonshot', base: 'https://api.moonshot.cn/v1', model: 'moonshot-v1-8k',
-      tip: 'Key：platform.moonshot.cn → API Key 管理' },
-    openai: { name: 'OpenAI', base: 'https://api.openai.com/v1', model: 'gpt-4o-mini',
-      tip: 'Key：platform.openai.com/api-keys（国内直连不通，需海外网络）' },
-    google: { name: 'Google Gemini', base: 'https://generativelanguage.googleapis.com/v1beta/openai', model: 'gemini-2.0-flash',
-      tip: 'Key：aistudio.google.com/apikey（国内直连会 Failed to fetch，需海外网络）' },
-    coze: { name: 'Coze', base: 'https://api.coze.cn/v1', model: '',
-      tip: 'Token：www.coze.cn → 扣子 API → 个人访问令牌（Pat）' },
-    custom: { name: '', base: '', model: '', tip: '' },
-  };
-  var $ = function (id) { return document.getElementById(id); };
-  var editingId = null;
+/* ===== 备份导出 / 导入（覆盖全部 localStorage，跨浏览器、跨机器恢复）===== */
+document.getElementById("btn-export").onclick=()=>{const dump={};for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);dump[k]=localStorage.getItem(k);}
+ const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(dump,null,2)],{type:"application/json"}));
+ a.download="nova-backup-"+new Date().toISOString().slice(0,10)+".json";a.click();};
+document.getElementById("btn-import").onclick=()=>document.getElementById("file").click();
+document.getElementById("file").onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();
+ r.onload=()=>{try{const d=JSON.parse(r.result);
+  if(!confirm("导入将合并覆盖同名本地设置，继续？"))return;
+  Object.entries(d).forEach(([k,v])=>localStorage.setItem(k,v));alert("导入成功，刷新生效");location.reload();}
+  catch{alert("文件无效：需为设置页导出的 .json");}};r.readAsText(f);};
 
-  /* file:// 直开检测：浏览器会拦截本地页面发出的跨域 API 请求 */
-  if (location.protocol === 'file:') {
-    var fw = document.createElement('div');
-    fw.style.cssText = 'margin:0 0 16px;padding:13px 16px;border:1.5px solid #f59e0b;background:#fffbeb;border-radius:12px;font-size:13.5px;line-height:1.8;color:#92400e';
-    fw.innerHTML = '<b>⚠️ 你正在用「本地文件」方式打开本页（地址栏是 file:// 开头）</b><br>' +
-      '浏览器会拦截本地页面发出的跨域 API 请求，所有模型测试都会报「连不上」——这不是 Key 或配置的问题。<br>' +
-      '解决：① 把整个文件夹上传到你的网站空间后访问；或 ② 在本目录打开终端执行 <code style="background:#fef3c7;padding:1px 6px;border-radius:4px">python -m http.server 8000</code>，然后浏览器访问 <code style="background:#fef3c7;padding:1px 6px;border-radius:4px">http://127.0.0.1:8000/settings.html</code>';
-    var anchor = document.querySelector('.card') || document.body;
-    anchor.parentNode.insertBefore(fw, anchor);
-  }
-
-  document.getElementById('applyPreset').addEventListener('click', function () {
-    var p = PRESETS[$('presetSel').value];
-    if (!p) { setStatus('请先选择一个模板', false); return; }
-    $('pfName').value = p.name; $('pfBase').value = p.base; $('pfModel').value = p.model; $('pfKey').value = '';
-    editingId = null;
-    setStatus('已填入模板，请补全 API Key 后点「添加」' + (p.tip ? ' ｜ ' + p.tip : ''), true);
-  });
-  document.getElementById('resetEdit').addEventListener('click', function () {
-    $('pfName').value = ''; $('pfBase').value = ''; $('pfModel').value = ''; $('pfKey').value = ''; editingId = null;
-    setStatus('', true);
-  });
-
-  document.getElementById('addBtn').addEventListener('click', function () {
-    var name = $('pfName').value.trim(), model = $('pfModel').value.trim(), key = $('pfKey').value.trim();
-    var baseRaw = $('pfBase').value.trim(), base;
-    try { base = sanitizeBaseUrl(baseRaw); } catch (e) { setStatus('❌ ' + e.message, false); return; }
-    if (!name || !base || !model || !key) { setStatus('请填写完整：名称、地址、模型名、Key', false); return; }
-    var list = getProfiles();
-    if (editingId) {
-      var found = list.filter(function (p) { return p.id === editingId; })[0];
-      if (found) { found.name = name; found.baseUrl = base; found.model = model; found.apiKey = key; }
-    } else {
-      list.push({ id: genId(), name: name, provider: 'openai-compatible', baseUrl: base, apiKey: key, model: model, enabled: true, priority: 10 });
-    }
-    var actId = getSettings().activeProfileId;
-    if (!actId && list.length) actId = list[0].id;
-    saveProfiles(list, actId);
-    document.getElementById('resetEdit').click();
-    render();
-    toast('已保存配置');
-  });
-
-  document.getElementById('clearBtn').addEventListener('click', async function () {
-    if (!confirm('确定清空全部本地数据？此操作不可恢复。')) return;
-    if (!confirm('再次确认：API 配置、知识库、日记、号码簿都将被删除。')) return;
-    try {
-      localStorage.clear();
-      await idbClear('ai-brain', 'docs');
-      await idbClear('ai-mood', 'entries');
-      setStatus('已清空全部本地数据', true);
-      render();
-      toast('已清空');
-    } catch (err) {
-      setStatus('清空出错：' + ((err && err.message) || err), false);
-    }
-  });
-
-  document.getElementById('clearKeysBtn').addEventListener('click', function () {
-    if (!confirm('确定仅清除全部文本模型配置（含 Key）？其它本地数据保留。')) return;
-    saveProfiles([], '');
-    render();
-    setStatus('已清除全部模型凭据', true);
-    toast('已清除模型凭据');
-  });
-
-  /* ---- Profile 列表渲染与操作 ---- */
-  function maskUrl(u) { try { return new URL(u).host; } catch (e) { return u; } }
-  function render() {
-    var list = getProfiles();
-    var actId = (getActiveProfile() || {}).id;
-    var box = document.getElementById('profileList');
-    box.innerHTML = '';
-    if (!list.length) {
-      box.innerHTML = '<div class="tip">还没有文本模型配置。用上方模板或手动填写后点「添加」。</div>';
-      return;
-    }
-    list.forEach(function (p) {
-      var wrap = el('div', { class: 'pf' + (p.id === actId ? ' active' : '') });
-      var main = el('div', { class: 'pf-main' });
-      var nameLine = el('div', { class: 'pf-name' }, p.name);
-      if (p.id === actId) nameLine.appendChild(el('span', { class: 'pf-badge' }, '默认'));
-      if (p.enabled === false) nameLine.appendChild(el('span', { class: 'pf-badge pf-off' }, '已停用'));
-      main.appendChild(nameLine);
-      main.appendChild(el('div', { class: 'pf-meta' }, p.model + ' · ' + maskUrl(p.baseUrl)));
-      wrap.appendChild(main);
-
-      var bTest = el('button', { class: 'pf-test', type: 'button' }, '测试');
-      var bDef = el('button', { type: 'button' }, p.id === actId ? '默认✓' : '设为默认');
-      var bEn = el('button', { type: 'button' }, p.enabled === false ? '启用' : '停用');
-      var bEdit = el('button', { type: 'button' }, '编辑');
-      var bDel = el('button', { class: 'pf-del', type: 'button' }, '删除');
-      var st = el('div', { class: 'pf-status' });
-      wrap.appendChild(bTest); wrap.appendChild(bDef); wrap.appendChild(bEn); wrap.appendChild(bEdit); wrap.appendChild(bDel); wrap.appendChild(st);
-
-      bDef.addEventListener('click', function () { saveProfiles(getProfiles(), p.id); render(); toast('已设为默认'); });
-      bEn.addEventListener('click', function () {
-        var l = getProfiles(); var f = l.filter(function (x) { return x.id === p.id; })[0];
-        if (f) f.enabled = (f.enabled === false);
-        saveProfiles(l); render();
-      });
-      bEdit.addEventListener('click', function () {
-        $('pfName').value = p.name; $('pfBase').value = p.baseUrl; $('pfModel').value = p.model; $('pfKey').value = p.apiKey;
-        editingId = p.id; setStatus('正在编辑「' + p.name + '」，改完点「添加 / 保存」', true);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      });
-      bDel.addEventListener('click', function () {
-        if (!confirm('删除配置「' + p.name + '」？')) return;
-        var l = getProfiles().filter(function (x) { return x.id !== p.id; });
-        var act = getSettings().activeProfileId; if (act === p.id) act = l.length ? l[0].id : '';
-        saveProfiles(l, act); render(); toast('已删除');
-      });
-      bTest.addEventListener('click', async function () {
-        st.textContent = '测试中…'; st.className = 'pf-status';
-        var l = getProfiles(); var f = l.filter(function (x) { return x.id === p.id; })[0];
-        var prevAct = getSettings().activeProfileId, prevFo = getSettings().llmFailover;
-        saveSettings({ activeProfileId: p.id, llmFailover: false }); /* 单配置测试：禁用切换 */
-        try {
-          var reply = await llmChat([{ role: 'user', content: '回复"OK"两个字母即可' }], { temperature: 0, allowFailover: false });
-          st.textContent = '✅ 连通，返回：' + String(reply).slice(0, 40); st.style.color = '#16a34a';
-        } catch (err) {
-          st.textContent = '❌ ' + ((err && err.message) || err); st.style.color = '#e5484d';
-        } finally {
-          saveSettings({ activeProfileId: prevAct, llmFailover: prevFo });
-        }
-      });
-      box.appendChild(wrap);
-    });
-  }
-  render();
-})();
+detect();render();
 </script>
 </body>
 </html>
+
