@@ -75,7 +75,7 @@ var FLOW_STAGES = [
   },
   {
     key: 'research', name: '技术调研', icon: '🔍', team: 'research', teamName: '技术调研专家团',
-    inputLabel: '补充约束（已选技术栈 / 规模 / 预算等，可留空）',
+    inputLabel: '补充约束（已选技术栈 / 规模 / 预算等）',
     inputPh: '例如：团队只熟 Python；日活预计 500 以内；希望两周内上线',
     system: '你是技术调研总监，融合三重视角：信息侦察员（多源信息、标注来源与可信度、' +
       '禁止无依据断言）、方案分析师（量化对比矩阵、trade-off）、' +
@@ -93,7 +93,7 @@ var FLOW_STAGES = [
   },
   {
     key: 'design', name: '方案设计', icon: '🎬', team: 'delivery', teamName: '网站交付总编排',
-    inputLabel: '方案偏好（可留空）',
+    inputLabel: '方案偏好',
     inputPh: '例如：纯静态站不要后端；单体优先；前端用原生 HTML',
     system: '你是网站交付总编排 Director，融合体验设计顾问与架构师职能。' +
       '基于《需求分析文档》（含 US 编号）与《技术调研报告》（最终推荐），' +
@@ -113,7 +113,7 @@ var FLOW_STAGES = [
   },
   {
     key: 'code', name: '代码实现', icon: '🎨', team: 'frontend', teamName: '前端构建专家团',
-    inputLabel: '实现偏好（可留空）',
+    inputLabel: '实现偏好',
     inputPh: '例如：先只实现 M1 范围；审美走温暖简洁风；中文注释',
     system: '你是前端构建工程师（frontend-builder），对标 v0/Bolt 的产出标准：' +
       '交付完整可运行、视觉有记忆点、多文件齐全的前端项目——' +
@@ -144,7 +144,7 @@ var FLOW_STAGES = [
   },
   {
     key: 'review', name: '交付评审·总编', icon: '📦', team: 'review', teamName: '长文审阅 × 交付总编排',
-    inputLabel: '评审关注点（可留空）',
+    inputLabel: '评审关注点',
     inputPh: '例如：这份文档要给投资人看；下周管理层演示',
     system: '你是交付评审官兼总编，融合「红队质疑官」「长文审阅制作官」「交付总编排 Director」' +
       '三重职能。审阅前四段全部产物，提炼、交叉核对、分类汇总为唯一对外交付物' +
