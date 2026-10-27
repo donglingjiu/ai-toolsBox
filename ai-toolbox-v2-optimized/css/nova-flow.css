@@ -1,0 +1,45 @@
+/* Nova Flow 专属样式 · 通用组件复用 nova-docs.css */
+.api-note { background: rgba(255,194,75,.12); border: 1px solid rgba(255,194,75,.4); color: var(--text-1); border-radius: var(--r-card); padding: 12px 16px; margin-bottom: var(--s4); font-size: 13.5px; }
+.api-note a { color: var(--accent-docs); }
+
+.flow-layout { display: grid; grid-template-columns: 300px 1fr; gap: var(--s5); align-items: start; }
+@media (max-width: 900px) { .flow-layout { grid-template-columns: 1fr; } }
+
+.stage-item { display: flex; gap: 10px; align-items: center; padding: 10px 12px; border: 1.5px solid var(--line); border-radius: var(--r-btn); margin-bottom: 8px; cursor: pointer; transition: border-color .15s, background .15s; background: var(--bg-surface); }
+.stage-item:hover { border-color: var(--accent-docs); }
+.stage-item.on { border-color: var(--accent-docs); background: rgba(91,157,255,.08); }
+.stage-item .ic { font-size: 18px; }
+.stage-item .nm { font-weight: 600; font-size: 13.5px; color: var(--text-1); }
+.stage-item .tm { font-size: 11px; color: var(--text-3); margin-top: 1px; }
+.stage-item .st { margin-left: auto; font-size: 12px; color: var(--text-3); }
+.stage-item.done { border-color: rgba(69,224,200,.45); }
+.stage-item.done .st { color: var(--accent-docs); font-weight: 700; }
+.stage-item.fail .st { color: #FF6B81; font-weight: 700; }
+.stage-item.run .st { color: var(--warn); }
+
+.rail-btns { display: flex; gap: var(--s2); margin: var(--s3) 0 var(--s4); }
+.rail-btns .btn { flex: 1; }
+
+.teams summary { cursor: pointer; font-weight: 600; font-size: 13.5px; color: var(--text-2); }
+.teamcard { border: 1px solid var(--line); border-radius: var(--r-btn); padding: 10px 12px; margin-top: 8px; background: var(--bg-surface); }
+.teamcard .hd { display: flex; align-items: center; gap: 7px; font-weight: 700; font-size: 13px; color: var(--text-1); }
+.teamcard .ds { font-size: 11.5px; color: var(--text-3); margin: 2px 0 6px 24px; }
+.teamcard .mb { font-size: 11.5px; color: var(--text-2); line-height: 1.7; }
+.teamcard .mb b { color: var(--text-1); }
+
+.in-card { display: flex; flex-direction: column; gap: var(--s3); padding: var(--s4); margin-bottom: var(--s4); }
+.ta { width: 100%; resize: vertical; font-family: inherit; line-height: 1.7; }
+.in-btns { display: flex; gap: var(--s3); align-items: center; }
+
+.out-head { margin-bottom: var(--s2); }
+.outbox { border: 1px solid var(--line); border-radius: var(--r-card); background: var(--bg-surface); padding: 20px 24px; min-height: 200px; max-height: 640px; overflow: auto; font-size: 14px; line-height: 1.85; color: var(--text-1); }
+.outbox:empty::before { content: "产物将在这里流式生成 —— 先写需求，再点「执行本阶段」✦"; color: var(--text-3); }
+.outbox h1 { font-size: 1.3em; margin: .8em 0 .4em; }
+.outbox h2 { font-size: 1.15em; margin: .8em 0 .4em; border-bottom: 1px solid var(--line); padding-bottom: 4px; }
+.outbox h3 { font-size: 1.03em; margin: .7em 0 .3em; }
+.outbox table { border-collapse: collapse; margin: .6em 0; }
+.outbox th, .outbox td { border: 1px solid var(--line); padding: 4px 10px; font-size: .95em; }
+.outbox pre { background: #0F172A; color: #E2E8F0; padding: 10px 12px; border-radius: 8px; overflow: auto; font-size: 12px; }
+.outbox code { font-family: var(--font-mono); font-size: .92em; }
+.outbox ul, .outbox ol { padding-left: 1.4em; }
+.outbox blockquote { border-left: 3px solid var(--line); margin: .6em 0; padding: 2px 12px; color: var(--text-2); }
