@@ -1,7 +1,13 @@
 /* ============================================================
-   Nova core v1.1 · 命令面板 / Toast / 最近使用 / 自检
+   Nova core v1.2 · 命令面板 / Toast / 最近使用 / 自检
    v1.1: Mac ⌘K 加固（window 捕获 + e.code 兜底）、平台快捷键提示、
         tokens 自检、全局错误可见化、控制台测试入口
+   v1.2: 三通道热键，对抗浏览器扩展（如 AI 助手侧边栏）抢键：
+        ① keydown 捕获通道（主通道）
+        ② keyup 兜底通道（扩展在 keydown 阶段 stopImmediatePropagation 时，
+           keyup 仍会到达我们；用 _pending 标记防止双触发，替代时间戳方案）
+        ③ "/" 备用键（GitHub 同款，无修饰键零冲突）
+   控制台直测：NovaCmdk.open()
    ============================================================ */
 "use strict";
 
@@ -34,6 +40,7 @@ const NovaCommandIndex = [
 
 const Cmdk = {
   el: null, input: null, listEl: null, items: [], sel: 0,
+  _pending: false,   /* v1.2: keydown 已处理标记，防 keyup 双触发 */
 
   init() {
     this.el = document.createElement("div");
@@ -50,16 +57,33 @@ const Cmdk = {
     this.input = this.el.querySelector("input");
     this.listEl = this.el.querySelector(".cmdk__list");
 
-    /* v1.1: window + 捕获阶段 + e.code 兜底（防中文输入法 e.key=Process） */
+    /* —— 通道①：keydown 捕获（主通道） —— */
     window.addEventListener("keydown", (e) => {
       const k = (e.key || "").toLowerCase();
-      if ((e.ctrlKey || e.metaKey) && (k === "k" || e.code === "KeyK")) {
+      if ((e.metaKey || e.ctrlKey) && (k === "k" || e.code === "KeyK")) {
         e.preventDefault();
         e.stopPropagation();
+        this._pending = true;          /* 标记：keydown 已由我们处理 */
         this.toggle();
         return;
       }
+      /* —— 通道③："/" 备用键（非输入场景且面板未开时唤起） —— */
+      if (k === "/" && !e.metaKey && !e.ctrlKey && !e.altKey && this.el.dataset.open !== "true") {
+        const a = document.activeElement;
+        const typing = a && (a.tagName === "INPUT" || a.tagName === "TEXTAREA" || a.isContentEditable);
+        if (!typing) { e.preventDefault(); this.open(); }
+        return;
+      }
       if (e.key === "Escape" && this.el.dataset.open === "true") this.close();
+    }, true);
+
+    /* —— 通道②：keyup 兜底（keydown 被扩展拦截时，keyup 仍会到达） —— */
+    window.addEventListener("keyup", (e) => {
+      const k = (e.key || "").toLowerCase();
+      if ((e.metaKey || e.ctrlKey) && (k === "k" || e.code === "KeyK")) {
+        if (this._pending) { this._pending = false; return; }  /* keydown 已处理，跳过 */
+        this.toggle();                                          /* keydown 被拦截，兜底触发 */
+      }
     }, true);
 
     this.el.addEventListener("click", (e) => { if (e.target === this.el) this.close(); });
@@ -71,15 +95,17 @@ const Cmdk = {
     });
     document.querySelectorAll("[data-cmdk-open]").forEach((b) => b.addEventListener("click", () => this.open()));
 
-    /* v1.1: 按平台改写快捷键提示文案 */
+    /* —— 按平台改写快捷键提示文案 —— */
     document.querySelectorAll(".cmdk-btn kbd").forEach((el) => (el.textContent = HOTKEY_LABEL));
     const heroBtn = document.querySelector(".hero__cta .btn--primary");
-    if (heroBtn) heroBtn.textContent = `按 ${IS_MAC ? "⌘ K" : "Ctrl + K"} 唤起 Nova Command`;
+    if (heroBtn) heroBtn.textContent = IS_MAC
+      ? "按 ⌘ K 或 / 唤起 Nova Command"
+      : "按 Ctrl + K 或 / 唤起 Nova Command";
   },
 
-  open()  { this.el.dataset.open = "true"; this.input.value = ""; this.render(""); this.input.focus(); },
-  close() { this.el.dataset.open = "false"; },
-  toggle(){ this.el.dataset.open === "true" ? this.close() : this.open(); },
+  open()   { this.el.dataset.open = "true"; this.input.value = ""; this.render(""); this.input.focus(); },
+  close()  { this.el.dataset.open = "false"; },
+  toggle() { this.el.dataset.open === "true" ? this.close() : this.open(); },
 
   render(q) {
     const hits = NovaCommandIndex.filter((i) =>
@@ -134,7 +160,7 @@ function novaToast(msg, type = "ok") {
 /* —— 自检 —— */
 let _errShown = false;
 function novaSelfCheck() {
-  /* 令牌存在性：上次 css 404 静默降级的教训 */
+  /* 令牌存在性：tokens.css 404 时会静默降级，这里主动报警 */
   const brand = getComputedStyle(document.documentElement).getPropertyValue("--brand").trim();
   if (!brand) novaToast("⚠ 设计令牌未加载：检查 css/tokens.css 路径与部署", "error");
   /* 全局脚本错误可见化 */
@@ -148,8 +174,8 @@ function novaSelfCheck() {
 document.addEventListener("DOMContentLoaded", () => {
   Cmdk.init();
   novaSelfCheck();
-  window.NovaCmdk = Cmdk;   /* 控制台直测入口：NovaCmdk.open() */
-  console.log(`[Nova] 命令面板就绪：${HOTKEY_LABEL} 唤起；控制台可执行 NovaCmdk.open() 直测`);
+  window.NovaCmdk = Cmdk;   /* 控制台直测入口 */
+  console.log(`[Nova] 命令面板就绪：${HOTKEY_LABEL} 或 / 唤起；控制台可执行 NovaCmdk.open() 直测`);
 
   const zone = document.querySelector("[data-recent-zone]");
   if (zone) {
