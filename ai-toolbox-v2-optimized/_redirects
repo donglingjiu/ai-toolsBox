@@ -1,7 +1,0 @@
-/llm/bigmodel/* https://open.bigmodel.cn/:splat 200!
-/llm/dashscope/* https://dashscope.aliyuncs.com/:splat 200!
-/llm/deepseek/* https://api.deepseek.com/:splat 200!
-/llm/moonshot/* https://api.moonshot.cn/:splat 200!
-/llm/siliconflow/* https://api.siliconflow.cn/:splat 200!
-/llm/openai/* https://api.openai.com/:splat 200!
-/llm/openrouter/* https://openrouter.ai/:splat 200!
