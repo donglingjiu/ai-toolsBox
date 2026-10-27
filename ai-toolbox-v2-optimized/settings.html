@@ -11,7 +11,7 @@ header b{font-size:17px}header a{color:#c7d2fe;text-decoration:none;font-size:13
 main{max-width:880px;margin:0 auto;padding:18px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:14px 0}
 h2{font-size:16px;margin:2px 0 10px}label{display:block;font-size:13px;color:var(--mut);margin:10px 0 4px}
-input{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;font-size:14px}
+input[type=text],input[type=password]{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;font-size:14px}
 button{border:1px solid var(--line);background:#fff;border-radius:9px;padding:8px 14px;font-size:13px;cursor:pointer}
 button:hover{border-color:var(--pri)}.primary{background:var(--pri);border-color:var(--pri);color:#fff;font-weight:600}
 .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:12px}
@@ -27,22 +27,21 @@ button:hover{border-color:var(--pri)}.primary{background:var(--pri);border-color
 </style>
 </head>
 <body>
-<header><b>✦ Nova 设置</b><span class="muted" style="color:#9aa5d1">模型服务 · Key 仅存本机 localStorage，数据不出端</span>
+<header><b>✦ Nova 设置</b><span class="muted" style="color:#9aa5d1">Key 仅存本机 localStorage，数据不出端</span>
 <a href="index.html">首页</a><a href="flow.html">Flow 星流</a><a href="data.html">Data 星数</a><a href="docs.html">Docs 星文</a></header>
 <main>
-<div class="card muted" id="diag">存储诊断中…</div>
+<div class="card muted" id="diag">读取配置中…</div>
 
 <div class="card">
  <h2 id="formTitle">添加模型服务配置</h2>
  <div class="row" style="margin:0 0 6px" id="chips"></div>
- <label>名称</label><input id="f-name" placeholder="如：智谱GLM(代理)"/>
+ <label>名称</label><input type="text" id="f-name" placeholder="如：智谱GLM(代理)"/>
  <label>Base URL（填到 /v1 或 /api/paas/v4 这一级，结尾不带 /chat/completions）</label>
- <input id="f-url" placeholder="https://ai.donglingjiu.top/llm/bigmodel/api/paas/v4"/>
- <div class="hint" id="urlHint"></div>
- <label>模型 ID</label><input id="f-model" placeholder="如 glm-4-flash / deepseek-chat"/>
- <label>API Key（留空=保留原 Key，编辑时适用）</label>
- <input id="f-key" type="password" placeholder="sk-…"/>
+ <input type="text" id="f-url" placeholder="https://ai.donglingjiu.top/llm/bigmodel/api/paas/v4"/>
  <div class="hint" id="keyGuide"></div>
+ <label>模型 ID</label><input type="text" id="f-model" placeholder="如 glm-4-flash / deepseek-chat"/>
+ <label>API Key（留空=保留原 Key，编辑时适用）</label>
+ <input type="password" id="f-key" placeholder="sk-…"/>
  <div class="row">
   <button class="primary" id="btn-save">添加 / 保存此配置</button>
   <button id="btn-clear">清空表单</button>
@@ -51,7 +50,10 @@ button:hover{border-color:var(--pri)}.primary{background:var(--pri);border-color
 </div>
 
 <div class="card">
- <h2>已保存配置 <span class="muted" id="count"></span><span class="muted">（上下顺序即故障切换顺序）</span></h2>
+ <h2>已保存配置 <span class="muted" id="count"></span></h2>
+ <div class="row" style="margin:0 0 8px">
+  <label style="display:flex;gap:6px;align-items:center;margin:0"><input type="checkbox" id="f-fo" style="width:auto">开启故障自动切换（默认配置网络/超时/429/5xx 时按顺序换下一个）</label>
+ </div>
  <div id="list"></div>
 </div>
 
@@ -67,44 +69,46 @@ button:hover{border-color:var(--pri)}.primary{background:var(--pri);border-color
 </main>
 <script>
 "use strict";
-/* ===== 存储适配层：自动发现应用既有的 localStorage 结构，保证与 Flow 等页面共用同一份数据 ===== */
-let PKEY=null,WRAP=null,UF="baseUrl",DF="enabled",DKEY="nova_default_profile",DFIELD="name",USE_ID=false;
-const looksLike=o=>o&&typeof o==="object"&&!Array.isArray(o)&&(o.baseUrl||o.baseURL||o.url||o.model);
-function detect(){
- for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);let v;
-  try{v=JSON.parse(localStorage.getItem(k));}catch{continue;}
-  if(Array.isArray(v)&&v.length&&v.some(looksLike)){PKEY=k;break;}
-  if(v&&typeof v==="object"&&!Array.isArray(v)){const a=v.profiles||v.list||v.items||v.data;
-   if(Array.isArray(a)&&a.length&&a.some(looksLike)){PKEY=k;WRAP=v.profiles?"profiles":v.list?"list":v.items?"items":"data";break;}}}
- if(!PKEY)PKEY="nova_profiles_v1";
- const L=load();
- if(L.length){
-  UF=L[0].baseURL!==undefined?"baseURL":"baseUrl";
-  DF=L[0].enabled!==undefined?"enabled":L[0].disabled!==undefined?"disabled":L[0].active!==undefined?"active":"enabled";
-  USE_ID=L[0].id!==undefined;
-  const ids=new Set();L.forEach(p=>{ids.add(String(p.id??""));ids.add(String(p.name??""));});
-  for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k===PKEY)continue;
-   const raw=localStorage.getItem(k);
-   if(raw&&!/[{\[",:]/.test(raw)&&ids.has(raw)){DKEY=k;DFIELD=String(L.find(p=>String(p.id??p.name)===raw).id)===raw?"id":"name";break;}}}
- document.getElementById("diag").textContent="存储诊断：配置键="+PKEY+(WRAP?"(包裹:"+WRAP+")":"")+" · 开关字段="+DF+" · 默认标记键="+DKEY+" · 当前 "+load().length+" 条（与 Flow 页共用）";
-}
-function load(){try{const v=JSON.parse(localStorage.getItem(PKEY)||"[]");return WRAP?(v&&v[WRAP])||[]:(Array.isArray(v)?v:[]);}catch{return[]}}
-function saveList(L){if(WRAP){const v=JSON.parse(localStorage.getItem(PKEY)||"{}");v[WRAP]=L;localStorage.setItem(PKEY,JSON.stringify(v));}else localStorage.setItem(PKEY,JSON.stringify(L));}
-const of=p=>p[UF]||p.baseUrl||p.baseURL||"";
-const isOn=p=>DF==="enabled"?p.enabled!==false:DF==="disabled"?!p.disabled:(p.active!==false);
-function setOn(p,val){if(DF==="enabled")p.enabled=val;else if(DF==="disabled")p.disabled=!val;else p.active=val;}
-const pid=p=>p.id!==undefined?p.id:(p.name||of(p));
+/* ===== v3.1 · 与 js/app.js 完全一致的存储契约 =====
+   localStorage["at_settings_v1"] = { llmProfiles:[{id,name,provider,baseUrl,apiKey,model,enabled,priority}], activeProfileId, llmFailover } */
+const SKEY="at_settings_v1", OLD="nova_profiles_v1";
+function getSettings(){try{return Object.assign({llmProfiles:[],activeProfileId:"",llmFailover:false},JSON.parse(localStorage.getItem(SKEY)||"{}"))}catch(e){return{llmProfiles:[],activeProfileId:"",llmFailover:false}}}
+function saveSettings(patch){const s=getSettings();Object.keys(patch).forEach(k=>s[k]=patch[k]);localStorage.setItem(SKEY,JSON.stringify(s));return s}
+function genId(){return "p"+Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
+function migrate(){const raw=localStorage.getItem(OLD);if(!raw)return;
+ try{const a=JSON.parse(raw);if(Array.isArray(a)&&a.length){
+  const s=getSettings();const have=new Set((s.llmProfiles||[]).map(p=>(p.name||"")+"|"+(p.baseUrl||"")));
+  a.forEach(p=>{if(p&&p.baseUrl&&!have.has((p.name||"")+"|"+p.baseUrl)){
+   if(!p.apiKey&&p.key)p.apiKey=p.key;
+   if(!p.baseUrl&&p.baseURL)p.baseUrl=p.baseURL;
+   s.llmProfiles.push(p);}});
+  localStorage.setItem(SKEY,JSON.stringify(s));}}catch(e){}
+ localStorage.removeItem(OLD);}
+function load(){migrate();const s=getSettings();let L=Array.isArray(s.llmProfiles)?s.llmProfiles:[];
+ /* 规范化：去重、补 id（持久化，杜绝随机 id 导致"默认"错乱）、key→apiKey 映射 */
+ let ch=false;const seen=new Set();
+ L=L.filter(function(p){if(!p||!p.baseUrl)return false;const k=(p.name||"")+"|"+p.baseUrl;if(seen.has(k))return false;seen.add(k);return true});
+ L.forEach(function(p){if(!p.id){p.id=genId();ch=true}
+  if(!p.apiKey&&p.key){p.apiKey=p.key;delete p.key;ch=true}
+  if(!p.baseUrl&&p.baseURL){p.baseUrl=p.baseURL;delete p.baseURL;ch=true}});
+ if(ch)saveList(L);
+ return L}
+function saveList(L){L.forEach(function(p,i){p.priority=(L.length-i)*10});saveSettings({llmProfiles:L})}
+const of=p=>p.baseUrl||"";
+const isOn=p=>p.enabled!==false;
+const defId=()=>getSettings().activeProfileId;
+const setDef=p=>saveSettings({activeProfileId:p.id});
 
-/* ===== 主流服务商：Key 获取指引 + 预填模板 ===== */
+/* ===== 主流服务商：Key 获取指引 + 一键预设 ===== */
 const GUIDE={
- "open.bigmodel.cn":["https://bigmodel.cn/usercenter/apikeys","智谱开放平台 → 控制台 → API Keys。GLM-Flash 系列免费；官方域名不支持浏览器直连，Base URL 请用本站代理 https://ai.donglingjiu.top/llm/bigmodel/api/paas/v4"],
+ "open.bigmodel.cn":["https://bigmodel.cn/usercenter/apikeys","智谱开放平台 → 控制台 → API Keys。GLM-Flash 系列免费。官方域名不支持浏览器直连，Base URL 请用本站代理 https://ai.donglingjiu.top/llm/bigmodel/api/paas/v4"],
  "dashscope.aliyuncs.com":["https://bailian.console.aliyun.com/?apiKey=1#/api-key","阿里云百炼 → API-KEY → 创建。Base URL 用 https://dashscope.aliyuncs.com/compatible-mode/v1"],
  "api.deepseek.com":["https://platform.deepseek.com/api_keys","DeepSeek 开放平台 → API Keys（需充值，价格很低）。Base URL 用 https://api.deepseek.com"],
  "api.moonshot.cn":["https://platform.moonshot.cn/apikeys","Moonshot 开放平台 → API Key 管理。Base URL 用 https://api.moonshot.cn/v1"],
  "api.siliconflow.cn":["https://cloud.siliconflow.cn/account/ak","硅基流动 → API 密钥 → 新建。按量计费需余额（402=欠费）。模型 ID 以「模型广场」显示的完整名称为准"],
- "api.minimaxi.com":["https://platform.minimaxi.com/user-center/basic-information/interface-key","MiniMax 开放平台 → 接口密钥。Base URL 用 https://api.minimaxi.com"],
- "generativelanguage.googleapis.com":["https://aistudio.google.com/apikey","Google AI Studio → Get API key（国内需海外网络）。Base URL 用 https://generativelanguage.googleapis.com/v1beta/openai"],
- "api.openai.com":["https://platform.openai.com/api-keys","OpenAI Platform → API keys。Base URL 用 https://api.openai.com/v1"],
+ "api.minimaxi.com":["https://platform.minimaxi.com/user-center/basic-information/interface-key","MiniMax 开放平台 → 接口密钥"],
+ "generativelanguage.googleapis.com":["https://aistudio.google.com/apikey","Google AI Studio → Get API key（国内需海外网络）"],
+ "api.openai.com":["https://platform.openai.com/api-keys","OpenAI Platform → API keys"],
  "openrouter.ai":["https://openrouter.ai/keys","OpenRouter → Keys → Create Key，一个 Key 调数百模型。Base URL 用 https://openrouter.ai/api/v1"]};
 const ALIAS={bigmodel:"open.bigmodel.cn",dashscope:"dashscope.aliyuncs.com",deepseek:"api.deepseek.com",moonshot:"api.moonshot.cn",siliconflow:"api.siliconflow.cn",openai:"api.openai.com",openrouter:"openrouter.ai"};
 const PRESETS=[["智谱GLM(代理)","https://ai.donglingjiu.top/llm/bigmodel/api/paas/v4","glm-4-flash"],
@@ -112,83 +116,87 @@ const PRESETS=[["智谱GLM(代理)","https://ai.donglingjiu.top/llm/bigmodel/api
  ["Kimi","https://api.moonshot.cn/v1","moonshot-v1-8k"],["硅基流动","https://api.siliconflow.cn/v1","deepseek-ai/DeepSeek-V3"],
  ["MiniMax","https://api.minimaxi.com","MiniMax-Text-01"],["OpenAI","https://api.openai.com/v1","gpt-4o-mini"],
  ["OpenRouter","https://openrouter.ai/api/v1","openai/gpt-4o-mini"]];
-function guideFor(url){let h="";try{h=new URL(url).hostname;}catch{return null;}
+function guideFor(url){let h="";try{h=new URL(url).hostname;}catch(e){return null}
  if(h==="ai.donglingjiu.top"){const m=String(url).match(/\/llm\/([a-z0-9-]+)/i);const g=GUIDE[ALIAS[(m||[])[1]||""]];
-  return g?[g[0],"走本站代理转发（不存 Key）。上游获取方式："+g[1]]:["#","本站代理路径 /llm/<厂商>/…，按厂商到其官网获取 Key"];}
- return GUIDE[h]||null;}
+  return g?[g[0],"走本站代理转发（不存 Key）。上游获取方式："+g[1]]:["#","本站代理路径 /llm/<厂商>/…，按厂商到其官网获取 Key"]}
+ return GUIDE[h]||null}
 function showGuide(){const u=document.getElementById("f-url").value.trim(),el=document.getElementById("keyGuide"),g=guideFor(u);
- if(g&&u){el.style.display="block";el.innerHTML='获取 Key：<a target="_blank" rel="noopener" href="'+g[0]+'">'+g[0]+"</a> —— "+g[1];}
- else if(u){el.style.display="block";el.textContent="未识别的服务商，请核对 Base URL（OpenAI 兼容端点）。";}
- else el.style.display="none";}
+ if(g&&u){el.style.display="block";el.innerHTML='获取 Key：<a target="_blank" rel="noopener" href="'+g[0]+'">'+g[0]+"</a> —— "+g[1]}
+ else if(u){el.style.display="block";el.textContent="未识别的服务商，请核对 Base URL（需 OpenAI 兼容端点）。"}
+ else el.style.display="none"}
 document.getElementById("f-url").addEventListener("input",showGuide);
-PRESETS.forEach(([n,u,m])=>{const b=document.createElement("button");b.className="chip";b.textContent=n;
- b.onclick=()=>{fName.value=n;fUrl.value=u;fModel.value=m;showGuide();};document.getElementById("chips").appendChild(b);});
-
-/* ===== 增删改查 + 测试 ===== */
 const fName=document.getElementById("f-name"),fUrl=document.getElementById("f-url"),fModel=document.getElementById("f-model"),fKey=document.getElementById("f-key");
+PRESETS.forEach(function(t){const b=document.createElement("button");b.className="chip";b.textContent=t[0];
+ b.onclick=function(){fName.value=t[0];fUrl.value=t[1];fModel.value=t[2];showGuide()};document.getElementById("chips").appendChild(b)});
+
+/* ===== 列表渲染 + 测试 ===== */
 let editing=null;
-function esc(s){return String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
 function render(){const L=load();document.getElementById("count").textContent="共 "+L.length+" 条";
+ const s=getSettings();document.getElementById("f-fo").checked=!!s.llmFailover;
+ const dn=defId();const dname=(L.filter(function(p){return p.id===dn})[0]||{}).name;
+ document.getElementById("diag").textContent="存储契约 v3.1 · at_settings_v1 · llmProfiles "+L.length+" 条 · 默认："+(dname||"未设置")+" · 故障切换："+(s.llmFailover?"开":"关")+"（与 Flow/全部页面共用同一份数据）";
  const box=document.getElementById("list");box.innerHTML="";
- if(!L.length){box.innerHTML='<p class="muted">暂无配置。点上方预设一键填好地址和模型，再去对应官网拿 Key。</p>';return;}
- const def=localStorage.getItem(DKEY);
- L.forEach((p,i)=>{const d=document.createElement("div");d.className="profile";
+ if(!L.length){box.innerHTML='<p class="muted">暂无配置。点上方预设一键填好地址和模型，再去对应官网拿 Key。</p>';return}
+ L.forEach(function(p,i){const d=document.createElement("div");d.className="profile";
   const g=guideFor(of(p));
-  d.innerHTML='<div class="t"><b>'+esc(p.name||"(未命名)")+'</b><span>'+
-   (String(pid(p))===def?'<span class="badge b-def">默认</span>':"")+(isOn(p)?"":'<span class="badge b-off">已停用</span>')+
-   '<button data-a="test">测试</button> <button data-a="def">设为默认</button> <button data-a="tog">'+(isOn(p)?"停用":"启用")+'</button> '+
+  d.innerHTML='<div><b>'+esc(p.name||"(未命名)")+'</b><span>'+
+   (p.id===dn?'<span class="badge b-def">默认</span>':"")+(isOn(p)?"":'<span class="badge b-off">已停用</span>')+'</span>'+
+   ' <button data-a="test">测试</button> <button data-a="def">设为默认</button> <button data-a="tog">'+(isOn(p)?"停用":"启用")+'</button> '+
    (i>0?'<button data-a="up">↑</button>':"")+(i<L.length-1?'<button data-a="down">↓</button>':"")+
    ' <button data-a="edit">编辑</button> '+(g?'<a target="_blank" rel="noopener" href="'+g[0]+'"><button>获取Key↗</button></a>':"")+
-   ' <button data-a="del" style="color:#dc2626">删除</button></span></div>'+
-   '<div class="m">'+esc(p.model||"")+" · "+esc(of(p))+"</div><div class=\"msg\"></div>";
-  d.querySelector('[data-a=test]').onclick=async()=>{const m=d.querySelector(".msg");m.className="msg";m.textContent="测试中…";m.style.display="block";
-   const r=await testProfile(p);m.textContent=r.msg;m.className="msg "+(r.ok?"ok":"bad");};
-  d.querySelector('[data-a=def]').onclick=()=>{localStorage.setItem(DKEY,String(p[DFIELD]??pid(p)));render();};
-  d.querySelector('[data-a=tog]').onclick=()=>{setOn(p,!isOn(p));const t=load();t[i]=p;saveList(t);render();};
-  const up=d.querySelector('[data-a=up]');if(up)up.onclick=()=>{const t=load();[t[i-1],t[i]]=[t[i],t[i-1]];saveList(t);render();};
-  const dn=d.querySelector('[data-a=down]');if(dn)dn.onclick=()=>{const t=load();[t[i+1],t[i]]=[t[i],t[i+1]];saveList(t);render();};
-  d.querySelector('[data-a=edit]').onclick=()=>{editing=pid(p);fName.value=p.name||"";fUrl.value=of(p);fModel.value=p.model||"";fKey.value="";
-   document.getElementById("editTag").hidden=false;document.getElementById("editTag").textContent="正在编辑："+(p.name||of(p))+"（Key 留空则不修改）";
-   document.getElementById("formTitle").textContent="编辑配置";showGuide();window.scrollTo({top:0,behavior:"smooth"});};
-  d.querySelector('[data-a=del]').onclick=()=>{if(!confirm("删除「"+(p.name||of(p))+"」？"))return;const t=load();t.splice(i,1);saveList(t);render();};
-  box.appendChild(d);});}
-const TESTPATH=h=>h.includes("bigmodel")?"/api/paas/v4/chat/completions":h.includes("dashscope")?"/compatible-mode/v1/chat/completions":h.includes("minimaxi")?"/v1/text/chatcompletion_v2":"/chat/completions";
-async function testProfile(p){const base=of(p).replace(/\/+$/,"");let h="";
- try{h=new URL(base).hostname;}catch{return{ok:false,msg:"Base URL 不合法（需 https:// 开头）"}}
+   ' <button data-a="del" style="color:#dc2626">删除</button>'+
+   '<div class="m">'+esc(p.model||"")+" · "+esc(of(p))+'</div><div class="msg"></div></div>';
+  d.querySelector('[data-a=test]').onclick=async function(){const m=d.querySelector(".msg");m.className="msg";m.textContent="测试中…";m.style.display="block";
+   const r=await testProfile(p);m.textContent=r.msg;m.className="msg "+(r.ok?"ok":"bad")};
+  d.querySelector('[data-a=def]').onclick=function(){setDef(p);render()};
+  d.querySelector('[data-a=tog]').onclick=function(){p.enabled=!isOn(p);saveList(load().map(function(x){return x.id===p.id?p:x}));render()};
+  const up=d.querySelector('[data-a=up]');if(up)up.onclick=function(){const t=load();const x=t[i-1];t[i-1]=t[i];t[i]=x;saveList(t);render()};
+  const dnB=d.querySelector('[data-a=down]');if(dnB)dnB.onclick=function(){const t=load();const x=t[i+1];t[i+1]=t[i];t[i]=x;saveList(t);render()};
+  d.querySelector('[data-a=edit]').onclick=function(){editing=p.id;fName.value=p.name||"";fUrl.value=of(p);fModel.value=p.model||"";fKey.value="";
+   const t=document.getElementById("editTag");t.hidden=false;t.textContent="正在编辑："+(p.name||of(p))+"（Key 留空则不修改）";
+   document.getElementById("formTitle").textContent="编辑配置";showGuide();window.scrollTo({top:0,behavior:"smooth"})};
+  d.querySelector('[data-a=del]').onclick=function(){if(!confirm("删除「"+(p.name||of(p))+"」？"))return;const t=load().filter(function(x){return x.id!==p.id});saveList(t);render()};
+  box.appendChild(d)})}
+/* 测试路径与 app.js 真实调用一致：baseUrl + /chat/completions（Bearer） */
+async function testProfile(p){const base=of(p).replace(/\/+$/,"");
  const t0=Date.now();
- try{const r=await fetch(base+TESTPATH(h),{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+(p.key||"")},
+ try{const r=await fetch(base+"/chat/completions",{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+(p.apiKey||"")},
   body:JSON.stringify({model:p.model||"gpt-3.5-turbo",messages:[{role:"user",content:"ping"}],max_tokens:8,stream:false})});
-  const txt=await r.text().catch(()=> "");
+  const txt=await r.text().catch(function(){return""});
   if(r.ok)return{ok:true,msg:"✅ 连通，返回 OK（"+(Date.now()-t0)+"ms）"};
   if(r.status===401||r.status===403)return{ok:false,msg:"Key 无效或无权限("+r.status+")"};
   if(r.status===402)return{ok:false,msg:"Key 有效但余额不足(402)：去服务商控制台充值，或换免费模型（如智谱 Flash 走本站代理）"};
   if(r.status===404)return{ok:false,msg:"路径不存在(404)：核对 Base URL 层级与模型 ID"};
+  if(r.status===405)return{ok:false,msg:"405：请求落到静态托管——/llm 代理函数未生效"};
   if(r.status===429)return{ok:true,msg:"连通(429 限流)：地址与 Key 均有效，稍后重试即可"};
-  return{ok:false,msg:"HTTP "+r.status+"："+txt.slice(0,140)};
- }catch(e){return{ok:false,msg:"网络/CORS 失败："+e.message+" —— 若填的是 open.bigmodel.cn 直连，请改用 https://ai.donglingjiu.top/llm/bigmodel/api/paas/v4"}}}
-document.getElementById("btn-save").onclick=()=>{const L=load(),name=fName.value.trim(),url=fUrl.value.trim().replace(/\/+$/,""),model=fModel.value.trim(),key=fKey.value.trim();
- if(!/^https:\/\//.test(url)){alert("Base URL 需以 https:// 开头");return;}
- let p;
- if(editing!==null){const i=L.findIndex(x=>String(pid(x))===String(editing));if(i<0){alert("原配置不存在");return;}
-  p={...L[i],name:name||L[i].name,[UF]:url,model:model||L[i].model};if(key)p.key=key;L[i]=p;}
- else{p={name:name||url.replace(/^https?:\/\//,"").split("/")[0],[UF]:url,model,key};if(USE_ID)p.id="p"+Date.now();setOn(p,true);L.push(p);}
- saveList(L);clearForm();render();};
+  return{ok:false,msg:"HTTP "+r.status+"："+txt.slice(0,140)}
+ }catch(e){return{ok:false,msg:"网络/CORS 失败："+e.message+" —— open.bigmodel.cn 直连必失败，请用 https://ai.donglingjiu.top/llm/bigmodel/api/paas/v4"}}}
+
+/* ===== 保存 ===== */
+document.getElementById("btn-save").onclick=function(){const L=load(),name=fName.value.trim(),url=fUrl.value.trim().replace(/\/+$/,""),model=fModel.value.trim(),key=fKey.value.trim();
+ if(!/^https:\/\//.test(url)){alert("Base URL 需以 https:// 开头");return}
+ if(editing){const p=L.find(function(x){return x.id===editing});if(!p){alert("原配置不存在");return}
+  p.name=name||p.name;p.baseUrl=url;p.model=model||p.model;if(key)p.apiKey=key;}
+ else{L.push({id:genId(),name:name||url.replace(/^https?:\/\//,"").split("/")[0],provider:"openai-compatible",baseUrl:url,apiKey:key,model:model,enabled:true})}
+ saveList(L);clearForm();render()};
 function clearForm(){editing=null;fName.value=fUrl.value=fModel.value=fKey.value="";
- document.getElementById("editTag").hidden=true;document.getElementById("formTitle").textContent="添加模型服务配置";showGuide();}
+ document.getElementById("editTag").hidden=true;document.getElementById("formTitle").textContent="添加模型服务配置";showGuide()}
 document.getElementById("btn-clear").onclick=clearForm;
+document.getElementById("f-fo").onchange=function(){saveSettings({llmFailover:this.checked});render()};
 
-/* ===== 备份导出 / 导入（覆盖全部 localStorage，跨浏览器、跨机器恢复）===== */
-document.getElementById("btn-export").onclick=()=>{const dump={};for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);dump[k]=localStorage.getItem(k);}
+/* ===== 备份导出 / 导入 ===== */
+document.getElementById("btn-export").onclick=function(){const dump={};for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);dump[k]=localStorage.getItem(k)}
  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(dump,null,2)],{type:"application/json"}));
- a.download="nova-backup-"+new Date().toISOString().slice(0,10)+".json";a.click();};
-document.getElementById("btn-import").onclick=()=>document.getElementById("file").click();
-document.getElementById("file").onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();
- r.onload=()=>{try{const d=JSON.parse(r.result);
+ a.download="nova-backup-"+new Date().toISOString().slice(0,10)+".json";a.click()};
+document.getElementById("btn-import").onclick=function(){document.getElementById("file").click()};
+document.getElementById("file").onchange=function(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();
+ r.onload=function(){try{const d=JSON.parse(r.result);
   if(!confirm("导入将合并覆盖同名本地设置，继续？"))return;
-  Object.entries(d).forEach(([k,v])=>localStorage.setItem(k,v));alert("导入成功，刷新生效");location.reload();}
-  catch{alert("文件无效：需为设置页导出的 .json");}};r.readAsText(f);};
+  Object.keys(d).forEach(function(k){localStorage.setItem(k,d[k])});alert("导入成功，刷新生效");location.reload()}
+  catch(err){alert("文件无效：需为设置页导出的 .json")}};r.readAsText(f)};
 
-detect();render();
+render();
 </script>
 </body>
 </html>
