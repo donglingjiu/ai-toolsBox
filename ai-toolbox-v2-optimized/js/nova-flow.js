@@ -1,7 +1,7 @@
 /* Nova Flow v1.3 自包含版：编排数据内联，不依赖 flow-prompts.js；无 emoji，终端粘贴安全 */
 "use strict";
 
-const NF_TEAMS = [
+const NF_TEAMS = window.FLOW_TEAMS || [
   { key: "product", name: "产品专家团", desc: "需求分析 / PRD / 优先级", members: [
     { n: "CEO 中枢", d: "任务分派与流转" },
     { n: "产品发现专家", d: "创意 / 假设识别 / 反馈分析" },
@@ -25,7 +25,7 @@ const NF_TEAMS = [
     { n: "审阅页制作官", d: "目录锚点 / 划词批注 / 批注导出" } ] },
 ];
 
-const NF_STAGES = [
+const NF_STAGES = window.FLOW_STAGES || [
   {
     key: "prd", name: "需求分析", team: "product", teamName: "产品专家团",
     inputLabel: "产品需求描述", inputPh: "例如：给内部团队做一个周报自动汇总工具，能从群聊拉取消息、按人汇总、生成周报页面",

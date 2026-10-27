@@ -5,3 +5,6 @@
 
 /js/*
   Cache-Control: no-cache
+
+/js/*
+  Content-Type: text/javascript; charset=utf-8
