@@ -206,6 +206,7 @@ function spanOverlap(a, b) {
 }
 
 /* 页 → 块序列：para / table / heading */
+/* 页 → 块序列：para / table / heading（v1.4：行带 y 坐标，供段落回流判定；无内嵌函数，无作用域陷阱） */
 function pageToBlocks(page, medF) {
   const medH = median(page.items.map((i) => i.h)) || 10;
   const rows = clusterRows(page.items);
@@ -222,11 +223,11 @@ function pageToBlocks(page, medF) {
     const cells = splitCells(rows[ri], medH);
     const fs = median(cells.map((c) => c.fs));
 
+    /* 表格判定：≥2 cell 且与相邻行跨度重叠率 >55% */
     if (cells.length >= 2) {
       const prevBlock = blocks[blocks.length - 1];
       const span = rowSpan(cells);
       const nextCells = ri + 1 < rows.length ? splitCells(rows[ri + 1], medH) : [];
-      /* v1.3：整行跨度重叠率 >55% 即视为同一表格（容忍表头列内居中） */
       const alignedWithNext = nextCells.length >= 2 && spanOverlap(span, rowSpan(nextCells)) > 0.55;
       const alignedWithPrevTable = prevBlock && prevBlock.type === "table"
         && spanOverlap(span, rowSpan(prevBlock.rows[0])) > 0.55;
@@ -238,27 +239,25 @@ function pageToBlocks(page, medF) {
       }
     }
 
-    flushParaIfNeeded(cells, fs);
-  }
-  flushPara();
-  return blocks;
-
-  function flushParaIfNeeded(cells, fs) {
+    /* 标题判定：字号显著大于正文中位数；大字行多区块拆开 */
     const ratio = fs / (medF || 10);
-    const isHeading = ratio >= 1.35;
-    if (isHeading) {
+    if (ratio >= 1.35) {
       flushPara();
-      /* v1.3：大字行多区块时拆开——首块做标题，其余独立成段 */
       blocks.push({ type: "heading", level: ratio >= 1.7 ? 1 : 2, text: cells[0].parts.join("").trim(), bold: true });
       for (let k = 1; k < cells.length; k++) {
         const t = cells[k].parts.join("").trim();
-        if (t) blocks.push({ type: "para", lines: [{ cells: [cells[k]], fs }] });
+        if (t) blocks.push({ type: "para", lines: [{ cells: [cells[k]], fs, y: rows[ri].y }] });
       }
-      return;
+      continue;
     }
+
+    /* 普通文本行：带 y 坐标入段落缓存（v1.4 段落回流依赖） */
     paraBuf.push({ cells, fs, y: rows[ri].y });
   }
+  flushPara();
+  return blocks;
 }
+
 
 const LIST_RE = /^([•·‣◦▪▸●○◆■□\-–—*]|\d{1,2}[.)、]|[（(]\d{1,2}[)）]|[a-zA-Z][.)])\s+/;
 const CJK = /[\u4e00-\u9fff\u3000-\u303f\uff00-\uffef]/;
