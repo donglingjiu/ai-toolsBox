@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nova Data · 星数 — 数据工作台</title>
+<meta name="description" content="Nova Data — 表格预览、列级画像、受限变换与 SVG 图表。全部本地执行，数据不出端。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%2345E0C8' d='M12 2 14.4 9.6 22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4Z'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/nova.css">
+<link rel="stylesheet" href="css/nova-docs.css">
+<link rel="stylesheet" href="css/nova-data.css">
+</head>
+<body>
+<a class="skip-link" href="#main">跳到主要内容</a>
+
+<header class="topbar">
+  <div class="topbar__inner">
+    <a class="logo" href="index.html" aria-label="返回 Nova 首页">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M12 2 14.4 9.6 22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4Z"/></svg>
+      Nova <span class="logo__cn">Data · 星数</span>
+    </a>
+    <nav class="nav" aria-label="主导航">
+      <a href="docs.html">Docs</a><a href="data.html" aria-current="page">Data</a><a href="flow.html">Flow</a><a href="mind.html">Mind</a>
+    </nav>
+    <span class="topbar__spacer"></span>
+    <button class="cmdk-btn" data-cmdk-open aria-label="打开 Nova Command 命令面板">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      搜索… <kbd>Ctrl K</kbd>
+    </button>
+  </div>
+</header>
+
+<main id="main" class="docs-main">
+  <div class="tabs" role="tablist" aria-label="Data 功能区">
+    <button class="tab" role="tab" data-tab="preview" aria-selected="true">数据预览</button>
+    <button class="tab" role="tab" data-tab="profile" aria-selected="false">数据画像</button>
+    <button class="tab" role="tab" data-tab="transform" aria-selected="false">数据变换</button>
+    <button class="tab" role="tab" data-tab="chart" aria-selected="false">图表分析</button>
+  </div>
+
+  <!-- 数据预览 -->
+  <section id="tab-preview" role="tabpanel" aria-label="数据预览">
+    <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="点击或拖入表格文件">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 16V4m0 0 -4 4m4-4 4 4"/><path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+      <p><strong>拖入表格</strong>，或点击选择（xlsx / xls / csv · 建议 &lt; 20MB）</p>
+      <p class="dropzone__hint">解析 / 画像 / 变换 / 图表全程本地执行，数据不出端</p>
+      <input id="file-input" type="file" accept=".xlsx,.xls,.csv" hidden>
+    </div>
+
+    <div class="bar">
+      <span id="ds-info" class="bar__note">未加载数据</span>
+      <span class="topbar__spacer"></span>
+      <label class="chk"><input type="checkbox" id="mask-toggle"> 敏感列脱敏（预览与导出生效）</label>
+    </div>
+    <div id="sheet-chips" class="chips"></div>
+
+    <div class="table-wrap">
+      <div class="scroll-x"><table class="ktable" id="preview-table" aria-label="数据预览"></table></div>
+      <div id="preview-empty" class="empty">尚未加载数据 —— 拖入 xlsx / xls / csv，点亮第一份数据 ✦</div>
+    </div>
+
+    <div class="bar">
+      <button id="export-csv" class="btn btn--primary" disabled>⬇ 导出 CSV</button>
+      <button id="export-xlsx" class="btn btn--ghost" disabled>⬇ 导出 XLSX</button>
+      <span class="bar__note">导出应用全部已执行变换；勾选脱敏后敏感列按规则打码</span>
+    </div>
+  </section>
+
+  <!-- 数据画像 -->
+  <section id="tab-profile" role="tabpanel" aria-label="数据画像" hidden>
+    <div class="bar"><strong>列级画像</strong><span id="profile-summary" class="bar__note"></span></div>
+    <div id="profile-grid" class="pgrid"></div>
+    <div id="profile-empty" class="empty">加载数据后自动生成本地统计画像（不含全量数据，可直接粘贴给 AI）</div>
+  </section>
+
+  <!-- 数据变换 -->
+  <section id="tab-transform" role="tabpanel" aria-label="数据变换" hidden>
+    <div class="bar"><strong>受限变换</strong><span class="bar__note">9 种白名单操作，每步校验列名与参数，确定性执行</span></div>
+    <div class="table-wrap op-card">
+      <div class="op-row">
+        <label class="field">操作类型
+          <select id="op-type" class="fld">
+            <option value="select_columns">选择列 select_columns</option>
+            <option value="rename_column">重命名列 rename_column</option>
+            <option value="filter_rows">筛选行 filter_rows</option>
+            <option value="sort_rows">排序 sort_rows</option>
+            <option value="dedupe_rows">去重 dedupe_rows</option>
+            <option value="trim_text">去首尾空格 trim_text</option>
+            <option value="coerce_number">转数值 coerce_number</option>
+            <option value="group_aggregate">分组聚合 group_aggregate</option>
+            <option value="add_computed">计算列 add_computed</option>
+          </select>
+        </label>
+        <div id="op-fields" class="op-row"></div>
+        <button id="op-apply" class="btn btn--primary">添加并执行</button>
+        <button id="op-undo" class="btn btn--ghost">↩ 撤销一步</button>
+        <button id="op-reset" class="btn btn--ghost btn--danger-ghost">重置全部</button>
+      </div>
+      <div class="hist" id="op-history"></div>
+    </div>
+
+    <details class="adv">
+      <summary>高级：粘贴 JSON 变换方案（与经典版 DSL 同格式）</summary>
+      <textarea id="plan-json" class="fld plan" rows="6" placeholder='{"operations":[{"type":"sort_rows","column":"销售额","order":"desc"}]}'></textarea>
+      <button id="plan-apply" class="btn btn--ghost">应用 JSON 方案</button>
+    </details>
+
+    <p class="boundary">变换立即作用于预览 / 画像 / 图表；导出结果即变换后的表。AI 生成变换方案将在 B5 Mind 统一 API 层后并入本工作台。</p>
+  </section>
+
+  <!-- 图表分析 -->
+  <section id="tab-chart" role="tabpanel" aria-label="图表分析" hidden>
+    <div class="bar">
+      <label class="field">图表
+        <select id="chart-type" class="fld">
+          <option value="bar">柱状图</option>
+          <option value="line">折线图</option>
+          <option value="pie">饼图（占比）</option>
+        </select>
+      </label>
+      <label class="field">维度列（分类）
+        <select id="chart-dim" class="fld"></select>
+      </label>
+      <label class="field">度量列（数值）
+        <select id="chart-measure" class="fld"></select>
+      </label>
+      <label class="field">聚合
+        <select id="chart-agg" class="fld">
+          <option value="sum">求和</option><option value="avg">平均</option>
+          <option value="count">计数</option><option value="min">最小</option><option value="max">最大</option>
+        </select>
+      </label>
+      <button id="chart-draw" class="btn btn--primary">生成图表</button>
+      <button id="chart-svg" class="btn btn--ghost" disabled>⬇ 下载 SVG</button>
+    </div>
+    <div class="table-wrap chart-wrap"><div id="chart-box" class="chart-box"></div>
+      <div id="chart-empty" class="empty">选择维度与度量，生成纯本地 SVG 图表</div></div>
+    <p class="boundary">柱状/折线取聚合 Top 20；饼图取 Top 8 其余合并为「其他」。度量列留空时自动按计数统计。</p>
+  </section>
+</main>
+
+<script src="js/vendor/xlsx.full.min.js"></script>
+<script src="js/xlsx-core.js"></script>
+<script src="js/nova-core.js"></script>
+<script src="js/nova-data.js"></script>
+</body>
+</html>
