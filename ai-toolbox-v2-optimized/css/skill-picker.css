@@ -1,0 +1,98 @@
+/* ===== AT Skill Picker —— AI 质感规范（紫=AI 元素专属色） ===== */
+:root{
+  --atsp-primary:#2B6CB0; --atsp-accent:#9F7AEA;
+  --atsp-glass:rgba(255,255,255,.78); --atsp-radius:14px;
+}
+.atsp-root{position:fixed;inset:0;z-index:9990;pointer-events:none;visibility:hidden}
+.atsp-root.is-open{pointer-events:auto;visibility:visible}
+.atsp-mask{position:absolute;inset:0;background:rgba(15,23,42,.32);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);opacity:0;transition:opacity .25s}
+.atsp-root.is-open .atsp-mask{opacity:1}
+.atsp-drawer{position:absolute;top:0;right:0;height:100%;width:min(720px,92vw);
+  display:flex;flex-direction:column;background:var(--atsp-glass);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border-left:1px solid rgba(43,108,176,.14);box-shadow:-12px 0 48px rgba(15,23,42,.18);
+  transform:translateX(24px) scale(.985);opacity:0;transition:transform .28s cubic-bezier(.2,.8,.2,1),opacity .28s}
+.atsp-root.is-open .atsp-drawer{transform:none;opacity:1}
+.atsp-root.is-mobile .atsp-drawer{top:auto;bottom:0;width:100%;height:88%;
+  border-radius:var(--atsp-radius) var(--atsp-radius) 0 0;border-left:none;
+  transform:translateY(30px)}
+.atsp-root.is-mobile.is-open .atsp-drawer{transform:none}
+
+.atsp-head{display:flex;align-items:center;justify-content:space-between;padding:18px 22px 10px}
+.atsp-title{font-size:17px;font-weight:600;color:#1A365D;display:flex;gap:8px;align-items:center}
+.atsp-spark{color:var(--atsp-accent);text-shadow:0 0 12px rgba(159,122,234,.5)}
+.atsp-close{border:none;background:none;font-size:16px;color:#64748B;cursor:pointer;padding:6px;border-radius:8px}
+.atsp-close:hover{background:rgba(43,108,176,.08);color:#1A365D}
+.atsp-searchbar{padding:0 22px 14px}
+.atsp-search{width:100%;box-sizing:border-box;padding:11px 14px;border:1px solid rgba(43,108,176,.18);
+  border-radius:10px;font-size:14px;background:#fff;outline:none;transition:border-color .15s,box-shadow .15s}
+.atsp-search:focus{border-color:var(--atsp-primary);box-shadow:0 0 0 3px rgba(43,108,176,.12)}
+.atsp-body{flex:1;min-height:0;display:flex;gap:16px;padding:0 22px 12px}
+.atsp-cats{width:150px;overflow-y:auto;display:flex;flex-direction:column;gap:4px;flex-shrink:0}
+.atsp-cat{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border:none;
+  background:none;border-radius:8px;font-size:13px;color:#334155;cursor:pointer;text-align:left;transition:background .15s}
+.atsp-cat:hover{background:rgba(43,108,176,.07)}
+.atsp-cat.is-on{background:rgba(43,108,176,.12);color:var(--atsp-primary);font-weight:600}
+.atsp-cat-n{font-size:11px;color:#94A3B8}
+.atsp-list,.atsp-params{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;min-height:0}
+
+/* 卡片：左侧 3px 紫色渐变竖线 = AI 容器规范 */
+.atsp-card{display:flex;gap:12px;padding:13px 14px;background:#fff;border:1px solid rgba(43,108,176,.1);
+  border-left:3px solid transparent;border-image:linear-gradient(180deg,#9F7AEA,#2B6CB0) 1;
+  border-radius:12px;cursor:pointer;transition:transform .15s,box-shadow .15s;
+  opacity:0;animation:atsp-in .3s cubic-bezier(.2,.8,.2,1) forwards;animation-delay:calc(var(--i)*28ms)}
+@keyframes atsp-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.atsp-card:hover,.atsp-card.is-active{transform:translateY(-2px);box-shadow:0 8px 24px rgba(43,108,176,.14)}
+.atsp-card-main{flex:1;min-width:0}
+.atsp-card-top{display:flex;gap:6px;align-items:center;margin-bottom:5px}
+.atsp-badge{font-size:11px;padding:2px 8px;border-radius:20px;background:rgba(43,108,176,.1);color:var(--atsp-primary)}
+.atsp-gold{font-size:11px;color:#B7791F;background:rgba(236,201,75,.18);padding:2px 8px;border-radius:20px}
+.atsp-mine{font-size:11px;color:#805AD5;background:rgba(159,122,234,.12);padding:2px 8px;border-radius:20px}
+.atsp-card-name{margin:0 0 4px;font-size:14.5px;font-weight:600;color:#1A365D;word-break:break-all}
+.atsp-card-desc{margin:0 0 7px;font-size:12.5px;color:#475569;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.atsp-card-meta{display:flex;gap:10px;flex-wrap:wrap;font-size:11.5px;color:#94A3B8;align-items:center}
+.atsp-tag{font-style:normal;background:#F1F5F9;padding:1px 6px;border-radius:4px}
+.atsp-card-radar{flex-shrink:0;display:flex;align-items:center}
+.atsp-empty{margin:auto;text-align:center;color:#94A3B8;font-size:13px}
+.atsp-empty-spark{font-size:30px;margin-bottom:8px;color:var(--atsp-accent);
+  text-shadow:0 0 16px rgba(159,122,234,.5);animation:atsp-breathe 2.4s ease-in-out infinite}
+@keyframes atsp-breathe{0%,100%{opacity:.55}50%{opacity:1}}
+
+.atsp-params{background:#fff;border-radius:12px;padding:18px;border:1px solid rgba(43,108,176,.1)}
+.atsp-back{border:none;background:none;color:#64748B;cursor:pointer;font-size:13px;padding:4px 0;align-self:flex-start}
+.atsp-back:hover{color:var(--atsp-primary)}
+.atsp-params-title{margin:10px 0 4px;font-size:16px;color:#1A365D}
+.atsp-params-desc{margin:0 0 16px;font-size:12.5px;color:#64748B}
+.atsp-field{display:flex;flex-direction:column;gap:6px;margin-bottom:13px}
+.atsp-field-name{font-size:12.5px;font-weight:600;color:#334155}
+.atsp-field input{padding:10px 12px;border:1px solid rgba(43,108,176,.2);border-radius:8px;font-size:14px;outline:none}
+.atsp-field input:focus{border-color:var(--atsp-primary);box-shadow:0 0 0 3px rgba(43,108,176,.12)}
+.atsp-ai-line{display:flex;gap:6px;font-size:11.5px;color:#805AD5;margin:4px 0 14px}
+.atsp-params-actions{display:flex;justify-content:flex-end;gap:10px}
+.atsp-btn-ghost{padding:9px 16px;border:1px solid rgba(43,108,176,.25);background:none;border-radius:9px;color:#475569;cursor:pointer;font-size:13.5px}
+.atsp-btn-ai{padding:9px 18px;border:1px solid var(--atsp-accent);background:none;color:var(--atsp-accent);
+  border-radius:9px;cursor:pointer;font-size:13.5px;transition:background .18s,color .18s,box-shadow .18s}
+.atsp-btn-ai:hover{background:var(--atsp-accent);color:#fff;box-shadow:0 0 18px rgba(159,122,234,.4)}
+.atsp-foot{padding:10px 22px;border-top:1px solid rgba(43,108,176,.08)}
+.atsp-hint{font-size:11.5px;color:#94A3B8}
+
+/* 输入框 ✦ 按钮 */
+.atsi-btn{position:absolute;right:10px;top:8px;border:1px solid var(--atsp-accent);background:#fff;
+  color:var(--atsp-accent);font-size:12px;padding:4px 10px;border-radius:20px;cursor:pointer;
+  transition:background .18s,color .18s,box-shadow .18s;z-index:5}
+.atsi-btn:hover{background:var(--atsp-accent);color:#fff;box-shadow:0 0 14px rgba(159,122,234,.4)}
+
+/* Toast（右上角滑入） */
+.atsi-toast-host{position:fixed;top:18px;right:18px;z-index:9995;display:flex;flex-direction:column;gap:8px}
+.atsi-toast{padding:10px 16px;background:#fff;border:1px solid var(--atsp-accent);border-radius:10px;
+  color:#553C9A;font-size:13px;box-shadow:0 6px 20px rgba(159,122,234,.25);
+  animation:atsi-slide .3s cubic-bezier(.2,.8,.2,1)}
+.atsi-toast.is-out{opacity:0;transform:translateX(12px);transition:all .3s}
+@keyframes atsi-slide{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:none}}
+
+/* 动效纪律：reduced-motion 全量降级 */
+@media (prefers-reduced-motion: reduce){
+  .atsp-card,.atsp-toast,.atsp-drawer,.atsp-mask,.atsi-toast{animation:none!important;transition:none!important;opacity:1!important;transform:none!important}
+  .atsp-empty-spark{animation:none!important}
+}
