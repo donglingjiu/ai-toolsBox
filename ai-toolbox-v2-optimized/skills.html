@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Skill 工坊 · AI 工具箱</title>
+<link rel="stylesheet" href="css/style.css?v=3">
+<link rel="stylesheet" href="css/skill-picker.css">
+<script src='js/builtin-profile.js'></script><script src='js/guard.js'></script>
+<style>
+.sw-topbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
+.sw-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.sw-card{background:#fff;border:1px solid rgba(43,108,176,.1);border-left:3px solid transparent;border-image:linear-gradient(180deg,#9F7AEA,#2B6CB0) 1;border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:8px;transition:transform .15s,box-shadow .15s}
+.sw-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(43,108,176,.12)}
+.sw-card-name{font-size:15px;font-weight:600;color:#1A365D;word-break:break-all;margin:0}
+.sw-card-desc{font-size:12.5px;color:#475569;margin:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.sw-card-meta{display:flex;gap:10px;flex-wrap:wrap;font-size:11.5px;color:#94A3B8;align-items:center}
+.sw-card-actions{display:flex;gap:8px;margin-top:auto;padding-top:6px}
+.sw-btn-mini{border:1px solid rgba(43,108,176,.25);background:none;border-radius:7px;padding:4px 10px;font-size:12px;color:#475569;cursor:pointer}
+.sw-btn-mini:hover{border-color:#2B6CB0;color:#2B6CB0}
+.sw-btn-mini.danger:hover{border-color:#E53E3E;color:#E53E3E}
+.sw-btn-ai{border:1px solid #9F7AEA;background:none;color:#805AD5;border-radius:7px;padding:4px 10px;font-size:12px;cursor:pointer;transition:background .18s,color .18s}
+.sw-btn-ai:hover{background:#9F7AEA;color:#fff}
+.sw-btn-ai:disabled{opacity:.5;cursor:wait}
+.sw-editor{max-width:860px}
+.sw-form{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.sw-form .full{grid-column:1/-1}
+.sw-form label{display:flex;flex-direction:column;gap:5px;font-size:12.5px;font-weight:600;color:#334155}
+.sw-form input,.sw-form select,.sw-form textarea{padding:9px 11px;border:1px solid rgba(43,108,176,.2);border-radius:8px;font-size:13.5px;font-family:inherit;outline:none;background:#fff}
+.sw-form textarea{min-height:120px;line-height:1.6}
+.sw-form input:focus,.sw-form select:focus,.sw-form textarea:focus{border-color:#2B6CB0;box-shadow:0 0 0 3px rgba(43,108,176,.12)}
+.sw-ai-box{background:linear-gradient(135deg,rgba(159,122,234,.06),rgba(43,108,176,.04));border:1px dashed rgba(159,122,234,.4);border-radius:12px;padding:16px}
+.sw-ai-box h3{margin:0 0 8px;font-size:14px;color:#553C9A;display:flex;gap:6px;align-items:center}
+.sw-status{font-size:12.5px;color:#805AD5;min-height:18px;margin-top:8px}
+.sw-quality-row{display:flex;gap:14px;flex-wrap:wrap;margin-top:6px}
+.sw-quality-row label{flex-direction:row;align-items:center;gap:6px;font-weight:500;font-size:12px;color:#475569}
+.sw-preview{background:#f7f8fa;border:1px solid rgba(43,108,176,.12);border-radius:10px;padding:14px;font-size:12.5px;white-space:pre-wrap;max-height:340px;overflow:auto;font-family:ui-monospace,Consolas,monospace;color:#334155}
+.sw-toolbar{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;align-items:center}
+.sw-badge{font-size:11px;padding:2px 8px;border-radius:20px;background:rgba(43,108,176,.1);color:#2B6CB0}
+.sw-mine{font-size:11px;color:#805AD5;background:rgba(159,122,234,.12);padding:2px 8px;border-radius:20px}
+@media(max-width:720px){.sw-form{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<nav class="nav"><div class="nav-inner">
+  <a href="index.html" class="nav-logo"><span class="dot">⚡</span>AI 工具箱</a>
+  <div class="nav-links">
+    <a href="prompts.html">提示词库</a><a href="skills.html" style="color:#805AD5">✦ Skill 工坊</a><a href="settings.html">设置</a>
+  </div>
+</div></nav>
+
+<div class="wrap">
+  <div id="listView">
+    <h1 class="page-title">✦ Skill 工坊</h1>
+    <p class="page-sub"><span id="cnt"></span> 个 Skill · 内置 + 我的 · 结构化提示词全站复用</p>
+    <div class="sw-topbar">
+      <input type="text" id="search" placeholder="��� 搜索 name / 描述 / 标签 / 分类…" style="flex:1;min-width:200px;">
+      <button class="btn btn-primary" id="newBtn">＋ 新建 Skill</button>
+      <button class="btn" id="importBtn">导入 JSON</button>
+      <button class="btn" id="exportBtn">导出我的</button>
+      <input type="file" id="importFile" accept=".json" style="display:none">
+    </div>
+    <div class="sw-grid" id="grid"></div>
+  </div>
+
+  <div id="editView" class="hidden sw-editor">
+    <button class="btn btn-ghost btn-sm" id="backBtn">← 返回列表</button>
+    <h1 class="page-title" style="font-size:22px" id="editTitle">新建 Skill</h1>
+
+    <div class="card mb16 sw-ai-box">
+      <h3><span style="color:#9F7AEA">✦</span> AI 辅助生成</h3>
+      <p class="muted" style="font-size:12.5px;margin:0 0 10px">粘贴粗糙的原始提示词，AI 按 Schema 六段式重构并自动填入下方表单（走「设置」页多 Profile 兜底）。</p>
+      <textarea id="rawPrompt" rows="5" placeholder="粘贴原始提示词…（任意结构均可，# 角色 / # 任务 等会被规范化）"></textarea>
+      <div class="sw-toolbar" style="margin-top:10px">
+        <button class="sw-btn-ai" id="aiGenBtn" style="padding:8px 16px;font-size:13px">✦ AI 重构为 Skill</button>
+      </div>
+      <div class="sw-status" id="aiStatus"></div>
+    </div>
+
+    <div class="card mb16">
+      <div class="sw-form">
+        <label><span>name（小写-连字符，唯一标识）</span><input id="fName" placeholder="如 xiaohongshu-seeding-note"></label>
+        <label><span>分类</span><input id="fCat" list="catList" placeholder="如 内容创作"><datalist id="catList"></datalist></label>
+        <label class="full"><span>description（15~60 字，必须含触发场景：当用户…时使用）</span><input id="fDesc" placeholder="如：生成小红书种草笔记。当用户需要写小红书文案时触发。"></label>
+        <label><span>专家注入</span><select id="fExpert">
+          <option value="none">不注入</option>
+          <option value="web-delivery-director">web-delivery-director（交付纪律）</option>
+          <option value="product-expert-team">product-expert-team（产品方法）</option>
+          <option value="frontend-builder">frontend-builder（前端规范）</option>
+          <option value="autodev">AutoDev（工程流程）</option>
+        </select></label>
+        <label><span>标签（逗号分隔）</span><input id="fTags" placeholder="小红书, 文案, 种草"></label>
+        <label class="full"><span>use_cases（逗号分隔）</span><input id="fUseCases" placeholder="写种草笔记, 产品测评"></label>
+        <label class="full"><span>正文 body（## 角色 / ## 操作步骤 / ## 输出参数 / ## 输出格式 / ## 边界约束，可变内容写 {{参数名}}）</span><textarea id="fBody" rows="12" placeholder="## 角色&#10;你是一名…"></textarea></label>
+      </div>
+      <div class="sw-quality-row" id="qualityRow"></div>
+      <div class="sw-toolbar">
+        <button class="btn btn-primary" id="saveBtn">保存到本地库</button>
+        <button class="sw-btn-ai" id="evalBtn" style="padding:8px 14px">✦ AI 质量评估</button>
+        <span class="muted" style="font-size:12px" id="formHint"></span>
+      </div>
+    </div>
+
+    <details open>
+      <summary class="muted" style="cursor:pointer">SKILL.md 实时预览（含质量综合分）</summary>
+      <div class="sw-preview mt16" id="preview"></div>
+    </details>
+  </div>
+</div>
+
+<footer class="footer">AI 工具箱 · Skill 工坊</footer>
+
+<script src="js/skills/skill-schema.js"></script>
+<script src="js/skills/skill-store.js"></script>
+<script src="js/skills/skill-picker.js"></script>
+<script src="js/skills/skill-injector.js"></script>
+<script src="js/skills/skills-builtin.data.js"></script>
+<script>
+(function () {
+  'use strict';
+  const $ = s => document.querySelector(s);
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const DIMS = ATSkillSchema.QUALITY_DIMENSIONS;
+  let editing = null;
+  let quality = { role_clarity:0, constraints:0, verifiable:0, examples:0, boundary:0 };
+
+  /* ---- AI 调用：读设置页多 Profile，逐个兜底 ---- */
+  const AI = {
+    readProfiles() {
+      for (const k of ['at_settings_v1','at_profiles','at_api_settings']) {
+        try {
+          const raw = localStorage.getItem(k); if (!raw) continue;
+          const s = JSON.parse(raw);
+          let list = Array.isArray(s) ? s : (Array.isArray(s?.profiles) ? s.profiles : (Array.isArray(s?.list) ? s.list : ((s?.apiKey||s?.api_key) ? [s] : [])));
+          const mapped = list.filter(p => p && (p.apiKey||p.api_key||p.key)).map(p => ({
+            baseUrl: p.baseUrl||p.base_url||p.apiBase||p.api_base||p.base||'https://api.openai.com/v1',
+            apiKey: p.apiKey||p.api_key||p.key, model: p.model||'gpt-4o-mini' }));
+          if (mapped.length) return mapped;
+        } catch (e) {}
+      }
+      return [];
+    },
+    async chat(prompt, onStatus) {
+      const ps = this.readProfiles();
+      if (!ps.length) throw new Error('未读取到 API 配置：请先到「设置」页添加 Profile（支持多套兜底）');
+      let last = null;
+      for (const p of ps) {
+        try {
+          onStatus && onStatus('✦ 调用 ' + p.model + ' …');
+          const res = await fetch(p.baseUrl.replace(/\/$/,'') + '/chat/completions', { method:'POST',
+            headers:{'Content-Type':'application/json','Authorization':'Bearer '+p.apiKey},
+            body: JSON.stringify({ model:p.model, temperature:0.3, response_format:{type:'json_object'}, messages:[{role:'user',content:prompt}] }) });
+          if (!res.ok) throw new Error('HTTP '+res.status);
+          return (await res.json()).choices[0].message.content;
+        } catch (e) { last = e; }
+      }
+      throw new Error('所有 Profile 均失败：' + (last && last.message));
+    },
+  };
+
+  const META_REFACTOR = '你是一名提示词工程师。将下面的原始提示词重构为标准 Skill，只输出一个 JSON 对象（不要 markdown 代码块包裹）。\n' +
+    'Schema: {"name":"小写连字符英文标识(从中文标题意译)","description":"15~60字，必须包含明确触发场景(当用户…时使用)","category":"简短中文分类","tags":["3-5个"],"use_cases":["2-3个"],"body":"markdown正文，统一用##二级标题，必须包含 ## 角色、## 操作步骤、## 输出格式、## 边界约束 四段(有示例加 ## 示例)，可变内容写成 {{参数名}} 占位符(原文中 [请填写X] 或 [X] 一律转成 {{X}}，列出全部占位符)","quality":{"role_clarity":0-5,"constraints":0-5,"verifiable":0-5,"examples":0-5,"boundary":0-5}}\n' +
+    '要求：专业、职业、可直接投入使用；保留原文全部有效指令；广告法等敏感边界写入边界约束。\n原始提示词：\n---\n';
+
+  /* ---- 列表渲染 ---- */
+  function render() {
+    const q = ($('#search').value || '').trim().toLowerCase();
+    const all = ATSkillStore.listAll().filter(s => !q || [s.name,s.description,s.category,s.tags.join(' ')].join(' ').toLowerCase().includes(q));
+    $('#cnt').textContent = ATSkillStore.listAll().length;
+    $('#grid').innerHTML = all.map(s => {
+      const score = ATSkillSchema.overallScore(s.quality);
+      const ph = ATSkillSchema.extractPlaceholders(s.body).length;
+      return '<article class="sw-card">' +
+        '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="sw-badge">' + esc(s.category) + '</span>' +
+        (s.author === 'user' ? '<span class="sw-mine">我的</span>' : '') +
+        (score >= 4.5 ? '<span style="font-size:11px;color:#B7791F">✓ 高质量</span>' : '') + '</div>' +
+        '<h4 class="sw-card-name">' + esc(s.name) + '</h4>' +
+        '<p class="sw-card-desc">' + esc(s.description) + '</p>' +
+        '<div class="sw-card-meta"><span>⭐ ' + score.toFixed(1) + '</span><span>▶ ' + s.usage_count + '</span>' +
+        (ph ? '<span>' + ph + ' 参数</span>' : '') + s.tags.slice(0,3).map(t => '<i style="font-style:normal;background:#F1F5F9;padding:1px 6px;border-radius:4px">#' + esc(t) + '</i>').join('') + '</div>' +
+        '<div style="display:flex;justify-content:space-between;align-items:flex-end"><div class="sw-card-actions">' +
+        (s.author === 'user' ? '<button class="sw-btn-mini" data-edit="' + esc(s.name) + '">编辑</button><button class="sw-btn-mini danger" data-del="' + esc(s.name) + '">删除</button>' : '<span class="muted" style="font-size:11px">内置</span>') +
+        '</div>' + ATSkillPicker.radarSVG(s.quality, 52) + '</div></article>';
+    }).join('') || '<p class="muted">暂无 Skill。迁移完成或点「＋ 新建」开始。</p>';
+    const cats = [...new Set(ATSkillStore.listAll().map(s => s.category))];
+    $('#catList').innerHTML = cats.map(c => '<option value="' + esc(c) + '">').join('');
+  }
+
+  $('#grid').addEventListener('click', e => {
+    const ed = e.target.closest('[data-edit]'), dl = e.target.closest('[data-del]');
+    if (ed) openEditor(ATSkillStore.getByName(ed.dataset.edit));
+    if (dl && confirm('确认删除 Skill「' + dl.dataset.del + '」？')) { ATSkillStore.removeCustom(dl.dataset.del); render(); }
+  });
+  $('#search').addEventListener('input', render);
+
+  /* ---- 编辑器 ---- */
+  function renderQualityRow() {
+    $('#qualityRow').innerHTML = Object.entries(DIMS).map(([k, d]) =>
+      '<label><input type="range" min="0" max="5" step="0.5" value="' + quality[k] + '" data-q="' + k + '">' + d.label + ' <b id="qv_' + k + '">' + quality[k] + '</b></label>').join('');
+  }
+  $('#qualityRow').addEventListener('input', e => {
+    const k = e.target.dataset.q; if (!k) return;
+    quality[k] = +e.target.value; $('#qv_' + k).textContent = e.target.value; updatePreview();
+  });
+
+  function collectForm() {
+    return { name: $('#fName').value, description: $('#fDesc').value, category: $('#fCat').value,
+      expert_injection: $('#fExpert').value,
+      tags: $('#fTags').value.split(/[,，]/).map(t => t.trim()).filter(Boolean),
+      use_cases: $('#fUseCases').value.split(/[,，]/).map(t => t.trim()).filter(Boolean),
+      body: $('#fBody').value, quality: Object.assign({}, quality), author: 'user' };
+  }
+  function fillForm(s) {
+    $('#fName').value = s?.name || ''; $('#fDesc').value = s?.description || '';
+    $('#fCat').value = s?.category || ''; $('#fExpert').value = s?.expert_injection || 'none';
+    $('#fTags').value = (s?.tags || []).join(', '); $('#fUseCases').value = (s?.use_cases || []).join(', ');
+    $('#fBody').value = s?.body || '';
+    quality = Object.assign({role_clarity:0,constraints:0,verifiable:0,examples:0,boundary:0}, s?.quality || {});
+    renderQualityRow(); updatePreview();
+  }
+  function updatePreview() {
+    const s = collectForm();
+    $('#preview').textContent = '---\nname: ' + (s.name || '（待填）') + '\ndescription: ' + (s.description || '（待填）') +
+      '\ncategory: ' + (s.category || '未分类') + '\nexpert_injection: ' + s.expert_injection +
+      '\ntags: [' + s.tags.join(', ') + ']\nquality_score: ' + ATSkillSchema.overallScore(s.quality).toFixed(1) + '\n---\n\n' + (s.body || '（正文待填）');
+  }
+  ['fName','fDesc','fCat','fTags','fUseCases','fBody'].forEach(id => $('#' + id).addEventListener('input', updatePreview));
+
+  function openEditor(skill) {
+    editing = skill || null;
+    $('#editTitle').textContent = skill ? '编辑：' + skill.name : '新建 Skill';
+    fillForm(skill); $('#formHint').textContent = '';
+    $('#listView').classList.add('hidden'); $('#editView').classList.remove('hidden');
+    window.scrollTo(0, 0);
+  }
+  function backToList() { $('#editView').classList.add('hidden'); $('#listView').classList.remove('hidden'); render(); }
+  $('#newBtn').onclick = () => openEditor(null);
+  $('#backBtn').onclick = backToList;
+
+  $('#saveBtn').onclick = () => {
+    const r = ATSkillStore.saveCustom(collectForm());
+    if (!r.ok) { $('#formHint').style.color = '#E53E3E'; $('#formHint').textContent = '✗ ' + r.errors.join('；'); return; }
+    $('#formHint').style.color = '#2F855A'; $('#formHint').textContent = '✓ 已保存「' + r.skill.name + '」';
+    setTimeout(backToList, 600);
+  };
+
+  /* ---- AI 重构 / 质量评估 ---- */
+  async function aiRefactor() {
+    const raw = $('#rawPrompt').value.trim();
+    if (!raw) { $('#aiStatus').textContent = '请先粘贴原始提示词'; return; }
+    const btn = $('#aiGenBtn'); btn.disabled = true;
+    $('#aiStatus').textContent = '✦ AI 分析中…';
+    try {
+      const out = await AI.chat(META_REFACTOR + raw, st => $('#aiStatus').textContent = st);
+      const s = JSON.parse(out);
+      fillForm({ name: s.name, description: s.description, category: s.category, tags: s.tags,
+        use_cases: s.use_cases, body: s.body, quality: s.quality, expert_injection: 'none' });
+      $('#aiStatus').textContent = '✓ 重构完成，已填入表单，请核对后保存';
+    } catch (e) { $('#aiStatus').textContent = '✗ ' + e.message; }
+    btn.disabled = false;
+  }
+  $('#aiGenBtn').onclick = aiRefactor;
+
+  $('#evalBtn').onclick = async () => {
+    const body = $('#fBody').value.trim();
+    if (!body) { $('#formHint').style.color = '#E53E3E'; $('#formHint').textContent = '✗ 请先填写正文'; return; }
+    const btn = $('#evalBtn'); btn.disabled = true;
+    try {
+      const out = await AI.chat('你是提示词质量评审。按五维度给下面提示词打分（0-5，可0.5步进），只输出 JSON：{"role_clarity":n,"constraints":n,"verifiable":n,"examples":n,"boundary":n,"comment":"一句话总评"}。维度：角色清晰度/约束完整度/输出可验证/示例质量/边界安全。\n---\n' + body, st => $('#formHint').textContent = st);
+      const r = JSON.parse(out);
+      quality = { role_clarity: +r.role_clarity || 0, constraints: +r.constraints || 0, verifiable: +r.verifiable || 0, examples: +r.examples || 0, boundary: +r.boundary || 0 };
+      renderQualityRow(); updatePreview();
+      $('#formHint').style.color = '#805AD5'; $('#formHint').textContent = '✦ ' + (r.comment || '评估完成');
+    } catch (e) { $('#formHint').style.color = '#E53E3E'; $('#formHint').textContent = '✗ ' + e.message; }
+    btn.disabled = false;
+  };
+
+  /* ---- 导入 / 导出 ---- */
+  $('#exportBtn').onclick = () => {
+    const data = ATSkillStore.exportCustom();
+    if (data.length < 60) { alert('本地库为空，无可导出内容'); return; }
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([data], { type: 'application/json' }));
+    a.download = 'at-skills-' + new Date().toISOString().slice(0,10) + '.json'; a.click();
+  };
+  $('#importBtn').onclick = () => $('#importFile').click();
+  $('#importFile').onchange = async e => {
+    const f = e.target.files[0]; if (!f) return;
+    const r = ATSkillStore.importJSON(await f.text());
+    alert(r.ok ? '✓ 导入成功 ' + r.imported + ' 条' + (r.errors.length ? '\n部分失败：\n' + r.errors.join('\n') : '') : '✗ 导入失败：\n' + r.errors.join('\n'));
+    e.target.value = ''; render();
+  };
+
+  render(); renderQualityRow();
+})();
+</script>
+</body>
+</html>
