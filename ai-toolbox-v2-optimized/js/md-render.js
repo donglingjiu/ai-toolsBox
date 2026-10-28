@@ -106,7 +106,7 @@
       M.enhance(box);
     }
     new MutationObserver(function () {
-      clearTimeout(pend); pend =
+      clearTimeout(pend); pend = setTimeout(sweep, 300);
     }).observe(document.body, { childList: true, subtree: true });
   }
 })();
