@@ -83,8 +83,13 @@ async function runStage(idx){
   selectStage(idx,true); paintRail();
   const box=$d("#out-box"); let full="",lastPaint=0;
   try{
+    function dateLine(){
+      var d=new Date();
+      var ds=d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);
+      return '\n\n[\u7cfb\u7edf\u65e5\u671f] \u4eca\u5929\u662f '+ds+' \uff08\u771f\u5b9e\u5f53\u524d\u65e5\u671f\uff09\u3002\u6587\u6863\u5143\u6570\u636e\u3001\u9875\u7709\u3001\u843d\u6b3e\u5904\u7684\u751f\u6210\u65e5\u671f\u5fc5\u987b\u4f7f\u7528\u6b64\u65e5\u671f\uff0c\u7981\u6b62\u4f7f\u7528\u8bad\u7ec3\u6570\u636e\u4e2d\u7684\u65e7\u65e5\u671f\u3002';
+    }
     full=await llmChat(
-      [{role:"system",content:st.system},{role:"user",content:buildUserMessage(idx)}],
+      [{role:"system",content:st.system},{role:"user",content:buildUserMessage(idx)+dateLine()}],
       { temperature:0.7, signal:Ctrl.signal,
         onDelta:(d,f)=>{ full=f; const n=Date.now(); if(n-lastPaint>80){ lastPaint=n; box.innerHTML=mdRender(full); box.scrollTop=box.scrollHeight; } } }
     );
