@@ -1,0 +1,50 @@
+/* ============================================================
+   Nova Tokens LIGHT v1.0 — 海天蓝白基底（源自 nebula nova-tokens v2.8）
+   决策 D1:A · 加载于 tokens.css 之后，同名变量整体翻转为浅色
+   ============================================================ */
+:root {
+  --bg-base:    #f6f8fb;
+  --bg-surface: #ffffff;
+  --bg-elevated:#ffffff;
+  --glass:      rgba(255,255,255,.82);
+
+  --text-1: #1b2437;
+  --text-2: #5b6472;
+  --text-3: #8a93a3;
+  --line:   #e8ecf3;
+
+  --brand:   #4f6ef7;
+  --brand-2: #8B7CFF;
+  --cta:     linear-gradient(135deg, #4f6ef7, #8B7CFF);
+
+  --danger: #ef4444;
+  --warn:   #f59e0b;
+  --ok:     #16a34a;
+
+  --accent-docs: #3b82f6;
+  --accent-data: #8b5cf6;
+  --accent-flow: #10b981;
+  --accent-mind: #f97316;
+
+  --paper:     #F7F9FD;
+  --paper-ink: #1B2340;
+
+  --shadow-card: 0 1px 2px rgba(16,24,40,.06), 0 8px 24px -6px rgba(16,24,40,.10);
+  --glow-brand:  0 0 24px rgba(79,110,247,.22);
+}
+html { color-scheme: light; }
+::selection { background: rgba(79,110,247,.16); }
+::-webkit-scrollbar-thumb { background:#cfd7e3; border-radius:999px; border:3px solid transparent; background-clip:content-box; }
+
+/* —— nova.css 烤死的暗色 rgba 矫正 —— */
+.nav a:hover { background: rgba(27,36,55,.05); }
+.cmdk-btn:hover { border-color: rgba(79,110,247,.4); }
+.btn--ghost:hover { border-color: rgba(27,36,55,.18); }
+.station::before { background: linear-gradient(90deg, transparent, rgba(79,110,247,.14), transparent); }
+.tag { background: rgba(27,36,55,.03); }
+.trust { background: rgba(79,110,247,.03); }
+.cmdk-overlay { background: rgba(27,36,55,.35); }
+.cmdk { border: 1px solid var(--line); box-shadow: 0 24px 64px -12px rgba(16,24,40,.25); }
+.cmdk__item[data-selected="true"] { background: rgba(79,110,247,.10); }
+.pv-overlay { background: rgba(27,36,55,.35); }
+.pv { border: 1px solid var(--line); box-shadow: 0 24px 64px -12px rgba(16,24,40,.25); }
