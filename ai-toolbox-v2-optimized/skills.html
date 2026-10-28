@@ -132,7 +132,7 @@
           const raw = localStorage.getItem(k); if (!raw) continue;
           const s = JSON.parse(raw);
           let list = Array.isArray(s) ? s : (Array.isArray(s?.llmProfiles) ? s.llmProfiles : Array.isArray(s?.profiles) ? s.profiles : (Array.isArray(s?.list) ? s.list : ((s?.apiKey||s?.api_key) ? [s] : [])));
-          const mapped = list.filter(p => p list.filter(p => p && (p.apiKey||p.api_key||p.key))list.filter(p => p && (p.apiKey||p.api_key||p.key)) p.enabled !== false).map(p => ({
+          const mapped = list.filter(p => (p || {}).enabled !== false).map(p => ({
             baseUrl: p.baseUrl||p.base_url||p.apiBase||p.api_base||p.base||'https://api.openai.com/v1',
             apiKey: p.apiKey||p.api_key||p.key||"", model: p.model||'gpt-4o-mini' }));
           if (mapped.length) return mapped;
