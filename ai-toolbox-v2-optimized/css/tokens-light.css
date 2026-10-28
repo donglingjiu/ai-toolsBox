@@ -1,50 +1,54 @@
 /* ============================================================
-   Nova Tokens LIGHT v1.0 — 海天蓝白基底（源自 nebula nova-tokens v2.8）
-   决策 D1:A · 加载于 tokens.css 之后，同名变量整体翻转为浅色
+   Nova Tokens LIGHT v2 — nebula crystal/ocean 真移植（D1:A）
+   大气层背景 + 玻璃卡片 + 渐变CTA + 发丝线 + 4px焦点环
    ============================================================ */
-:root {
-  --bg-base:    #f6f8fb;
-  --bg-surface: #ffffff;
-  --bg-elevated:#ffffff;
-  --glass:      rgba(255,255,255,.82);
-
-  --text-1: #1b2437;
-  --text-2: #5b6472;
-  --text-3: #8a93a3;
-  --line:   #e8ecf3;
-
-  --brand:   #4f6ef7;
-  --brand-2: #8B7CFF;
-  --cta:     linear-gradient(135deg, #4f6ef7, #8B7CFF);
-
-  --danger: #ef4444;
-  --warn:   #f59e0b;
-  --ok:     #16a34a;
-
-  --accent-docs: #3b82f6;
-  --accent-data: #8b5cf6;
-  --accent-flow: #10b981;
-  --accent-mind: #f97316;
-
-  --paper:     #F7F9FD;
-  --paper-ink: #1B2340;
-
-  --shadow-card: 0 1px 2px rgba(16,24,40,.06), 0 8px 24px -6px rgba(16,24,40,.10);
-  --glow-brand:  0 0 24px rgba(79,110,247,.22);
+:root{
+  --bg-base:#edf6ff; --bg-surface:#ffffff; --bg-elevated:#ffffff;
+  --glass:rgba(255,255,255,.78);
+  --text-1:#102b60; --text-2:#44618f; --text-3:#6e84aa;
+  --line:rgba(166,197,239,.52);
+  --brand:#3778ff; --brand-2:#7964f7;
+  --cta:linear-gradient(112deg,#2f91ff 0%,#4f71ff 53%,#9669f5 100%);
+  --danger:#ef4444; --warn:#f59e0b; --ok:#20bda0;
+  --accent-docs:#3778ff; --accent-data:#7964f7; --accent-flow:#20bda0; --accent-mind:#e99b75;
+  --paper:#F7F9FD; --paper-ink:#142e65;
+  --shadow-card:0 18px 46px rgba(43,83,150,.10);
+  --glow-brand:0 10px 25px rgba(63,110,245,.24);
 }
-html { color-scheme: light; }
-::selection { background: rgba(79,110,247,.16); }
-::-webkit-scrollbar-thumb { background:#cfd7e3; border-radius:999px; border:3px solid transparent; background-clip:content-box; }
+html{color-scheme:light}
+::selection{background:rgba(55,120,255,.16)}
+::-webkit-scrollbar-thumb{background:#c3d4ee;border-radius:999px;border:3px solid transparent;background-clip:content-box}
+button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px solid rgba(76,133,255,.55);outline-offset:3px}
 
-/* —— nova.css 烤死的暗色 rgba 矫正 —— */
-.nav a:hover { background: rgba(27,36,55,.05); }
-.cmdk-btn:hover { border-color: rgba(79,110,247,.4); }
-.btn--ghost:hover { border-color: rgba(27,36,55,.18); }
-.station::before { background: linear-gradient(90deg, transparent, rgba(79,110,247,.14), transparent); }
-.tag { background: rgba(27,36,55,.03); }
-.trust { background: rgba(79,110,247,.03); }
-.cmdk-overlay { background: rgba(27,36,55,.35); }
-.cmdk { border: 1px solid var(--line); box-shadow: 0 24px 64px -12px rgba(16,24,40,.25); }
-.cmdk__item[data-selected="true"] { background: rgba(79,110,247,.10); }
-.pv-overlay { background: rgba(27,36,55,.35); }
-.pv { border: 1px solid var(--line); box-shadow: 0 24px 64px -12px rgba(16,24,40,.25); }
+/* 大气层：海洋洗固定背景（蓝晕+桃晕+纵向渐变） */
+body{background-color:#edf6ff;background-image:radial-gradient(ellipse at 8% 0%,rgba(129,190,255,.20),transparent 31%),radial-gradient(ellipse at 92% 2%,rgba(255,199,181,.18),transparent 26%),linear-gradient(180deg,#f3f8ff 0%,#eef6ff 58%,#f9fbff 100%);background-attachment:fixed}
+
+/* 高级控件：nebula 原值 */
+.btn{background:linear-gradient(150deg,rgba(255,255,255,.96),rgba(241,247,255,.86));box-shadow:0 5px 16px rgba(42,87,162,.05),inset 0 1px #fff}
+.btn--cta{border:1px solid rgba(255,255,255,.66);box-shadow:0 10px 25px rgba(63,110,245,.24),inset 0 1px 0 rgba(255,255,255,.52)}
+.btn--cta:hover{box-shadow:0 15px 34px rgba(63,110,245,.30),inset 0 1px 0 rgba(255,255,255,.68);filter:saturate(1.08) brightness(1.02)}
+input:focus,textarea:focus,select:focus{border-color:#8eb1ff;box-shadow:0 0 0 4px rgba(73,129,255,.12)}
+.card{border-color:rgba(196,215,244,.78);background:rgba(255,255,255,.83);backdrop-filter:blur(14px)}
+
+/* 顶栏蓝→桃渐变发丝线 */
+.topbar{position:relative;backdrop-filter:blur(14px)}
+.topbar::after{content:"";position:absolute;bottom:-1px;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(112,149,235,.34),rgba(244,186,160,.32),transparent);pointer-events:none}
+
+/* —— 暗色 rgba 矫正（自 v1）—— */
+.nav a:hover{background:rgba(16,43,96,.05)}
+.cmdk-btn:hover{border-color:rgba(55,120,255,.4)}
+.btn--ghost:hover{border-color:rgba(16,43,96,.18)}
+.station::before{background:linear-gradient(90deg,transparent,rgba(55,120,255,.14),transparent)}
+.tag{background:rgba(16,43,96,.03)}
+.trust{background:rgba(55,120,255,.03)}
+.cmdk-overlay,.pv-overlay{background:rgba(16,43,96,.35)}
+.cmdk,.pv{border:1px solid var(--line);box-shadow:0 24px 64px -12px rgba(23,52,105,.25)}
+.cmdk__item[data-selected="true"]{background:rgba(55,120,255,.10)}
+
+/* mind 工作台水晶升级 */
+.mind-col{background:rgba(255,255,255,.83);border-color:rgba(196,215,244,.78);box-shadow:0 10px 28px rgba(43,79,145,.055),inset 0 1px rgba(255,255,255,.97);backdrop-filter:blur(14px)}
+.mbtn{background:linear-gradient(150deg,rgba(255,255,255,.96),rgba(241,247,255,.86));border-color:rgba(177,201,240,.72);box-shadow:0 5px 16px rgba(42,87,162,.05),inset 0 1px #fff}
+.mbtn:hover{border-color:#9db9f4;box-shadow:0 10px 22px rgba(53,103,190,.12),inset 0 1px #fff}
+.mind-ta{background:rgba(255,255,255,.92);border:1px solid #d8e5f8;box-shadow:inset 0 1px 2px rgba(29,65,126,.025)}
+.mind-ta:focus{border-color:#8eb1ff;box-shadow:0 0
+.mind-wrap{background:linear-gradient(180deg,#fbfdff,#f5f9ff);border-color:rgba(196,215,244,.78);box-shadow:inset 0 1px 2px rgba(29,65,126,.04)}
