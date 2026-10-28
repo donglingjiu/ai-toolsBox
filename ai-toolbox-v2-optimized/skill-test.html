@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Skill 选择器验证页</title>
+<link rel="stylesheet" href="css/skill-picker.css">
+<style>
+  body{font-family:system-ui,-apple-system,"PingFang SC",sans-serif;background:#F7FAFC;margin:0;padding:40px 20px}
+  .t-wrap{max-width:720px;margin:0 auto}
+  .t-title{color:#1A365D;font-size:20px;margin:0 0 6px}
+  .t-sub{color:#64748B;font-size:13px;margin:0 0 24px}
+  .input-wrap{position:relative}
+  textarea{width:100%;box-sizing:border-box;padding:14px 110px 14px 14px;height:110px;border:1px solid rgba(43,108,176,.2);border-radius:12px;font-size:14px;resize:vertical;outline:none;background:#fff}
+  textarea:focus{border-color:#2B6CB0;box-shadow:0 0 0 3px rgba(43,108,176,.12)}
+  .t-checks{margin-top:28px;background:#fff;border:1px solid rgba(43,108,176,.1);border-radius:12px;padding:18px 20px}
+  .t-checks h3{margin:0 0 10px;font-size:15px;color:#1A365D}
+  .t-checks li{font-size:13px;color:#475569;line-height:1.9}
+</style>
+</head>
+<body>
+<div class="t-wrap">
+  <h1 class="t-title">✦ Skill 选择器验证</h1>
+  <p class="t-sub">验证链路：schema 校验 → 双库存储 → 选择器抽屉 → 对话注入</p>
+  <div class="input-wrap">
+    <textarea id="testInput" placeholder="① 点输入框右上角 ✦ Skill 按钮，或输入框为空时按 / 键唤起选择器…"></textarea>
+  </div>
+  <div class="t-checks">
+    <h3>验收清单（逐项核对）</h3>
+    <ol>
+      <li>✦ 按钮出现在输入框右上角（紫描边，hover 填充）</li>
+      <li>/ 键唤起（仅输入框为空时）</li>
+      <li>抽屉右侧滑入 + 背景毛玻璃模糊</li>
+      <li>3 条示例卡片 stagger 入场，左侧紫渐变竖线</li>
+      <li>分类树（全部/内容创作/编程开发/办公效率）切换过滤</li>
+      <li>搜索 "xiaohongshu" 或 "代码" 实时过滤</li>
+      <li>↑↓ 键盘导航 + Enter 选中 + Esc 关闭</li>
+      <li>选中带 {{参数}} 的 Skill → 占位符表单 → 填写应用</li>
+      <li>应用后输入框被填入组装好的提示词</li>
+      <li>重开选择器 → 卡片 "▶ 使用次数" +1（localStorage 持久）</li>
+    </ol>
+  </div>
+</div>
+<script src="js/skills/skill-schema.js"></script>
+<script>
+window.AT_SKILLS_BUILTIN = [
+  { name:"xiaohongshu-seeding-note", description:"生成小红书种草笔记。当用户需要写小红书文案、种草笔记、产品测评分享时触发。", category:"内容创作", version:"1.0.0", author:"ai-toolbox", tags:["小红书","文案","种草"], use_cases:["写种草笔记","产品测评"], body:"## 角色\n你是一名资深小红书内容策划，深谙平台流量逻辑与用户偏好。\n\n## 操作步骤\n1. 提取 {{产品名称}} 核心卖点与 {{目标人群}} 画像\n2. 设计痛点开头+场景体验+信任背书+行动引导结构\n3. 按小红书语感成文并配标签\n\n## 输出格式\n300-500字；标题含emoji；结尾5个#标签\n\n## 边界约束\n- 不使用广告法禁用词\n- 不编造未提供的功效数据", quality:{role_clarity:5,constraints:5,verifiable:4.5,examples:4,boundary:5} },
+  { name:"code-review-frontend", description:"前端代码审查。当用户提交代码需要专业 review、找 bug、提优化建议时触发。", category:"编程开发", version:"1.0.0", author:"ai-toolbox", tags:["代码审查","前端"], use_cases:["审查页面代码"], body:"## 角色\n你是一名资深前端工程师，遵循语义化HTML、响应式、设计一致性规范。\n\n## 操作步骤\n1. 通读 {{代码内容}}\n2. 按bug/规范/性能/可访问性四象限输出\n3. 每个问题给出可粘贴的修复代码\n\n## 输出格式\nMarkdown表格按严重度排序\n\n## 边界约束\n- 只审查给定代码\n- 修复建议可直接替换运行", quality:{role_clarity:5,constraints:4.5,verifiable:5,examples:4,boundary:4.5} },
+  { name:"meeting-minutes", description:"会议纪要整理。当用户需要把会议记录、语音转写整理成结构化纪要时触发。", category:"办公效率", version:"1.0.0", author:"ai-toolbox", tags:["会议","纪要"], use_cases:["整理会议记录"], body:"## 角色\n你是一名高效能的会议助理。\n\n## 操作步骤\n1. 解析 {{会议内容}} 提取决议/待办/讨论\n2. 按模板结构化输出\n\n## 输出格式\n决议/待办（含负责人+截止）/遗留问题 三段式\n\n## 边界约束\n- 忠于原文，不臆造决议", quality:{role_clarity:4.5,constraints:4.5,verifiable:4.5,examples:4,boundary:4.5} }
+];
+</script>
+<script src="js/skills/skill-store.js"></script>
+<script src="js/skills/skill-picker.js"></script>
+<script src="js/skills/skill-injector.js"></script>
+<script>
+ATSkillInjector.attachToChat(document.getElementById('testInput'), { chatId:'test', mode:'fill' });
+</script>
+</body>
+</html>

@@ -186,7 +186,7 @@
     const skill = state.skill;
     const systemPrompt = skill.body.replace(/\{\{\s*([^}]+?)\s*\}\}/g,
       (_, k) => values[k] ?? `「${k}」`);
-    global.ATSkillInjector._recordUse(skill.name);
+    try{global.ATSkillStore.incrementUsage(skill.name);}catch(e){}
     const cb = state.onSelect;
     close();
     cb && cb({ skill, values, systemPrompt });
