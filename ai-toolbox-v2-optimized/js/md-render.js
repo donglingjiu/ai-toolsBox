@@ -36,6 +36,7 @@
     catch (e) { return false; }
     if (orig) {
       window.mdRender = function (t) {
+        t = tidy(t);
         var h = M.render(t);
         return (h == null) ? orig(t) : h;
       };
@@ -57,6 +58,9 @@
       });
     });
   };
+  function tidy(t) {
+    return t.replace(/(^|\n)(#{1,4}\s+\d{1,2}\.\s*[^\n\uff08()]{1,40}?)[\uff08(][^\uff08()\n]{2,90}[\uff09)](?=\s*\n|$)/g, '$1$2');
+  }
   M.render = function (text) {
     if (!M.ready) return null;
     try { return marked.parse(text || ''); } catch (e) { return null; }
