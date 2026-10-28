@@ -121,7 +121,9 @@
     + '.md-mind-x{background:none;border:1px solid rgba(255,255,255,.25);color:#fff;font-size:20px;line-height:1;border-radius:8px;padding:2px 10px;cursor:pointer}'
     + '.md-mind-wrap{position:absolute;top:52px;right:0;bottom:0;left:0}'
     + '.md-mind-wrap svg{width:100%;height:100%}'
-    + '.md-mind-wrap .markmap-foreign,.md-mind-wrap foreignObject div{color:#e8ecf5}';
+    + '.md-mind-wrap .markmap-foreign,.md-mind-wrap foreignObject div{color:#e8ecf5}'
+    + '.md-mind-wrap pre{background:#0d1117;border:1px solid rgba(255,255,255,.12);border-radius:6px;padding:8px;color:#e8ecf5;font-size:.85em;max-height:260px;overflow:hidden}'
+    + '.md-mind-wrap table{color:#e8ecf5}';
   function chain(srcs, i, cb) {
     if (i >= srcs.length) return cb(true);
     loadScript(srcs[i], function (ok) { ok ? chain(srcs, i + 1, cb) : cb(false); });
@@ -174,7 +176,7 @@
     ov._tip.textContent = '\u8111\u56fe\u5f15\u64ce\u52a0\u8f7d\u4e2d\u2026';
     chain(['js/vendor/d3.min.js', 'js/vendor/markmap-lib.min.js', 'js/vendor/markmap-view.min.js'], 0, function (ok) {
       if (!ok) { ov._tip.textContent = '\u8d44\u6e90\u52a0\u8f7d\u5931\u8d25 \u00b7 \u8bf7\u7a0d\u540e\u91cd\u8bd5'; return; }
-      mmReady = true; draw(M.lastText);
+      mmReady = true; ov._tip.textContent = '\u8111\u56fe\u89c6\u56fe \u00b7 \u5f53\u524d\u6587\u6863'; draw(M.lastText);
     });
   }
   function fallbackRoot(text) {
