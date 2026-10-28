@@ -9,23 +9,24 @@
 <link rel="stylesheet" href="css/tokens.css">
 <link rel="stylesheet" href="css/nova.css">
 <link rel="stylesheet" href="css/nova-docs.css">
+<link rel="stylesheet" href="css/tokens-light.css?v=1">
 <style>
 .mind-layout{display:grid;grid-template-columns:minmax(340px,5fr) 7fr;gap:14px;align-items:stretch}
 @media (max-width:960px){.mind-layout{grid-template-columns:1fr}}
-.mind-col{border:1px solid rgba(255,255,255,.1);border-radius:12px;background:rgba(255,255,255,.03);padding:14px 16px 16px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.mind-col{border:1px solid #e8ecf3;border-radius:12px;background:#ffffff;padding:14px 16px 16px;display:flex;flex-direction:column;gap:10px;min-width:0}
 .mbar{display:flex;align-items:center;gap:10px}
 .mbar strong{font-size:14px}
 .mnote{font-size:12px;opacity:.72}
 .mspacer{flex:1}
-.mbtn{background:none;border:1px solid rgba(255,255,255,.18);color:#e8ecf5;border-radius:8px;padding:4px 12px;font-size:12px;cursor:pointer}
-.mbtn:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.3)}
+.mbtn{background:none;border:1px solid #d9dfe9;color:#1b2437;border-radius:8px;padding:4px 12px;font-size:12px;cursor:pointer}
+.mbtn:hover{background:#eef2ff;border-color:#b9c6fb}
 .mbtn[disabled]{opacity:.4;cursor:default}
-.mbtn[disabled]:hover{background:none;border-color:rgba(255,255,255,.18)}
-.mind-ta{flex:1;min-height:46vh;width:100%;box-sizing:border-box;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.12);border-radius:10px;color:#e8ecf5;padding:12px;font:13px/1.7 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;resize:vertical;outline:none}
-.mind-ta:focus{border-color:rgba(69,224,200,.55)}
-.mind-wrap{position:relative;flex:1;min-height:46vh;border:1px solid rgba(255,255,255,.1);border-radius:10px;overflow:hidden;background:rgba(0,0,0,.18)}
+.mbtn[disabled]:hover{background:none;border-color:#d9dfe9}
+.mind-ta{flex:1;min-height:46vh;width:100%;box-sizing:border-box;background:#ffffff;border:1px solid #e8ecf3;border-radius:10px;color:#1b2437;padding:12px;font:13px/1.7 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;resize:vertical;outline:none}
+.mind-ta:focus{border-color:rgba(79,110,247,.45)}
+.mind-wrap{position:relative;flex:1;min-height:46vh;border:1px solid #e8ecf3;border-radius:10px;overflow:hidden;background:#fbfcfe}
 .mind-wrap svg{width:100%;height:100%;display:block}
-.mind-wrap foreignObject div,.mind-wrap .markmap-foreign{color:#e8ecf5}
+.mind-wrap foreignObject div,.mind-wrap .markmap-foreign{color:#1b2437}
 .mind-empty{position:absolute;top:0;right:0;bottom:0;left:0;display:flex;align-items:center;justify-content:center;color:#8b93a7;font-size:14px;text-align:center;padding:0 24px;pointer-events:none}
 </style>
 <script src='js/builtin-profile.js'></script><script src='js/guard.js'></script>
@@ -163,9 +164,9 @@
       clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
       clone.setAttribute('width', svg.clientWidth || 1200);
       clone.setAttribute('height', svg.clientHeight || 800);
-      clone.style.background = '#0d1420';
+      clone.style.background = '#ffffff';
       var st = document.createElementNS('http://www.w3.org/2000/svg', 'style');
-      st.textContent = '.markmap-foreign{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif;font-size:14px;color:#e8ecf5}.markmap-foreign div{color:#e8ecf5;margin:2px 0}';
+      st.textContent = '.markmap-foreign{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif;font-size:14px;color:#1b2437}.markmap-foreign div{color:#1b2437;margin:2px 0}';
       clone.insertBefore(st, clone.firstChild);
       var data = new XMLSerializer().serializeToString(clone);
       var blob = new Blob([data], { type: 'image/svg+xml;charset=utf-8' });
