@@ -131,10 +131,10 @@
         try {
           const raw = localStorage.getItem(k); if (!raw) continue;
           const s = JSON.parse(raw);
-          let list = Array.isArray(s) ? s : (Array.isArray(s?.profiles) ? s.profiles : (Array.isArray(s?.list) ? s.list : ((s?.apiKey||s?.api_key) ? [s] : [])));
-          const mapped = list.filter(p => p && (p.apiKey||p.api_key||p.key)).map(p => ({
+          let list = Array.isArray(s) ? s : (Array.isArray(s?.llmProfiles) ? s.llmProfiles : Array.isArray(s?.profiles) ? s.profiles : (Array.isArray(s?.list) ? s.list : ((s?.apiKey||s?.api_key) ? [s] : [])));
+          const mapped = list.filter(p => p list.filter(p => p && (p.apiKey||p.api_key||p.key))list.filter(p => p && (p.apiKey||p.api_key||p.key)) p.enabled !== false).map(p => ({
             baseUrl: p.baseUrl||p.base_url||p.apiBase||p.api_base||p.base||'https://api.openai.com/v1',
-            apiKey: p.apiKey||p.api_key||p.key, model: p.model||'gpt-4o-mini' }));
+            apiKey: p.apiKey||p.api_key||p.key||"", model: p.model||'gpt-4o-mini' }));
           if (mapped.length) return mapped;
         } catch (e) {}
       }
@@ -148,7 +148,7 @@
         try {
           onStatus && onStatus('✦ 调用 ' + p.model + ' …');
           const res = await fetch(p.baseUrl.replace(/\/$/,'') + '/chat/completions', { method:'POST',
-            headers:{'Content-Type':'application/json','Authorization':'Bearer '+p.apiKey},
+            headers:(function(){var h={'Content-Type':'application/json'};if(p.apiKey)h.Authorization='Bearer '+p.apiKey;return h;})(),
             body: JSON.stringify({ model:p.model, temperature:0.3, response_format:{type:'json_object'}, messages:[{role:'user',content:prompt}] }) });
           if (!res.ok) throw new Error('HTTP '+res.status);
           return (await res.json()).choices[0].message.content;
