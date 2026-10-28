@@ -110,3 +110,15 @@ AI 试衣需额外配置支持 `/images/edits` 多图输入的图像模型（如
 | 成本 | 用自己的 API Key，按量自付 | 多为订阅制 |
 
 定位取舍：本工具优先**隐私可控 + 结果可复现**，适合「让 AI 出方案、由本地按确定规则整理」的场景；需要复杂即席分析、可视化图表或超大数据集时，成熟商业方案仍更全面。
+
+---
+
+## 更新日志
+
+### 2026-10-28
+
+- **Nova Flow**：五阶段产线强化——渲染管线本地化、真实日期注入、输出四规则（禁围栅、禁标题尾巴、模板括号=内容规格）、手动停止独立状态、脚本缓存戳 v14。
+- **Nova Mind**：新增 mind.html 工作台——粘贴 Markdown 即时生成交互脑图（本地渲染、SVG 导出），并修复四页导航 Mind 死链。
+- **brain.html**：marked/mammoth 由 CDN 改为本地 vendor，全站零 CDN。
+- **vendor**：补录 d3、markmap-lib、markmap-view、marked、highlight、mermaid，均本地打包。
+- **待办**：vendor 依赖表补录六行；flow-prompts 标题括号规格迁移至节内说明。
