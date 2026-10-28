@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nova Mind · 星智 — 脑图工作室</title>
+<meta name="description" content="Nova Mind — 粘贴 Markdown，即刻生成可交互思维导图。纯本地运行，数据不出设备。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%2345E0C8' d='M12 2 14.4 9.6 22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4Z'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/nova.css">
+<link rel="stylesheet" href="css/nova-docs.css">
+<style>
+.mind-layout{display:grid;grid-template-columns:minmax(340px,5fr) 7fr;gap:14px;align-items:stretch}
+@media (max-width:960px){.mind-layout{grid-template-columns:1fr}}
+.mind-col{border:1px solid rgba(255,255,255,.1);border-radius:12px;background:rgba(255,255,255,.03);padding:14px 16px 16px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.mbar{display:flex;align-items:center;gap:10px}
+.mbar strong{font-size:14px}
+.mnote{font-size:12px;opacity:.72}
+.mspacer{flex:1}
+.mbtn{background:none;border:1px solid rgba(255,255,255,.18);color:#e8ecf5;border-radius:8px;padding:4px 12px;font-size:12px;cursor:pointer}
+.mbtn:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.3)}
+.mbtn[disabled]{opacity:.4;cursor:default}
+.mbtn[disabled]:hover{background:none;border-color:rgba(255,255,255,.18)}
+.mind-ta{flex:1;min-height:46vh;width:100%;box-sizing:border-box;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.12);border-radius:10px;color:#e8ecf5;padding:12px;font:13px/1.7 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;resize:vertical;outline:none}
+.mind-ta:focus{border-color:rgba(69,224,200,.55)}
+.mind-wrap{position:relative;flex:1;min-height:46vh;border:1px solid rgba(255,255,255,.1);border-radius:10px;overflow:hidden;background:rgba(0,0,0,.18)}
+.mind-wrap svg{width:100%;height:100%;display:block}
+.mind-wrap foreignObject div,.mind-wrap .markmap-foreign{color:#e8ecf5}
+.mind-empty{position:absolute;top:0;right:0;bottom:0;left:0;display:flex;align-items:center;justify-content:center;color:#8b93a7;font-size:14px;text-align:center;padding:0 24px;pointer-events:none}
+</style>
+<script src='js/builtin-profile.js'></script><script src='js/guard.js'></script>
+</head>
+<body>
+<a class="skip-link" href="#main">跳到主要内容</a>
+
+<header class="topbar">
+  <div class="topbar__inner">
+    <a class="logo" href="index.html" aria-label="Nova Mind">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M12 2 14.4 9.6 22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4Z"/></svg>
+      Nova <span class="logo__cn">Mind · 星智</span>
+    </a>
+    <nav class="nav" aria-label="主导航">
+      <a href="docs.html">Docs</a><a href="data.html">Data</a><a href="flow.html">Flow</a><a href="mind.html" aria-current="page">Mind</a>
+    </nav>
+    <span class="topbar__spacer"></span>
+    <button class="cmdk-btn" data-cmdk-open aria-label="打开 Nova Command 命令面板">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      搜索… <kbd>Ctrl K</kbd>
+    </button>
+  </div>
+</header>
+
+<main id="main" class="docs-main">
+  <div class="mind-layout">
+    <section class="mind-col">
+      <div class="mbar">
+        <strong>Markdown 源</strong>
+        <span id="mind-stat" class="mnote"></span>
+        <span class="mspacer"></span>
+        <button id="mind-sample" class="mbtn" type="button">示例文档</button>
+        <button id="mind-clear" class="mbtn" type="button">清空</button>
+      </div>
+      <textarea id="mind-src" class="mind-ta" spellcheck="false" placeholder="粘贴 Markdown，标题与列表自动长成脑图"></textarea>
+    </section>
+    <section class="mind-col">
+      <div class="mbar">
+        <strong>脑图预览</strong>
+        <span id="mind-tip" class="mnote">左侧编辑，右侧实时成图</span>
+        <span class="mspacer"></span>
+        <button id="mind-fit" class="mbtn" type="button">适配视图</button>
+        <button id="mind-dl" class="mbtn" type="button" disabled>下载 SVG</button>
+      </div>
+      <div class="mind-wrap">
+        <svg id="mind-svg"></svg>
+        <div class="mind-empty" id="mind-empty">在左侧粘贴或撰写 Markdown，脑图即刻生长</div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<footer style="padding:18px 0 28px;text-align:center;opacity:.6;font-size:13px;">Nova Mind · 纯本地渲染 · 内容仅存于浏览器 localStorage，不上传任何服务器</footer>
+
+<script type="text/plain" id="mind-sample-doc"># Nova Mind 使用指南
+## 快速上手
+- 左侧粘贴或编写 Markdown
+- 脑图实时生成，自动布局
+- 滚轮缩放，拖拽平移
+## 语法支持
+- # 标题 → 主分支
+- - 列表 → 子分支
+- 表格、代码块在节点内渲染
+## 典型用途
+- 读书笔记与知识整理
+- 项目规划与任务拆解
+- 会议纪要与头脑风暴</script>
+<script src="js/nova-core.js"></script>
+<script src="js/vendor/d3.min.js"></script>
+<script src="js/vendor/markmap-lib.min.js"></script>
+<script src="js/vendor/markmap-view.min.js"></script>
+<script>
+(function () {
+  var src = document.getElementById('mind-src');
+  var svg = document.getElementById('mind-svg');
+  var emptyBox = document.getElementById('mind-empty');
+  var tip = document.getElementById('mind-tip');
+  var stat = document.getElementById('mind-stat');
+  var bFit = document.getElementById('mind-fit');
+  var bDl = document.getElementById('mind-dl');
+  var bSample = document.getElementById('mind-sample');
+  var bClear = document.getElementById('mind-clear');
+  var sampleDoc = document.getElementById('mind-sample-doc').textContent.trim();
+  var KEY = 'nova_mind_src_v1';
+  var mm = null, timer = null, rz = null;
+
+  function fit() { if (mm) { try { mm.fit(); } catch (e) {} } }
+  function fallbackRoot(text) {
+    var root = { content: '文档', children: [] };
+    var cur = null;
+    text.split('\n').forEach(function (ln) {
+      var m = ln.match(/^(#{1,4})\s+(.*)$/);
+      if (m) { cur = { content: m[2].slice(0, 40), children: [] }; root.children.push(cur); }
+      else if (cur && ln.trim() && cur.children.length < 6) { cur.children.push({ content: ln.trim().slice(0, 36), children: [] }); }
+    });
+    return root;
+  }
+  function mount(root) {
+    if (!root) return;
+    emptyBox.style.display = 'none';
+    bDl.disabled = false;
+    if (mm) { mm.setData(root); setTimeout(fit, 60); return; }
+    mm = markmap.Markmap.create(svg, { autoFit: true, duration: 300, maxWidth: 280, spacingVertical: 8 }, root);
+    setTimeout(fit, 80);
+  }
+  function render() {
+    var text = src.value || '';
+    var n = text.replace(/\s/g, '').length;
+    stat.textContent = n ? (n + ' 字') : '';
+    try { localStorage.setItem(KEY, text); } catch (e) {}
+    if (n < 2) {
+      if (mm) { try { mm.setData({ content: '', children: [] }); } catch (e) {} }
+      emptyBox.style.display = 'flex';
+      bDl.disabled = true;
+      tip.textContent = '左侧编辑，右侧实时成图';
+      return;
+    }
+    try {
+      var tf = new markmap.Transformer();
+      var r = tf.transform(text);
+      if (r && typeof r.then === 'function') {
+        tip.textContent = '渲染中…';
+        r.then(function (res) { mount(res && res.root); tip.textContent = '拖拽平移 · 滚轮缩放 · 点节点折叠'; });
+      } else { mount(r && r.root); tip.textContent = '拖拽平移 · 滚轮缩放 · 点节点折叠'; }
+    } catch (e) { mount(fallbackRoot(text)); tip.textContent = '拖拽平移 · 滚轮缩放 · 点节点折叠'; }
+  }
+  function schedule() { clearTimeout(timer); timer = setTimeout(render, 350); }
+  src.addEventListener('input', schedule);
+  bFit.addEventListener('click', fit);
+  bSample.addEventListener('click', function () { src.value = sampleDoc; render(); });
+  bClear.addEventListener('click', function () { src.value = ''; render(); src.focus(); });
+  bDl.addEventListener('click', function () {
+    try {
+      var clone = svg.cloneNode(true);
+      clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+      clone.setAttribute('width', svg.clientWidth || 1200);
+      clone.setAttribute('height', svg.clientHeight || 800);
+      clone.style.background = '#0d1420';
+      var st = document.createElementNS('http://www.w3.org/2000/svg', 'style');
+      st.textContent = '.markmap-foreign{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif;font-size:14px;color:#e8ecf5}.markmap-foreign div{color:#e8ecf5;margin:2px 0}';
+      clone.insertBefore(st, clone.firstChild);
+      var data = new XMLSerializer().serializeToString(clone);
+      var blob = new Blob([data], { type: 'image/svg+xml;charset=utf-8' });
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'nova-mind.svg';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(function () { try { URL.revokeObjectURL(a.href); } catch (e) {} }, 800);
+      tip.textContent = 'SVG 已下载，用浏览器打开效果最佳';
+    } catch (e) { tip.textContent = '下载失败：' + e.message; }
+  });
+  window.addEventListener('resize', function () { clearTimeout(rz); rz = setTimeout(fit, 180); });
+  var saved = null;
+  try { saved = localStorage.getItem(KEY); } catch (e) {}
+  src.value = (saved && saved.replace(/\s/g, '').length > 2) ? saved : sampleDoc;
+  render();
+})();
+</script>
+</body>
+</html>
