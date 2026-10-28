@@ -101,7 +101,7 @@ async function runStage(idx){
   }catch(e){
     if(e&&e.name==="AbortError"){
       if(full) State.outputs[st.key]={text:full,ts:Date.now()};
-      State.status[st.key]=full?"fail":"pending";
+      State.status[st.key]=full?"stopped":"pending";
       novaToast("已停止"+(full?"（保留部分输出，可重跑覆盖）":""),"warn");
     }else{
       State.status[st.key]="fail";
@@ -114,7 +114,8 @@ async function runStage(idx){
   return State.status[st.key]==="done";
 }
 
-const ST_LABEL={pending:"待执行",run:"生成中",done:"完成",fail:"失败"};
+const ST_LABEL={pending:"待执行",run:"生成中",done:"完成",fail:"失败",stopped:"已停止"};
+(function(){var x=document.createElement('style');x.textContent='.stage-item.stopped{border-color:rgba(255,193,7,.45)}.stage-item.stopped .st{color:#FFC53D}';(document.head||document.documentElement).appendChild(x);})();
 function paintRail(){
   $d("#rail-list").innerHTML=NF_STAGES.map((s,i)=>{
     const stat=State.status[s.key]||"pending";
