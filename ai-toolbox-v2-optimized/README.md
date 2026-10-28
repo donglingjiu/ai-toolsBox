@@ -95,6 +95,12 @@ AI 试衣需额外配置支持 `/images/edits` 多图输入的图像模型（如
 | pdf-lib · `js/pdf-lib.min.js` | 生成/编辑 PDF | MIT |
 | pdf.js · `js/pdfjs/` | PDF 解析渲染 | Apache-2.0 |
 | qrcode-generator · `js/vendor/qrcode-generator.js` | 二维码生成 | MIT |
+| d3 · `js/vendor/d3.min.js` | 脑图/图形渲染基础库（Nova Mind / Flow） | ISC |
+| markmap-lib · `js/vendor/markmap-lib.min.js` | Markdown → 脑图数据转换 | MIT |
+| markmap-view · `js/vendor/markmap-view.min.js` | 脑图交互渲染（缩放/拖拽/折叠） | MIT |
+| marked · `js/vendor/marked.min.js` | Markdown 解析渲染 | MIT |
+| highlight.js · `js/vendor/highlight.min.js` | 代码高亮 | BSD-3-Clause |
+| mermaid · `js/vendor/mermaid.min.js` | Mermaid 图表渲染 | MIT |
 
 ## 与商业化表格工具的定位对比 / Positioning
 
@@ -117,8 +123,8 @@ AI 试衣需额外配置支持 `/images/edits` 多图输入的图像模型（如
 
 ### 2026-10-28
 
-- **Nova Flow**：五阶段产线强化——渲染管线本地化、真实日期注入、输出四规则（禁围栅、禁标题尾巴、模板括号=内容规格）、手动停止独立状态、脚本缓存戳 v14。
+- **Nova Flow**：五阶段产线强化——渲染管线本地化、真实日期注入、输出四规则（禁围栏、禁标题尾巴、模板括号=内容规格）、手动停止独立状态、脚本缓存戳 v14。
 - **Nova Mind**：新增 mind.html 工作台——粘贴 Markdown 即时生成交互脑图（本地渲染、SVG 导出），并修复四页导航 Mind 死链。
 - **brain.html**：marked/mammoth 由 CDN 改为本地 vendor，全站零 CDN。
 - **vendor**：补录 d3、markmap-lib、markmap-view、marked、highlight、mermaid，均本地打包。
-- **待办**：vendor 依赖表补录六行；flow-prompts 标题括号规格迁移至节内说明。
+- **待办**：flow-prompts 标题括号规格迁移至节内说明。
