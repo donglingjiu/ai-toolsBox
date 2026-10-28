@@ -1,11 +1,11 @@
 /* ============ AI 工具箱 设计系统 v3（晨光主题 · 融合流水线平台设计语言）============ */
 :root {
-  --bg: #FFF8EF;
+  --bg:#f6f9ff;
   --card: #ffffff;
   --ink: #1E2A3A;
   --ink-2: #5b6272;
   --ink-3: #9aa1b2;
-  --line: #EDE7DC;
+  --line:#e8ecf3;
   --primary: #5B6CFF;
   --primary-2: #8B5CF6;
   --accent: #F97316;
@@ -225,7 +225,7 @@ textarea { resize: vertical; min-height: 110px; line-height: 1.65; }
 .md pre code { background: none; color: inherit; padding: 0; }
 .md table { border-collapse: collapse; width: 100%; margin: .8em 0; font-size: 13.5px; }
 .md th, .md td { border: 1px solid var(--line); padding: 7px 11px; text-align: left; }
-.md th { background: #FFF8EF; font-weight: 700; }
+.md th { background: #f6f9ff; font-weight: 700; }
 .md blockquote { border-left: 3.5px solid var(--primary); margin: .7em 0; padding: 2px 0 2px 14px; color: var(--ink-2); }
 .md hr { border: none; border-top: 1px solid var(--line); margin: 1.2em 0; }
 
