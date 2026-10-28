@@ -264,7 +264,7 @@ function streamShow(on, text) {
 
 function checkReady() {
   if (!llmReady()) {
-    showErr('errBox', '未配置 AI 接口。请先到 <a href="settings.html" style="text-decoration:underline">设置页</a> 填写文本 API（接口地址 / Key / 模型），本工具的大纲与成稿由你自己的模型生成。');
+    showErr('errBox', '未配置 AI 接口。请先到 <a href="skills.html">✦ Skill 工坊</a><a href="settings.html" style="text-decoration:underline">设置页</a> 填写文本 API（接口地址 / Key / 模型），本工具的大纲与成稿由你自己的模型生成。');
     return false;
   }
   return true;
