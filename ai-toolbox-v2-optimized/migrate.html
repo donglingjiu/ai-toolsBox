@@ -232,7 +232,7 @@ window.MG = (function () {
             var s = extractJSON(await callAI(ps[pi], prompt));
             s.name = asciiName(s.name || '');
             s.category = item.category; s.author = 'ai-toolbox';
-            if (!s.name || !s.body) throw new Error('AI 输出缺 name 或 body');
+            if (!s.name || typeof s.body !== "string" || s.body.length < 20) throw new Error('AI 输出缺 name 或 body');
             cache[k] = s; done = true;
           } catch (e) {
             if (retry === 1) setStat('失败: ' + item.title + '（' + e.message + '），可点暂停后重跑续传');
@@ -254,7 +254,7 @@ window.MG = (function () {
     var skills = [], review = [], seen = {};
     for (var idx = 0; idx < raw.length; idx++) {
       var item = raw[idx], s = cache[keyOf(item.title)];
-      if (!s || !s.name || !s.body) { review.push('未重构：' + item.title); continue; }
+      if (!s || !s.name || typeof s.body !== "string" || s.body.length < 20) { review.push('未重构：' + item.title); continue; }
       if (seen[s.name]) s.name = s.name + '-' + Math.random().toString(36).slice(2, 5);
       seen[s.name] = 1;
       var desc = s.description || '';
