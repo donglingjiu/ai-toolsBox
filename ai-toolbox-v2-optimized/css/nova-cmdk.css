@@ -1,0 +1,63 @@
+/* nova-cmdk v1 — legacy 壳层嫁接（亮色 shim + 切片） */
+:root{--bg-base:#edf6ff;--bg-surface:#ffffff;--bg-elevated:#ffffff;--glass:rgba(255,255,255,.78);--text-1:#102b60;--text-2:#44618f;--text-3:#6e84aa;--line:rgba(166,197,239,.52);--brand:#3778ff;--brand-2:#7964f7;--shadow-card:0 18px 46px rgba(43,83,150,.10)}
+/* 命令面板触发按钮 */ .cmdk-btn{
+  display: flex; align-items: center; gap: var(--s2);
+  padding: var(--s2) var(--s3);
+  background: var(--bg-surface); border: 1px solid var(--line); border-radius: var(--r-btn);
+  color: var(--text-3); font-size: 13px;
+  transition: border-color var(--t-fast) var(--e-out), color var(--t-fast) var(--e-out);
+}
+.cmdk-btn:hover{ border-color: rgba(69, 224, 200, .4); color: var(--text-2); }
+.cmdk-btn kbd{
+  font-family: var(--font-mono); font-size: 11px;
+  padding: 1px 6px; border: 1px solid var(--line); border-radius: 6px;
+  background: var(--bg-elevated); color: var(--text-3);
+}
+/* ---------- Nova Command 命令面板 ---------- */ .cmdk-overlay{
+  position: fixed; inset: 0; z-index: 150;
+  background: rgba(5, 8, 16, .6);
+  backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+  display: none; align-items: flex-start; justify-content: center; padding: 14vh var(--s4) var(--s4);
+}
+.cmdk-overlay[data-open="true"]{ display: flex; animation: fade var(--t-fast) var(--e-out); }
+.cmdk{
+  width: min(var(--cmdk), 100%);
+  background: var(--bg-elevated); border: 1px solid rgba(233, 237, 247, .12);
+  border-radius: var(--r-modal); box-shadow: 0 24px 80px rgba(0, 0, 0, .55);
+  overflow: hidden; animation: pop var(--t-mid) var(--e-out);
+}
+.cmdk__search{ display: flex; align-items: center; gap: var(--s3); padding: var(--s4) var(--s5); border-bottom: 1px solid var(--line); }
+.cmdk__search svg{ color: var(--text-3); flex: none; }
+.cmdk__search input{
+  flex: 1; background: none; border: 0; outline: none; color: var(--text-1);
+  font: inherit; font-size: 16px;
+}
+.cmdk__search input::placeholder{ color: var(--text-3); }
+.cmdk__list{ max-height: 46vh; overflow-y: auto; padding: var(--s2); }
+.cmdk__group{
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: .2em; text-transform: uppercase;
+  color: var(--text-3); padding: var(--s3) var(--s3) var(--s1);
+}
+.cmdk__item{
+  display: flex; align-items: center; gap: var(--s3);
+  width: 100%; text-align: left; padding: var(--s3); border-radius: var(--r-btn);
+  color: var(--text-2); transition: background var(--t-fast) var(--e-out);
+}
+.cmdk__item[data-selected="true"]{ background: rgba(69, 224, 200, .1); color: var(--text-1); }
+.cmdk__item-title{ flex: 1; font-size: 14px; }
+.cmdk__item-hint{ font-family: var(--font-mono); font-size: 11px; color: var(--text-3); }
+.cmdk__empty{ padding: var(--s6); text-align: center; color: var(--text-3); font-size: 14px; }
+/* ---------- Toast ---------- */ .toast-zone{ position: fixed; bottom: var(--s5); right: var(--s5); z-index: 160; display: grid; gap: var(--s2); }
+.toast{
+  display: flex; align-items: center; gap: var(--s3);
+  background: var(--bg-elevated); border: 1px solid var(--line); border-radius: var(--r-inner);
+  padding: var(--s3) var(--s4); box-shadow: var(--shadow-card); font-size: 14px;
+  animation: toast-in var(--t-mid) var(--e-out);
+}
+.toast[data-type="ok"]{ border-left: 3px solid var(--ok); }
+.toast[data-type="warn"]{ border-left: 3px solid var(--warn); }
+.toast[data-type="error"]{ border-left: 3px solid var(--danger); }
+.toast.is-leaving{ opacity: 0; transform: translateY(6px); transition: all var(--t-mid) var(--e-out); }
+.cmdk-overlay{background:rgba(16,43,96,.35)}
+.cmdk{border:1px solid var(--line);box-shadow:0 24px 64px -12px rgba(23,52,105,.25)}
+.cmdk__item[data-selected="true"]{background:rgba(55,120,255,.10)}
