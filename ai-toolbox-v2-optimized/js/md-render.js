@@ -1,4 +1,4 @@
-/* md-render.js v2 - marked + highlight.js + mermaid, progressive */
+/* md-render.js v3 - sync-first wrapper, lazy mermaid */
 (function () {
   var M = { ready: false, mermaidReady: false };
   window.MdRender = M;
@@ -26,23 +26,29 @@
     var st = document.createElement('style');
     st.textContent = CSS; document.head.appendChild(st);
   }
+  function finish() {
+    try { marked.setOptions({ gfm: true, breaks: true }); M.ready = true; }
+    catch (e) { return false; }
+    if (orig) {
+      window.mdRender = function (t) {
+        var h = M.render(t);
+        return (h == null) ? orig(t) : h;
+      };
+    }
+    return true;
+  }
   M.init = function (cb) {
     if (M.ready) return cb && cb(true);
     injectCss();
     loadCss('js/vendor/github-dark.min.css');
+    if (window.marked && window.hljs) {
+      var ok = finish(); return cb && cb(ok);
+    }
     loadScript('js/vendor/marked.min.js', function (ok1) {
       if (!ok1) return cb && cb(false);
       loadScript('js/vendor/highlight.min.js', function (ok2) {
         if (!ok2) return cb && cb(false);
-        try { marked.setOptions({ gfm: true, breaks: true }); M.ready = true; }
-        catch (e) { return cb && cb(false); }
-        if (orig) {
-          window.mdRender = function (t) {
-            var h = M.render(t);
-            return (h == null) ? orig(t) : h;
-          };
-        }
-        cb && cb(true);
+        cb && cb(finish());
       });
     });
   };
@@ -90,6 +96,7 @@
       } catch (e) { done(); }
     });
   }
+  M.init();
   if (document.body) {
     var pend = null;
     function sweep() {
@@ -99,8 +106,7 @@
       M.enhance(box);
     }
     new MutationObserver(function () {
-      clearTimeout(pend); pend = setTimeout(sweep, 300);
+      clearTimeout(pend); pend =
     }).observe(document.body, { childList: true, subtree: true });
   }
- 
 })();
