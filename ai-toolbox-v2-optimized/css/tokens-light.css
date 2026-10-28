@@ -50,5 +50,5 @@ input:focus,textarea:focus,select:focus{border-color:#8eb1ff;box-shadow:0 0 0 4p
 .mbtn{background:linear-gradient(150deg,rgba(255,255,255,.96),rgba(241,247,255,.86));border-color:rgba(177,201,240,.72);box-shadow:0 5px 16px rgba(42,87,162,.05),inset 0 1px #fff}
 .mbtn:hover{border-color:#9db9f4;box-shadow:0 10px 22px rgba(53,103,190,.12),inset 0 1px #fff}
 .mind-ta{background:rgba(255,255,255,.92);border:1px solid #d8e5f8;box-shadow:inset 0 1px 2px rgba(29,65,126,.025)}
-.mind-ta:focus{border-color:#8eb1ff;box-shadow:0 0
+.mind-ta:focus{border-color:#8eb1ff;box-shadow:0 0 0 4px rgba(73,129,255,.12)}
 .mind-wrap{background:linear-gradient(180deg,#fbfdff,#f5f9ff);border-color:rgba(196,215,244,.78);box-shadow:inset 0 1px 2px rgba(29,65,126,.04)}
