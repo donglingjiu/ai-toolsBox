@@ -51,7 +51,7 @@ var FLOW_TEAMS = [
 var FLOW_STAGES = [
   {
     key: 'prd', name: '需求分析', icon: '🎯', team: 'product', teamName: '产品专家团',
-    inputLabel: '产品需求描述',
+    inputLabel: '补充说明',
     inputPh: '例如：给内部团队做一个周报自动汇总工具，能从群聊拉取消息、按人汇总、生成周报页面…',
     system: '你是资深产品专家（对标一线大厂 PRD 标准）。' +
       '基于用户需求描述产出《需求分析文档》，Markdown，结构如下：\n' +
