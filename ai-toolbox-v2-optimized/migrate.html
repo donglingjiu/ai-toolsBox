@@ -51,7 +51,7 @@ a.back{font-size:12.5px;color:#2B6CB0;text-decoration:none}
     </div>
     <button class="ai" id="enrichBtn">② 开始重构</button>
     <button id="stopBtn" disabled>暂停</button>
-    <button onclick="MG.clearCache()">清空缓存重跑</button>
+    <button>清空缓存重跑</button>
     <div class="bar-wrap"><div class="bar" id="bar"></div></div>
     <div class="stat" id="barTxt">0/0</div>
     <div class="stat" id="status"></div>
@@ -220,7 +220,7 @@ window.MG = (function () {
     while (i < raw.length) {
       var item = raw[i]; i++;
       var k = keyOf(item.title);
-      if (cache[k]) { ok++; setBar(i, ok); continue; }
+      if (cache[k]) { if (typeof cache[k].body === "string") { if (cache[k].body.length > 20) { ok++; setBar(i, ok); continue; } } delete cache[k]; setStat("发现无效缓存条目，将重新重构"); }
       if (stopFlag) break;
       var prompt = META.split('{title}').join(item.title).split('{category}').join(item.category)
         .split('{audience}').join(item.audience.join('、') || '通用').split('{content}').join(item.content);
@@ -263,7 +263,7 @@ window.MG = (function () {
       if (s.body.indexOf('{{') < 0 && s.body.indexOf('[') >= 0)
         review.push('占位符可能未转换：' + s.name);
       skills.push({ name: s.name, description: desc, category: s.category, version: '1.0.0', author: 'ai-toolbox',
-        tags: s.tags || [], use_cases: s.use_cases || item.audience, expert_injection: 'none', body: s.body,
+        tags: (s.tags instanceof Array) ? s.tags : [], use_cases: (s.use_cases instanceof Array) ? s.use_cases : item.audience, expert_injection: 'none', body: s.body,
         quality: s.quality || { role_clarity: 3, constraints: 3, verifiable: 3, examples: 3, boundary: 3 },
         usage_count: 0, created_at: today() });
     }
