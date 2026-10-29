@@ -72,3 +72,5 @@
   ↳ 复测判读：docs 冷加载 14.4→3.65s 基线健康（页面未改动，纯环境波动回落）；prompts 16s 为离群值
   ↳ SW 缓存层上线（SWR HTML + 缓存优先静态）：重复访问零网络依赖，随机停顿不再影响体验
   ↳ SW 维护约定：大版本发布将 CACHE 'nova-v1' bump 'nova-v2'
+  ↳ N1-2 完成：旧世代 6 页换装 nova topbar（自包含 nova-topbar.css；链接列表原样保留；cmdk 按钮仅挂已载 at-cmdk 的页）
+  ↳ 判读修正：旧顶栏非 app.js 生成（app.js 零 nav 代码），系各页内联 HTML——app.js 为页逻辑工厂，保留不动
