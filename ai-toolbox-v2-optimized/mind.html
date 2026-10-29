@@ -168,7 +168,7 @@
 })();
 </script>
 <script src="js/at-cmdk.js" defer></script><script src="js/skills/skill-injector.js" defer></script><script src="js/skills/skill-picker.js" defer></script><script src="js/skills/skills-builtin.data.js" defer></script><script src="js/skills/skill-schema.js" defer></script><script src="js/skills/skill-store.js" defer></script><script src="js/s1-backup.js?v=1"></script><script src="js/sw-register.js?v=1"></script><script src="js/s1-io.js?v=2"></script><script>
-/* mind-png-export-v2: data-url path (WHATWG html#10641: blob+foreignObject taints, data uri clean) */
+/* mind-png-export-v3: per-node style inline + union bbox */
 (function(){
   var svg = document.getElementById('mind-svg');
   var dl = document.getElementById('mind-dl');
@@ -184,55 +184,88 @@
     if(!svg.childNodes.length){ alert('load a mindmap first'); return; }
     var clone = svg.cloneNode(true);
     clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-    var pad = 20, vx, vy, vw, vh;
-    try { var bv = svg.viewBox.baseVal; if(bv && bv.width > 0){ vx=bv.x; vy=bv.y; vw=bv.width; vh=bv.height; } } catch(e){}
-    if(vw === undefined){ var gb = svg.getBBox(); vx=gb.x; vy=gb.y; vw=gb.width; vh=gb.height; }
-    vx-=pad; vy-=pad; vw+=pad*2; vh+=pad*2;
-    clone.setAttribute('viewBox', vx+' '+vy+' '+vw+' '+vh);
+    var la = [svg], ca = [clone], k = 0;
+    while(k < la.length){
+      var le = la[k], ce = ca[k];
+      if(le.nodeType === 1 && le !== svg){
+        try {
+          var cs = window.getComputedStyle(le);
+          var out = [], j;
+          for(j = 0; j < cs.length; j++){
+            var pn = cs[j];
+            out.push(pn + ':' + cs.getPropertyValue(pn));
+          }
+          ce.setAttribute('style', out.join(';'));
+        } catch(e){}
+      }
+      var lk = le.childNodes, ck = ce.childNodes;
+      for(var m = 0; m < lk.length && m < ck.length; m++){
+        la.push(lk[m]); ca.push(ck[m]);
+      }
+      k++;
+    }
+    var pad = 24, x1, y1, x2, y2, ok = false;
+    x1 = y1 = Infinity; x2 = y2 = -Infinity;
+    try {
+      var inv = svg.getScreenCTM().inverse();
+      var els = svg.querySelectorAll('*');
+      for(var q = 0; q < els.length; q++){
+        var r = els[q].getBoundingClientRect();
+        if(!r || (r.width === 0 && r.height === 0)) continue;
+        var p1 = svg.createSVGPoint();
+        p1.x = r.left; p1.y = r.top;
+        var p2 = svg.createSVGPoint();
+        p2.x = r.right; p2.y = r.bottom;
+        var u1 = p1.matrixTransform(inv);
+        var u2 = p2.matrixTransform(inv);
+        x1 = Math.min(x1, u1.x, u2.x);
+        y1 = Math.min(y1, u1.y, u2.y);
+        x2 = Math.max(x2, u1.x, u2.x);
+        y2 = Math.max(y2, u1.y, u2.y);
+        ok = true;
+      }
+    } catch(e){}
+    if(!ok){
+      var gb = svg.getBBox();
+      x1 = gb.x; y1 = gb.y;
+      x2 = gb.x + gb.width; y2 = gb.y + gb.height;
+    }
+    x1 -= pad; y1 -= pad; x2 += pad; y2 += pad;
+    var vw = x2 - x1, vh = y2 - y1;
+    clone.setAttribute('viewBox', x1+' '+y1+' '+vw+' '+vh);
     var scale = 2;
     clone.setAttribute('width', Math.round(vw*scale));
     clone.setAttribute('height', Math.round(vh*scale));
-    var css = '';
-    for(var i=0;i<document.styleSheets.length;i++){
-      try {
-        var rules = document.styleSheets[i].cssRules || [];
-        for(var j=0;j<rules.length;j++){
-          var t = rules[j].cssText || '';
-          if(t.indexOf('url(') > -1) continue;
-          if(t.indexOf('markmap') > -1 || t.indexOf('mind-') > -1) css += t + '\n';
-        }
-      } catch(e){}
-    }
-    if(css){
-      var st = document.createElementNS('http://www.w3.org/2000/svg', 'style');
-      st.textContent = css;
-      clone.insertBefore(st, clone.firstChild);
-    }
     var str = new XMLSerializer().serializeToString(clone);
     var img = new Image();
     img.onload = function(){
       var c = document.createElement('canvas');
       c.width = Math.round(vw*scale); c.height = Math.round(vh*scale);
       var ctx = c.getContext('2d');
-      ctx.fillStyle = '#ffffff'; ctx.fillRect(0,0,c.width,c.height);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, c.width, c.height);
       ctx.drawImage(img, 0, 0, c.width, c.height);
       try {
         c.toBlob(function(pb){
-          if(!pb){ alert('png export failed: empty blob'); return; }
+          if(!pb){ alert('png failed: empty blob'); return; }
           var pu = URL.createObjectURL(pb);
           var a = document.createElement('a');
-          a.href = pu; a.download = 'mindmap-' + Date.now() + '.png';
-          document.body.appendChild(a); a.click(); a.remove();
+          a.href = pu;
+          a.download = 'mindmap-' + Date.now() + '.png';
+          document.body.appendChild(a);
+          a.click(); a.remove();
           setTimeout(function(){ URL.revokeObjectURL(pu); }, 2000);
         }, 'image/png');
       } catch(err){
-        alert('PNG blocked: ' + err.message + ' | fo=' + (str.indexOf('foreignObject')>-1) + ' | urlCss=' + (css.indexOf('url(')>-1) + ' | ' + c.width + 'x' + c.height);
+        alert('PNG blocked: ' + err.message);
       }
     };
-    img.onerror = function(){ alert('svg to image failed (parse)'); };
-    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(str);
+    img.onerror = function(){ alert('svg to image
+    img.src = 'data:image/svg+xml;charset=utf-8,'
+      + e
   });
 })();
 </script>
+
 </body>
 </html>

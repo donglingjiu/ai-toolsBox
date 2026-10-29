@@ -93,3 +93,10 @@
   ↳ F1手术：星库即时搜索（自装脚本行级过滤+命中计数+MutationObserver跟随刷新，零侵入refreshVault）
   ↳ SW缓存bump nova-v4（两文件变更，约定第三次实战）
   ↳ sw.js:40离线uncaught fetch定性：NewCard扩展透传×离线，cosmetic——下轮recon(30-60行)后加catch
+  ↳ F1事故复盘：docs.html:149 SyntaxError——heredoc粘贴时长行被终端截断半行入库；
+    lesson升级=标记计数不够，写入后须关键行内容断言+JS行短化(≤80字符)
+  ↳ F1 v2上线：守卫拆三短行+内容断言双key——星库即时搜索
+  ↳ F2 v3重型版：PNG加粗节点上缘裁切→根因=导出重渲染样式子集与实况微差×markmap紧viewBox；
+    处方=逐节点computed style内联+并集bbox(getScreenCTM逆变换)+pad24——样式/几何双对齐
+  ↳ sw.js:40补catch(504合成响应)——离线NewCard透传红屏消除
+  ↳ SW缓存bump nova-v5（三文件变更，第四次实战）

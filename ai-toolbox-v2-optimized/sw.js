@@ -1,5 +1,5 @@
 /* Nova SW：同源静态缓存层 v1（大版本发布时 CACHE 改 nova-v2 强制刷新）*/
-var CACHE = 'nova-v4';
+var CACHE = 'nova-v5';
 var CORE = ['./', 'css/tokens.css', 'css/nova.css', 'css/tokens-light.css',
   'js/nova-core.js', 'js/at-cmdk.js', 'js/s1-backup.js', 'js/s1-io.js'];
 self.addEventListener('install', function(e){
@@ -35,6 +35,8 @@ self.addEventListener('fetch', function(e){
       var cp = r.clone();
       caches.open(CACHE).then(function(c){ c.put(req, cp); });
       return r;
+    }).catch(function(){
+      return new Response('', {status: 504, statusText: 'offline'});
     });
   }));
 });
