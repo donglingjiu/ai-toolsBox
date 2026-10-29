@@ -84,6 +84,12 @@
   <section id="tab-vault" role="tabpanel" aria-label="Nova Vault 星库" hidden>
     <div class="bar">
       <strong>Nova Vault · 星库</strong>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0;align-items:center">
+        <button id="vaultBackup" style="padding:8px 14px;border:1px solid #e6e8f2;border-radius:10px;background:#fff;cursor:pointer;font-size:13px">⬇ 备份全站数据（JSON）</button>
+        <button id="vaultRestore" style="padding:8px 14px;border:1px solid #e6e8f2;border-radius:10px;background:#fff;cursor:pointer;font-size:13px">⬆ 恢复备份</button>
+        <input type="file" id="vaultRestoreFile" accept=".json,application/json" hidden>
+        <span id="vaultIoMsg" style="font-size:12px;color:#697086"></span>
+      </div>
       <span class="bar__note">IndexedDB 本地文档库 · 清浏览器数据会清空星库，重要产物请及时下载</span>
       <span class="topbar__spacer"></span>
       <button id="vault-refresh" class="btn btn--ghost">↻ 刷新</button>
@@ -111,5 +117,27 @@
 <script src="js/vendor/xlsx.full.min.js"></script>
 <script src="js/nova-core.js"></script>
 <script src="js/nova-docs.js"></script>
+<script src="js/s1-backup.js?v=1"></script>
+<script>
+(function(){
+  var msg = function(t){ document.getElementById('vaultIoMsg').textContent = t; };
+  document.getElementById('vaultBackup').addEventListener('click', async function(){
+    var b = this; b.disabled = true; msg('打包中…');
+    try { var r = await NovaBackup.backupAll(); msg('✅ 已导出：localStorage ' + r.ls + ' 键 · ' + r.stores + ' 个库表'); }
+    catch (e) { msg('❌ 失败：' + e.message); }
+    b.disabled = false;
+  });
+  document.getElementById('vaultRestore').addEventListener('click', function(){
+    document.getElementById('vaultRestoreFile').click();
+  });
+  document.getElementById('vaultRestoreFile').addEventListener('change', async function(e){
+    var f = e.target.files[0]; if (!f) return;
+    msg('恢复中…');
+    try { var n = await NovaBackup.restoreAll(f); msg('✅ 写回 ' + n + ' 条，刷新页面生效'); }
+    catch (err) { msg('❌ 失败：' + err.message); }
+    e.target.value = '';
+  });
+})();
+</script>
 <script src="js/at-cmdk.js" defer></script><script src="js/skills/skill-injector.js" defer></script><script src="js/skills/skill-picker.js" defer></script><script src="js/skills/skills-builtin.data.js" defer></script><script src="js/skills/skill-schema.js" defer></script><script src="js/skills/skill-store.js" defer></script></body>
 </html>
