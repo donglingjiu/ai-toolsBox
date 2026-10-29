@@ -10,6 +10,18 @@
 <link rel="stylesheet" href="css/tokens.css">
 <link rel="stylesheet" href="css/nova.css">
 <link rel="stylesheet" href="css/tokens-light.css?v=3">
+<style id="idx-tools">
+/* N1 首页工具分组 */
+.tools-groups{max-width:var(--page,1180px);margin:0 auto;padding:0 var(--s6,32px) var(--s4,16px);display:grid;gap:var(--s5,24px)}
+.tg__title{margin:0 0 10px;font-size:15px;font-weight:800;letter-spacing:.05em;color:#1f2430}
+.tg__grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(205px,1fr));gap:10px}
+.tg__card{display:flex;flex-direction:column;gap:3px;padding:12px 14px;border:1px solid #e6e8f2;border-radius:12px;background:rgba(255,255,255,.62);text-decoration:none;transition:transform .15s,border-color .15s,box-shadow .15s}
+.tg__card:hover{transform:translateY(-2px);border-color:rgba(91,108,255,.45);box-shadow:0 8px 22px rgba(91,108,255,.10)}
+.tg__card b{font-size:14px;color:#1f2430}
+.tg__card span{font-size:12px;color:#697086}
+.tg-foot{text-align:right}
+.tg-foot a{font-size:12px;color:#697086}
+</style>
 <script src='js/builtin-profile.js'></script><script src='js/guard.js'></script></head>
 <body>
 <a class="skip-link" href="#main">跳到主要内容</a>
@@ -87,19 +99,44 @@
       </a>
     </div>
 
-    <!-- 经典工具直达：旧 12 工具零删除，过渡期保留入口 -->
-    <div class="trust" role="list" aria-label="经典工具直达" style="margin-top:var(--s5)">
-      <span class="trust__item" role="listitem"><a href="excel.html">表格分析</a></span>
-      <span class="trust__item" role="listitem"><a href="ppt.html">AI 演示</a></span>
-      <span class="trust__item" role="listitem"><a href="convert.html">Word↔PDF</a></span>
-      <span class="trust__item" role="listitem"><a href="prompts.html">提示词库</a><a href="skills.html">✦ Skill 工坊</a></span>
-      <span class="trust__item" role="listitem"><a href="flow.html">✦ 星流</a></span><span class="trust__item" role="listitem"><a href="docs.html">✦ 星文</a></span><span class="trust__item" role="listitem"><a href="chat.html">AI 对话</a></span><span class="trust__item" role="listitem"><a href="brain.html">第二大脑</a></span>
-      <span class="trust__item" role="listitem"><a href="resume.html">简历</a></span>
-      <span class="trust__item" role="listitem"><a href="data.html">✦ 星库</a></span><span class="trust__item" role="listitem"><a href="mind.html">✦ Mind</a></span><span class="trust__item" role="listitem"><a href="mood.html">情绪日记</a></span>
-      <span class="trust__item" role="listitem"><a href="advisor.html">副业顾问</a></span>
-      <span class="trust__item" role="listitem"><a href="tryon.html">试衣间</a></span>
-      <span class="trust__item" role="listitem"><a href="qr.html">挪车码</a></span>
-      <span class="trust__item" role="listitem"><a href="index-legacy.html">经典版首页 ↩</a></span>
+    <div class="tools-groups" aria-label="全部工具（分类）">
+      <div class="tg">
+        <h3 class="tg__title">��� AI 助手</h3>
+        <div class="tg__grid">
+          <a class="tg__card" href="chat.html"><b>AI 对话</b><span>流式对话 · Skill · 本地历史</span></a>
+          <a class="tg__card" href="brain.html"><b>第二大脑</b><span>知识库问答 · 引用溯源</span></a>
+          <a class="tg__card" href="mind.html"><b>✦ 星智 Mind</b><span>六专家 · 沉浸对话</span></a>
+          <a class="tg__card" href="mood.html"><b>情绪日记</b><span>记录 · 疏导</span></a>
+          <a class="tg__card" href="advisor.html"><b>副业顾问</b><span>点子 · 路径规划</span></a>
+          <a class="tg__card" href="prompts.html"><b>提示词库</b><span>123 条场景提示词</span></a>
+          <a class="tg__card" href="skills.html"><b>Skill 工坊</b><span>技能扩展 · 市场</span></a>
+        </div>
+      </div>
+      <div class="tg">
+        <h3 class="tg__title">��� 文档工坊</h3>
+        <div class="tg__grid">
+          <a class="tg__card" href="docs.html"><b>✦ 星文 Docs</b><span>转换 · 解析 · 文档库</span></a>
+          <a class="tg__card" href="resume.html"><b>简历优化</b><span>改写 · 打磨</span></a>
+          <a class="tg__card" href="ppt.html"><b>AI 演示</b><span>PPT 大纲 · 生成</span></a>
+          <a class="tg__card" href="convert.html"><b>Word↔PDF</b><span>本地转换</span></a>
+        </div>
+      </div>
+      <div class="tg">
+        <h3 class="tg__title">��� 数据工坊</h3>
+        <div class="tg__grid">
+          <a class="tg__card" href="data.html"><b>✦ 星库 Data</b><span>CSV/XLSX · 画像 · 图表</span></a>
+          <a class="tg__card" href="flow.html"><b>✦ 星流 Flow</b><span>数据流水线 · 模板</span></a>
+          <a class="tg__card" href="excel.html"><b>表格分析</b><span>上传即分析</span></a>
+        </div>
+      </div>
+      <div class="tg">
+        <h3 class="tg__title">��� 生活实用</h3>
+        <div class="tg__grid">
+          <a class="tg__card" href="tryon.html"><b>AI 试衣间</b><span>虚拟试穿</span></a>
+          <a class="tg__card" href="qr.html"><b>挪车码</b><span>隐私号码牌</span></a>
+        </div>
+      </div>
+      <div class="tg-foot"><a href="index-legacy.html">经典版首页 ↩</a></div>
     </div>
 
     <div class="trust" role="list" aria-label="隐私与架构特性">
