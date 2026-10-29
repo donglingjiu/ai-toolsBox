@@ -78,3 +78,10 @@
   ↳ 教训：探针须自校验基线非空；git show 相对路径带 ./（仓库根≠cwd）；引用历史提交锚定 hash，HEAD~N 会随提交漂移（差点造出假绿灯）
   ↳ S2 环境lesson：老coreutils——sed用-r非-E、grep无--exclude-dir（ls|xargs替代）、git grep无-o
   ↳ S2手术：md-render唯一漏斗包DOMPurify（缺失时降级直出）——AI输出XSS面关闭
+  ↳ ===== S2 安全审计收官 =====
+  ↳ 密钥面✅：仓库零真实密钥；Profile 用户自填本地存、运行时拼装；内置代理=自有域名/llm（服务端持key）
+  ↳ 出网面✅：仅用户自配模型端点（sanitizeBaseUrl 预处理）+ opt-in 虚拟号/bind；零遥测
+  ↳ 动态执行✅：唯一命中=docs导出自包含HTML（用户主动自食内容）——接受
+  ↳ 注入面✅：用户侧 esc/escapeHtml；AI侧唯一漏斗 md-render→DOMPurify（自举+降级）
+  ↳ P0复盘：BRE中\|是"或"→sed腐蚀222行已push；教训=改代码用脚本替换+锚计数断言；SW约定首次实战（bump v2强刷）
+  ↳ guard.js定位：威慑性门神，无安全价值无风险——保留
