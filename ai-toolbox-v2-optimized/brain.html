@@ -229,7 +229,7 @@
         { role: 'user', content: '【知识库检索片段】\n' + (ctxText || '（无相关片段）') + '\n\n【问题】' + query }],
         { stream: true, temperature: 0.5, onDelta: (d, f) => { s.body.innerHTML = mdRender(f); } });
       s.body.innerHTML = mdRender(full);
-      renderCites(s.card, hits);
+      if (typeof hits !== "undefined") renderCites(s.card, hits);
       s.body.classList.remove('cursor-blink');
       if (!hits.length) s.body.innerHTML += '<div class="tip tip-warn mt8">没有检索到明显相关的片段，以上回答基于模型知识，请注意甄别。</div>';
     } catch (e) {
@@ -260,7 +260,7 @@
           '\n\n请输出：1. 本期主题概览；2. 关键进展与想法（分类归纳）；3. 待跟进事项（从笔记中提取的任务/疑问）；4. 下周建议关注点。' }],
         { stream: true, temperature: 0.5, onDelta: (d, f) => { s.body.innerHTML = mdRender(f); } });
       s.body.innerHTML = mdRender(full);
-      renderCites(s.card, hits);
+      if (typeof hits !== "undefined") renderCites(s.card, hits);
       s.body.classList.remove('cursor-blink');
     } catch (e) {
       s.body.classList.remove('cursor-blink');

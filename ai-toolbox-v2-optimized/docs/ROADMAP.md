@@ -51,3 +51,9 @@
 1. P0 全部做完前不开 P1；每项完成必须同步：入口按钮 + 空状态 + 加载态 + 移动端适配
 2. 新对话页接入 Skill 一行命令：body 前 script src=js/skills/skill-boot.js
 3. 每完成一项勾选本清单并 commit：feat(P0-A1): xxx
+
+## 追加待办（用户立项）
+- [ ] N1 全站导航统一重构：chat 已补侧栏导航；其余页面导航样式/层级/当前页高亮统一（先探针各页 header 结构再动刀）
+- [ ] S1 各界面数据导出/导入：每个工作台一键导出（JSON/MD）+ 跨设备迁移（migrate.html 已有底子，补全覆盖面）
+- [ ] S2 安全审计：Markdown 渲染 XSS 复核（转义前置）、API Key 明文存 localStorage 的风险评估（掩码显示/可选记忆）、vendor 第三方脚本加 SRI 完整性校验、CSP
+- [ ] S3 隐私与数据安全：localStorage/IndexedDB 一键清空入口、导出文件脱敏选项、错误提示不泄露 Key
