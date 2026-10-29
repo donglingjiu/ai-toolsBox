@@ -65,3 +65,5 @@
   ↳ ppt 确诊修复：导出字符串混入 profile/guard + skill 栈（裸 </script> 截断整个内联脚本，页面静默瘫痪）——历史误注入遗留，已清除恢复
   ↳ N1 巡检：data/flow/mind 达标免大刀；修 s1 悬浮球被 K 按钮压住（bottom 60px）；旧导航 flex-wrap 缓解
   ↳ 挂账 N1-2：旧世代 6 页（brain/mood/advisor/resume/tryon/prompts）顶栏换装 nova 统一 topbar（根治溢出与风格分裂）
+  ↳ 性能分诊：基线健康（brain 冷加载 DCL 1.81s），30s 为离群值；系统性风险=jsdelivr 外链阻塞脚本，已全部本地化（marked→js/vendor，mammoth 复用本地件）
+  ↳ P2 挂账：CSS 4→1 合并、Service Worker 缓存层（当前请求数与 DCL 不构成瓶颈，暂不动刀）
