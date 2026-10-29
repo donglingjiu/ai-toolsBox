@@ -103,7 +103,7 @@ function streamOnce(p, msgs, onDelta, signal){
   url += '/chat/completions';
   var key = p.apiKey || p.api_key || p.key || '';
   var headers = { 'Content-Type':'application/json' };
-  if(key) headers['Authorization'] = 'Bearer ' + key;
+  headers['Authorization'] = 'Bearer ' + key;
   var opt = { method:'POST', headers:headers, body: JSON.stringify({
     model: p.model || p.modelName || 'glm-4-flash',
     messages: msgs, temperature: 0.7, stream: true

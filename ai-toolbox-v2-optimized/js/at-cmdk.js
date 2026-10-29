@@ -153,6 +153,18 @@
       }
     }catch(e){}
     try{ if(window.AT_LLM_PROFILES){ var ok3 = validProfiles(window.AT_LLM_PROFILES); if(ok3.length) return ok3; } }catch(e){}
+    try{
+      var s1 = JSON.parse(localStorage.getItem('at_settings_v1') || '{}');
+      var okS = validProfiles(s1.llmProfiles || []);
+      if(okS.length) return okS;
+    }catch(e){}
+    try{
+      var gB = window.AT_BUILTIN_PROFILE || window.BUILTIN_PROFILES;
+      var arrB = Array.isArray(gB) ? gB : (gB ? [gB] : []);
+      var okB = validProfiles(arrB);
+      if(okB.length) return okB;
+    }catch(e){}
+    return [{ name:'内置代理', baseUrl:'https://ai.donglingjiu.top/llm/bigmodel/api/paas/v4', apiKey:'', model:'glm-4-flash', enabled:true }];
     return [];
   }
   function chatOnce(p, sys, user){
@@ -161,7 +173,7 @@
     url = url + '/chat/completions';
     var key = p.apiKey || p.api_key || p.key || '';
     var headers = {'Content-Type':'application/json'};
-    if(key) headers['Authorization'] = 'Bearer ' + key;
+    headers['Authorization'] = 'Bearer ' + key;
     var ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
     var tid = setTimeout(function(){ if(ctrl) ctrl.abort(); }, 30000);
     var opt = {method:'POST', headers:headers, body: JSON.stringify({
