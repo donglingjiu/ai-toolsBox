@@ -86,3 +86,6 @@
   ↳ P0复盘：BRE中\|是"或"→sed腐蚀222行已push；教训=改代码用脚本替换+锚计数断言；SW约定首次实战（bump v2强刷）
   ↳ guard.js定位：威慑性门神，无安全价值无风险——保留
   ↳ 自举落地：py2 heredoc 含中文触发编码限制→全ASCII重试成功（lesson：共享机python默认py2，脚本块纯ASCII）
+  ↳ 对标改判：docs=文件转换+星库（非md编辑器）——大纲/快照不适用结案；docs真缺口=星库搜索（侦察中）
+  ↳ F2手术：mind PNG导出（自装脚本 svg→canvas 2x + markmap CSS内联 + toBlob fail-closed）；SVG下载本就有
+  ↳ SW缓存bump nova-v3（内容变更刷新约定第二次实战）

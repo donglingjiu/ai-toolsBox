@@ -167,5 +167,67 @@
   render();
 })();
 </script>
-<script src="js/at-cmdk.js" defer></script><script src="js/skills/skill-injector.js" defer></script><script src="js/skills/skill-picker.js" defer></script><script src="js/skills/skills-builtin.data.js" defer></script><script src="js/skills/skill-schema.js" defer></script><script src="js/skills/skill-store.js" defer></script><script src="js/s1-backup.js?v=1"></script><script src="js/sw-register.js?v=1"></script><script src="js/s1-io.js?v=2"></script></body>
+<script src="js/at-cmdk.js" defer></script><script src="js/skills/skill-injector.js" defer></script><script src="js/skills/skill-picker.js" defer></script><script src="js/skills/skills-builtin.data.js" defer></script><script src="js/skills/skill-schema.js" defer></script><script src="js/skills/skill-store.js" defer></script><script src="js/s1-backup.js?v=1"></script><script src="js/sw-register.js?v=1"></script><script src="js/s1-io.js?v=2"></script><script>
+/* mind-png-export-v1: self-mounting PNG export (svg -> canvas 2x) */
+(function(){
+  var svg = document.getElementById('mind-svg');
+  var dl = document.getElementById('mind-dl');
+  if(!svg || !dl) return;
+  var b = document.createElement('button');
+  b.id = 'mind-dl-png'; b.className = 'mbtn'; b.type = 'button';
+  b.textContent = '\u4e0b\u8f7d PNG';
+  dl.parentNode.insertBefore(b, dl.nextSibling);
+  b.addEventListener('click', function(){
+    if(!svg.childNodes.length){ alert('load a mindmap first'); return; }
+    var clone = svg.cloneNode(true);
+    clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    var w, h;
+    var vb = svg.viewBox && svg.viewBox.baseVal && svg.viewBox.baseVal.width;
+    if(vb){ w = svg.viewBox.baseVal.width; h = svg.viewBox.baseVal.height; }
+    else { var gb = svg.getBBox(); clone.setAttribute('viewBox', gb.x+' '+gb.y+' '+gb.width+' '+gb.height); w = gb.width; h = gb.height; }
+    var scale = 2;
+    clone.setAttribute('width', Math.round(w*scale)); clone.setAttribute('height', Math.round(h*scale));
+    try {
+      var css = '';
+      for(var i = 0; i < document.styleSheets.length; i++){
+        try {
+          var rules = document.styleSheets[i].cssRules || [];
+          for(var j = 0; j < rules.length; j++){
+            var t = rules[j].cssText || '';
+            if(t.indexOf('markmap') > -1 || t.indexOf('mind-') > -1) css += t + '\n';
+          }
+        } catch(e){}
+      }
+      if(css){
+        var st = document.createElementNS('http://www.w3.org/2000/svg', 'style');
+        st.textContent = css;
+        clone.insertBefore(st, clone.firstChild);
+      }
+    } catch(e){}
+    var str = new XMLSerializer().serializeToString(clone);
+    var blob = new Blob([str], {type: 'image/svg+xml;charset=utf-8'});
+    var url = URL.createObjectURL(blob);
+    var img = new Image();
+    img.onload = function(){
+      var c = document.createElement('canvas');
+      c.width = Math.round(w*scale); c.height = Math.round(h*scale);
+      var ctx = c.getContext('2d');
+      ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, c.width, c.height);
+      ctx.drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url);
+      c.toBlob(function(pb){
+        if(!pb){ alert('png export failed (browser limit)'); return; }
+        var pu = URL.createObjectURL(pb);
+        var a = document.createElement('a');
+        a.href = pu; a.download = 'mindmap-' + Date.now() + '.png';
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(function(){ URL.revokeObjectURL(pu); }, 2000);
+      }, 'image/png');
+    };
+    img.onerror = function(){ URL.revokeObjectURL(url); alert('svg to image failed'); };
+    img.src = url;
+  });
+})();
+</script>
+</body>
 </html>
