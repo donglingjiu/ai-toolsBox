@@ -31,7 +31,7 @@
         <input type="text" id="q" placeholder="例如：我之前写过关于「用户增长」的哪些观点？" style="flex:1;">
         <button class="btn btn-primary" id="askBtn">提问</button>
       </div>
-      <div class="muted mt8">检索方式：本地 BM25 语义切片检索 → 最相关片段交给 AI 综合回答（附引用来源）。</div>
+      <div class="muted mt8">检索方式：中文二元分词 + TF-IDF 余弦混合检索 → 最相关片段交给 AI 综合回答（附引用来源）。</div>
     </div>
     <div id="askOut"></div>
   </div>
@@ -108,6 +108,97 @@
     }
   }
 
+  /* A3 混合检索：中文二元分词 */
+  function bigramTokens(s){
+    const t = String(s).toLowerCase();
+    const out = [];
+    (t.match(/[a-z0-9]+/g) || []).forEach(w => out.push(w));
+    t.replace(/[^\u4e00-\u9fa5]+/g, ' ').split(/\s+/).forEach(seg => {
+      if (!seg) return;
+      if (seg.length === 1) { out.push(seg); return; }
+      for (let i = 0; i < seg.length - 1; i++) out.push(seg.slice(i, i + 2));
+    });
+    return out;
+  }
+  /* A3 切片：段落优先，长段滑窗重叠（420 窗 / 340 步） */
+  function makeChunks(docs){
+    const out = [];
+    for (const d of docs) {
+      const paras = d.content.split(/\n{2,}/);
+      for (const p of paras) {
+        const t = p.trim();
+        if (t.length < 30) continue;
+        if (t.length <= 420) { out.push({ docId: d.id, docName: d.name, text: t }); continue; }
+        for (let i = 0; i < t.length; i += 340) {
+          const seg = t.slice(i, i + 420).trim();
+          if (seg.length > 30) out.push({ docId: d.id, docName: d.name, text: seg });
+          if (i + 420 >= t.length) break;
+        }
+      }
+    }
+    return out;
+  }
+  /* A3 混合检索：TF-IDF 余弦相似度 */
+  function smartSearch(query, chunks, topN){
+    const qT = bigramTokens(query);
+    if (!qT.length || !chunks || !chunks.length) return [];
+    const N = chunks.length, df = new Map();
+    const cvecs = chunks.map(c => {
+      const m = new Map();
+      for (const tk of bigramTokens(c.text)) m.set(tk, (m.get(tk) || 0) + 1);
+      for (const tk of m.keys()) df.set(tk, (df.get(tk) || 0) + 1);
+      return m;
+    });
+    const idf = tk => Math.log((N + 1) / ((df.get(tk) || 0) + 1)) + 1;
+    const qm = new Map(), qw = new Map(); let qn = 0;
+    for (const tk of qT) qm.set(tk, (qm.get(tk) || 0) + 1);
+    for (const [tk, f] of qm) { const w = f * idf(tk); qw.set(tk, w); qn += w * w; }
+    const scored = chunks.map((c, i) => {
+      let dot = 0, cn = 0;
+      for (const [tk, f] of cvecs[i]) {
+        const w = f * idf(tk); cn += w * w;
+        const qv = qw.get(tk); if (qv) dot += qv * w;
+      }
+      const den = Math.sqrt(qn) * Math.sqrt(cn);
+      return { docId: c.docId, docName: c.docName, text: c.text, score: den ? dot / den : 0 };
+    });
+    scored.sort((a, b) => b.score - a.score);
+    return scored.filter(h => h.score > 0.005).slice(0, topN);
+  }
+  /* A3 引用浮层：来源 chips + 原文面板 */
+  function citeStyle(){
+    if (document.getElementById('cite-style')) return;
+    const st = document.createElement('style');
+    st.id = 'cite-style';
+    st.textContent = '.cite-row{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 4px}' +
+      '.cite-chip{border:1px solid rgba(91,108,255,.35);background:rgba(91,108,255,.08);color:#4338ca;border-radius:999px;padding:4px 12px;font-size:12px;cursor:pointer}' +
+      '.cite-chip:hover{background:rgba(91,108,255,.16)}' +
+      '.cite-panel{margin-top:10px;border:1px solid rgba(91,108,255,.25);border-left:3px solid #5b6cff;border-radius:10px;padding:12px 14px;background:rgba(91,108,255,.05);font-size:13px;line-height:1.7}' +
+      '.cite-doc{font-weight:600;margin-bottom:6px;color:#4338ca}' +
+      '.cite-text{white-space:pre-wrap;word-break:break-word;color:#334155}';
+    document.head.appendChild(st);
+  }
+  function renderCites(box, hits){
+    citeStyle();
+    if (!box || !hits || !hits.length) return;
+    const or = box.querySelector('.cite-row'); if (or) or.remove();
+    const op = box.querySelector('.cite-panel'); if (op) op.remove();
+    const row = el('div', { class: 'cite-row' });
+    hits.forEach((h, i) => {
+      const pct = Math.max(1, Math.round((h.score || 0) * 100));
+      const b = el('button', { class: 'cite-chip' }, '[' + (i + 1) + '] 《' + h.docName + '》 ' + pct + '%');
+      b.addEventListener('click', () => {
+        const ex = box.querySelector('.cite-panel'); if (ex) ex.remove();
+        const p = el('div', { class: 'cite-panel' },
+          el('div', { class: 'cite-doc' }, '《' + h.docName + '》 · 相似度 ' + pct + '%'),
+          el('div', { class: 'cite-text' }, h.text));
+        box.appendChild(p);
+        try { p.scrollIntoView({ block: 'nearest' }); } catch (e) {}
+      });
+      row.appendChild(b);
+    });
+    box.appendChild(row);
+  }
   /* ---------- 问答 ---------- */
   function streamBox(target) {
     const card = el('div', { class: 'result-box mb16' },
@@ -126,22 +217,19 @@
     const docs = await idbAll(DB, STORE);
     if (!docs.length) { toast('知识库为空，请先导入文档', 'err'); return; }
     const btn = $('#askBtn'); btn.disabled = true;
-    /* 切片 */
-    const chunks = [];
-    for (const d of docs) {
-      const paras = d.content.split(/\n{2,}/).filter(p => p.trim().length > 30);
-      for (let i = 0; i < paras.length; i++) chunks.push({ docId: d.id, docName: d.name, text: paras[i].trim() });
-    }
-    const hits = bm25Search(query, chunks, 8);
+    /* 切片（滑窗重叠）+ 混合检索 */
+    const chunks = makeChunks(docs);
+    const hits = smartSearch(query, chunks, 8);
     const s = streamBox($('#askOut'));
     const ctxText = hits.map((h, i) => '[片段' + (i + 1) + ' · 来自《' + h.docName + '》]\n' + h.text).join('\n\n');
-    const sys = '你是用户的个人知识库助手。只基于提供的资料片段回答，回答末尾用「📎 来源：《文档名》」列出引用。若资料不足以回答，明确说明并根据资料谨慎推测，标注哪部分是推测。用中文 Markdown。';
+    const sys = '你是用户的个人知识库助手。只基于提供的资料片段回答，引用资料处句末标注编号如 [1][2]（与来源编号对应）。若资料不足以回答，明确说明并谨慎推测、标注推测部分。用中文 Markdown。';
     try {
       const full = await llmChat([
         { role: 'system', content: sys },
         { role: 'user', content: '【知识库检索片段】\n' + (ctxText || '（无相关片段）') + '\n\n【问题】' + query }],
         { stream: true, temperature: 0.5, onDelta: (d, f) => { s.body.innerHTML = mdRender(f); } });
       s.body.innerHTML = mdRender(full);
+      renderCites(s.card, hits);
       s.body.classList.remove('cursor-blink');
       if (!hits.length) s.body.innerHTML += '<div class="tip tip-warn mt8">没有检索到明显相关的片段，以上回答基于模型知识，请注意甄别。</div>';
     } catch (e) {
@@ -172,6 +260,7 @@
           '\n\n请输出：1. 本期主题概览；2. 关键进展与想法（分类归纳）；3. 待跟进事项（从笔记中提取的任务/疑问）；4. 下周建议关注点。' }],
         { stream: true, temperature: 0.5, onDelta: (d, f) => { s.body.innerHTML = mdRender(f); } });
       s.body.innerHTML = mdRender(full);
+      renderCites(s.card, hits);
       s.body.classList.remove('cursor-blink');
     } catch (e) {
       s.body.classList.remove('cursor-blink');

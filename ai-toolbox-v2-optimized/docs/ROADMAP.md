@@ -21,7 +21,7 @@
   - UI：毛玻璃居中弹窗 · 淡入缩放 · Esc 关闭
 - [x] A2 AI 对话工作台 chat.html（对标 ChatGPT）
   - 流式输出 · Markdown 渲染 · ✦ Skill · 多 Profile 兜底 · 本地历史
-- [ ] A3 第二大脑 RAG 升级（对标 Notion Q&A）
+- [x] A3 第二大脑 RAG 升级（对标 Notion Q&A）
   - embedding 向量检索 + BM25 混合 · IndexedDB 存向量 · 引用浮层
 - [ ] A4 Excel AI 字段生成（对标 Airtable AI）
   - 列头「✦ AI 字段」：classify/sentiment/summarize/tag 四类受限算子，走白名单校验
