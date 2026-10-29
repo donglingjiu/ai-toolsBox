@@ -38,6 +38,38 @@ const NovaCommandIndex = [
   { t: "经典版首页（12 工具平铺）", k: "legacy 经典 旧版 工具列表",          u: "index-legacy.html", h: "↩" },
 ];
 
+/* A1 融合：Skill 灌入命令索引（延迟重试兼容加载时序，幂等） */
+(function(){
+  var tries = 0;
+  var timer = setInterval(function(){
+    tries++;
+    var skills = [];
+    try{
+      if (window.ATSkillStore && typeof window.ATSkillStore.listAll === 'function'){
+        var a = window.ATSkillStore.listAll();
+        if (Array.isArray(a)) skills = a;
+      }
+    }catch(e){}
+    if (!skills.length && window.AT_SKILLS_BUILTIN) skills = window.AT_SKILLS_BUILTIN;
+    if (skills.length){
+      clearInterval(timer);
+      var dup = false;
+      for (var i = 0; i < NovaCommandIndex.length; i++){ if (NovaCommandIndex[i] && NovaCommandIndex[i].h === 'Skill'){ dup = true; break; } }
+      if (dup) return;
+      NovaCommandIndex.push({ group: 'Skill 库' });
+      skills.forEach(function(s){
+        var tags = Array.isArray(s.tags) ? s.tags.join(' ') : (s.tags || '');
+        NovaCommandIndex.push({
+          t: 'Skill · ' + (s.name || s.id || '未命名'),
+          k: ((s.name || '') + ' ' + (s.description || s.desc || '') + ' ' + tags + ' skill 技能').toLowerCase(),
+          u: 'skills.html',
+          h: 'Skill'
+        });
+      });
+    } else if (tries > 20){ clearInterval(timer); }
+  }, 300);
+})();
+
 const Cmdk = {
   el: null, input: null, listEl: null, items: [], sel: 0,
   _pending: false,   /* v1.2: keydown 已处理标记，防 keyup 双触发 */
