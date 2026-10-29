@@ -75,3 +75,4 @@
   ↳ N1-2 完成：旧世代 6 页换装 nova topbar（自包含 nova-topbar.css；链接列表原样保留；cmdk 按钮仅挂已载 at-cmdk 的页）
   ↳ 判读修正：旧顶栏非 app.js 生成（app.js 零 nav 代码），系各页内联 HTML——app.js 为页逻辑工厂，保留不动
   ↳ 教训：grep -c 数行不数个数——链接保全抽查误报「2」，正确口径为 grep -o | wc -l 与 href 多重集 diff
+  ↳ 教训：grep -c 数行不数个数——链接保全抽查误报「2」，正确口径为 grep -o | wc -l 与 href 多重集 diff
