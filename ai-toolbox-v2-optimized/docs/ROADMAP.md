@@ -100,3 +100,7 @@
     处方=逐节点computed style内联+并集bbox(getScreenCTM逆变换)+pad24——样式/几何双对齐
   ↳ sw.js:40补catch(504合成响应)——离线NewCard透传红屏消除
   ↳ SW缓存bump nova-v5（三文件变更，第四次实战）
+  ↳ F2三号事故：v3 heredoc尾部被粘贴截断(img.onerror行腰斩)→内联块语法死亡→按钮未挂载；
+    断言只盖头/中未盖尾，残件畅通入库——lesson终极版：逻辑独立成文件(首中尾三锚+长度下限)，
+    HTML只挂一行引用；v4落地=js/mind-png.js外置+script配平断言
+  ↳ todo侧线协查结论：真身todo.md无续12段(全/半角皆无)——stage5-3i的去重目标是过时情报
