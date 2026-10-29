@@ -113,7 +113,7 @@ function saveSessions(a){ try{ localStorage.setItem(HKEY, JSON.stringify(a.slice
 function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
 function fmtTime(ts){ var d = new Date(ts || Date.now()); return (d.getMonth() + 1) + '/' + d.getDate(); }
 
-/* 流式引擎：SSE 解析 + 多 Profile 顺序兜底 */
+/* 流式引擎 v2：SSE 解析 + 非流式回退 + 多 Profile 顺序兜底 + 错误明细透传 */
 function streamOnce(p, msgs, onDelta, signal){
   var url = p.baseUrl;
   while(url.charAt(url.length - 1) === '/') url = url.slice(0, -1);
@@ -128,7 +128,7 @@ function streamOnce(p, msgs, onDelta, signal){
   if(signal) opt.signal = signal;
   return fetch(url, opt).then(function(r){
     if(!r.ok){
-      var why = r.status === 402 ? '（欠费）' : r.status === 401 ? '（Key 无效）' : r.status === 429 ? '（限流）' : '';
+      var why = r.status === 402 ? '（欠费）' : r.status === 401 ? '（Key 无效）' : r.status === 429 ? '（限流）' : r.status === 404 ? '（路径错误）' : '';
       throw new Error('HTTP ' + r.status + why);
     }
     if(!r.body || !r.body.getReader){
@@ -166,22 +166,55 @@ function streamOnce(p, msgs, onDelta, signal){
     });
   });
 }
+function nonStreamOnce(p, msgs, signal){
+  var url = p.baseUrl;
+  while(url.charAt(url.length - 1) === '/') url = url.slice(0, -1);
+  url += '/chat/completions';
+  var key = p.apiKey || p.api_key || p.key || '';
+  var headers = { 'Content-Type':'application/json' };
+  headers['Authorization'] = 'Bearer ' + key;
+  var opt = { method:'POST', headers:headers, body: JSON.stringify({
+    model: p.model || p.modelName || 'glm-4-flash',
+    messages: msgs, temperature: 0.7, stream: false
+  }) };
+  if(signal) opt.signal = signal;
+  return fetch(url, opt).then(function(r){
+    if(!r.ok){
+      var why = r.status === 402 ? '（欠费）' : r.status === 401 ? '（Key 无效）' : r.status === 429 ? '（限流）' : r.status === 404 ? '（路径错误）' : '';
+      throw new Error('HTTP ' + r.status + why);
+    }
+    return r.json().then(function(d){
+      var c = d && d.choices && d.choices[0] && d.choices[0].message && d.choices[0].message.content || '';
+      c = String(c).trim();
+      if(!c) throw new Error('空响应');
+      return c;
+    });
+  });
+}
 function chatStream(msgs, onDelta, signal){
   var ps = loadProfiles();
   if(!ps.length) return Promise.reject(new Error('NO_PROFILE'));
-  var idx = 0, gotAny = false;
+  var idx = 0, gotAny = false, errs = [];
   function attempt(){
-    if(idx >= ps.length) return Promise.reject(new Error('所有模型配置均调用失败'));
+    if(idx >= ps.length){
+      var det = errs.length ? errs[errs.length - 1] : '';
+      return Promise.reject(new Error('所有模型配置均调用失败' + (det ? '：' + det : '')));
+    }
     var p = ps[idx++];
     gotAny = false;
     return streamOnce(p, msgs, function(d, f){ gotAny = true; onDelta(d, f); }, signal).catch(function(e){
       if(gotAny || (signal && signal.aborted)) throw e;
-      return attempt();
+      errs.push(e.message || String(e));
+      re
+        onDelta(full, full); return full;
+      }).catch(f
+        errs.push(e2.message || String(e2));
+        return attempt();
+      });
     });
   }
   return attempt();
 }
-
 /* ---------- UI 层 ---------- */
 var sessions = loadSessions();
 var cur = null, busy = false, ctrl = null;
