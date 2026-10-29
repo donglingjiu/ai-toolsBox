@@ -59,3 +59,5 @@
 - [ ] S1 各界面数据导出/导入：每个工作台一键导出（JSON/MD）+ 跨设备迁移（migrate.html 已有底子，补全覆盖面）
 - [ ] S2 安全审计：Markdown 渲染 XSS 复核（转义前置）、API Key 明文存 localStorage 的风险评估（掩码显示/可选记忆）、vendor 第三方脚本加 SRI 完整性校验、CSP
 - [ ] S3 隐私与数据安全：localStorage/IndexedDB 一键清空入口、导出文件脱敏选项、错误提示不泄露 Key
+  ↳ 进度：S1 引擎+docs 入口实测通过；升级为 s1-io 浮动入口全站铺开
+  ↳ N1 观察：旧世代页（brain 等）topnav 溢出截断（「设」被切）——导航统一时修复

@@ -488,7 +488,7 @@ function expHtml() {
       '.S{width:100%;height:100%}</style><script src='js/builtin-profile.js'></script><script src='js/guard.js'></script><link rel="icon" href="data:,"></head><body><div id="stage">' + slides + '</div>' +
       '<script>var i=0,n=' + n + ';function s(d){var a=document.querySelectorAll(".S");a[i].style.display="none";i=Math.min(n-1,Math.max(0,i+d));a[i].style.display="block"}' +
       'document.addEventListener("keydown",function(e){if(e.key==="ArrowRight"||e.key===" ")s(1);if(e.key==="ArrowLeft")s(-1)});' +
-      'document.addEventListener("click",function(e){s(e.clientX>innerWidth/2?1:-1)});<\/script><script src="js/skills/skill-boot.js"></script><script src="js/at-cmdk.js" defer></script><script src="js/skills/skill-injector.js" defer></script><script src="js/skills/skill-picker.js" defer></script><script src="js/skills/skills-builtin.data.js" defer></script><script src="js/skills/skill-schema.js" defer></script><script src="js/skills/skill-store.js" defer></script></body></html>';
+      'document.addEventListener("click",function(e){s(e.clientX>innerWidth/2?1:-1)});<\/script><script src="js/skills/skill-boot.js"></script><script src="js/at-cmdk.js" defer></script><script src="js/skills/skill-injector.js" defer></script><script src="js/skills/skill-picker.js" defer></script><script src="js/skills/skills-builtin.data.js" defer></script><script src="js/skills/skill-schema.js" defer></script><script src="js/skills/skill-store.js" defer></script><script src="js/s1-backup.js?v=1"></script><script src="js/s1-io.js?v=1"></script></body></html>';
     downloadText((deck.title || '演示').replace(/[\\/:*?"<>|]/g, '_') + '.html', doc);
   } catch (e) {
     showErr('errBox2', '导出失败：' + (e.message || e));
@@ -497,5 +497,5 @@ function expHtml() {
 </script>
 <link rel="stylesheet" href="css/nova-cmdk.css?v=1">
 <script src="js/nova-core.js?v=1"></script>
-<script src="js/skills/skill-boot.js"></script><script src="js/at-cmdk.js" defer></script><script src="js/skills/skill-injector.js" defer></script><script src="js/skills/skill-picker.js" defer></script><script src="js/skills/skills-builtin.data.js" defer></script><script src="js/skills/skill-schema.js" defer></script><script src="js/skills/skill-store.js" defer></script></body>
+<script src="js/skills/skill-boot.js"></script><script src="js/at-cmdk.js" defer></script><script src="js/skills/skill-injector.js" defer></script><script src="js/skills/skill-picker.js" defer></script><script src="js/skills/skills-builtin.data.js" defer></script><script src="js/skills/skill-schema.js" defer></script><script src="js/skills/skill-store.js" defer></script><script src="js/s1-backup.js?v=1"></script><script src="js/s1-io.js?v=1"></script></body>
 </html>
