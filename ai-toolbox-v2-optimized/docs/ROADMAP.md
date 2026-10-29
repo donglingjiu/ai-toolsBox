@@ -121,3 +121,7 @@
   ↳ guard站长旁路落地：IIFE顶部早退(localStorage.novaOwner='1'则return)，
     按键拦截/模糊/检测循环全不注册；恢复=removeItem；SW缓存bump nova-v7（第六次实战）
   ↳ ===== 挂账清零：全战役遗留仅剩ppt翻页/扩展开关1s档/离线docs复确认（低优，随机触发） =====
+  ↳ T线P1-1落地：pdf(合并/拆分·pdf-lib)+excel(预览/CSV/JSON·SheetJS)全部vendor本地
+  ↳ 第4次截断事故：150行heredoc腰斩×6处+GATE锚点盲区假放行→新规：单heredoc≤70行/
+    锚点扎进函数体内/括号配平进门/sed无引号；pdf-tools拆util+merge+split三小文件
+  ↳ 定位注记：docs转换台=批量流水线，excel.html=逐sheet探查导出，互补

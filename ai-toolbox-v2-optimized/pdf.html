@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport"
+  content="width=device-width,initial-scale=1">
+<title>PDF 工具 · Nova 工具箱</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.6 -apple-system,'PingFang SC',
+  'Microsoft YaHei',sans-serif;background:#fafaf7;color:#333}
+.wrap{max-width:860px;margin:0 auto;padding:24px 16px 60px}
+.top a{color:#4a6fa5;text-decoration:none;font-size:13px}
+h1{font-size:20px;margin:8px 0 4px}
+.hint{font-size:12px;color:#98938a;margin:6px 0;font-weight:400}
+.card{background:#fff;border:1px solid #e8e8e2;border-radius:14px;
+  padding:18px;margin:16px 0}
+.card h2{font-size:15px;margin:0 0 10px;color:#444}
+.mbtn{padding:8px 18px;border:0;border-radius:10px;cursor:pointer;
+  background:#e8836f;color:#fff;font-size:13px}
+.file{font-size:13px}
+ul#m-list{list-style:none;margin:8px 0;padding:0}
+ul#m-list li{padding:4px 0;font-size:13px;display:flex;
+  gap:8px;align-items:center}
+ul#m-list button{border:1px solid #ddd;background:#fff;
+  border-radius:6px;cursor:pointer;padding:1px 7px}
+.st{font-size:12px;color:#697086;margin-left:10px}
+input[type=text]{padding:8px 10px;border:1px solid #e0ddd6;
+  border-radius:8px;font-size:13px;width:240px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <a href="index.html">&larr; 返回工具箱</a>
+  </div>
+  <h1>PDF 工具
+    <span class="hint">纯浏览器本地处理，文件不出本机</span>
+  </h1>
+  <div class="card">
+    <h2>合并 PDF</h2>
+    <input id="m-files" class="file" type="file"
+      accept="application/pdf" multiple>
+    <ul id="m-list"></ul>
+    <button id="m-go" class="mbtn" type="button">合并并下载</button>
+    <span id="m-st" class="st"></span>
+  </div>
+  <div class="card">
+    <h2>拆分 PDF</h2>
+    <input id="s-file" class="file" type="file"
+      accept="application/pdf">
+    <div class="hint">页码范围如 1-3,5；或 every:2 每 2 页一拆</div>
+    <input id="s-range" type="text" value="1-1">
+    <button id="s-go" class="mbtn" type="button">拆分并下载</button>
+    <span id="s-st" class="st"></span>
+  </div>
+</div>
+<script src="js/vendor/pdf-lib.min.js"></script>
+<script src="js/pdf-util.js"></script>
+<script src="js/pdf-merge.js"></script>
+<script src="js/pdf-split.js"></script>
+<script src="js/guard.js"></script>
+</body>
+</html>
