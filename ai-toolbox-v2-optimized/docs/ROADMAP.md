@@ -15,7 +15,7 @@
 
 ## P0 · AI 六件套（优先）
 
-- [ ] A1 全站 ⌘K 命令面板（对标 Notion AI / Linear）
+- [x] A1 全站 ⌘K 命令面板（对标 Notion AI / Linear）
   - 搜工具/Skill + AI 快捷指令（改写/摘要/翻译）
   - 技术：全局快捷键 + skill-injector 复用
   - UI：毛玻璃居中弹窗 · 淡入缩放 · Esc 关闭
