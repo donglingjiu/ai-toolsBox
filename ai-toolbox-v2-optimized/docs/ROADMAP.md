@@ -127,3 +127,4 @@
   ↳ 定位注记：docs转换台=批量流水线，excel.html=逐sheet探查导出，互补
   ↳ 修正：上条P1-1 premature——GATE2括号配平首胜(第5次截断:for头被吃+base行腰斩)但门后批次照跑,b0ad631带伤入库+sw未bump；热修=一体化python门&&焊链commit；新铁律：GATE与git必须同链,门红不commit
   ↳ P2-1: PDF套件=提取/旋转/图片转PDF+cmdk注册；第7次截断复盘：死因=单次粘贴字节量(4.6/5.8KB死,2KB全活)而非行数→新协议:载荷≤2KB+数据独立成文件+门焊commit
+  ↳ P2-1b: suite.css暖色重做+pdf重建+excel换肤；表情4字节UTF-8被粘贴链路碾成0xED代理对(CESU-8)→破案: index.html@8034同源！图标改BMP符号(⊕✂▤↻▣⇄)；0xED金丝雀进门(valid UTF-8永不含ED字节)

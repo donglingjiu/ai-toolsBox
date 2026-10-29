@@ -1,0 +1,76 @@
+/* suite.css v1 — 工具箱套件 · 暖色治愈 */
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;
+  font:14px/1.65 -apple-system,'PingFang SC',
+  'Microsoft YaHei',sans-serif;color:#433a33;
+  background:
+  radial-gradient(900px 480px at 85% -10%,
+   #fdeadd 0%,rgba(253,234,221,0) 60%),
+  radial-gradient(700px 420px at -10% 20%,
+   #e9f3ee 0%,rgba(233,243,238,0) 55%),
+  #faf6f0}
+h1{font-size:22px;margin:6px 0 4px;color:#433a33}
+.suite,.wrap{max-width:980px;margin:0 auto;
+  padding:28px 20px 64px}
+.s-top a,.top a{color:#8a7f74;text-decoration:none;
+  font-size:13px}
+.s-top a:hover,.top a:hover{color:#e8836f}
+.s-hero{display:flex;flex-wrap:wrap;
+  align-items:center;gap:10px;margin:4px 0 6px}
+.s-chip{font-size:12px;color:#b0654f;
+  background:#fdeee4;border:1px solid #f6d9c8;
+  border-radius:999px;padding:2px 10px}
+.s-sub{color:#98938a;font-size:13px;margin:0 0 20px}
+.hint{font-size:12px;color:#a39a8e;font-weight:400}
+.grid{display:grid;gap:16px;
+  grid-template-columns:repeat(auto-fit,
+  minmax(300px,1fr))}
+.card{background:#fff;border:1px solid #f0e7db;
+  border-radius:16px;padding:18px;display:flex;
+  flex-direction:column;gap:10px;
+  box-shadow:0 6px 18px rgba(180,140,100,.08);
+  transition:transform .15s,box-shadow .15s}
+.card:hover{transform:translateY(-2px);
+  box-shadow:0 10px 24px rgba(180,140,100,.13)}
+.card h2{margin:0;font-size:15px;color:#4a4038;
+  display:flex;align-items:center;gap:8px}
+.ico{font-size:17px}
+.desc{margin:0;font-size:12px;color:#a39a8e}
+.card input[type=text],.card select{width:100%;
+  padding:9px 11px;border:1px solid #e8ddd0;
+  border-radius:10px;font-size:13px;
+  background:#fffdf9;color:#433a33}
+.card input[type=text]:focus,.card select:focus{
+  outline:none;border-color:#e8a18d;
+  box-shadow:0 0 0 3px rgba(232,161,141,.15)}
+.file{font-size:13px;color:#7a7066}
+.mbtn{width:100%;padding:10px 16px;border:0;
+  border-radius:12px;cursor:pointer;
+  background:linear-gradient(135deg,#ef9a82,#e8836f);
+  color:#fff;font-size:14px;
+  box-shadow:0 4px 12px rgba(232,131,111,.28);
+  transition:filter .15s}
+.mbtn:hover{filter:brightness(1.05)}
+.mbtn.alt{background:linear-gradient(135deg,
+  #7fb5c4,#5b9aa9);
+  box-shadow:0 4px 12px rgba(91,154,169,.28)}
+a.mbtn{display:block;text-align:center;
+  text-decoration:none}
+.card p .mbtn{width:auto;margin-right:8px}
+.st{font-size:12px;color:#697086;min-height:1em}
+.m-list{list-style:none;margin:0;padding:0;
+  display:flex;flex-direction:column;gap:6px}
+.m-list li{display:flex;gap:8px;align-items:center;
+  font-size:13px;background:#fbf7f1;
+  border:1px solid #f0e7db;border-radius:10px;
+  padding:5px 10px}
+.m-list button{border:1px solid #e8ddd0;
+  background:#fff;border-radius:8px;
+  cursor:pointer;padding:1px 8px;color:#8a7f74}
+table{border-collapse:collapse;font-size:12px;
+  margin-top:6px}
+td{border:1px solid #eee7dd;padding:4px 8px;
+  white-space:nowrap;max-width:180px;
+  overflow:hidden;text-overflow:ellipsis}
+tr:first-child td{background:#faf3ea;font-weight:600}
+@media(max-width:560px){h1{font-size:19px}}
