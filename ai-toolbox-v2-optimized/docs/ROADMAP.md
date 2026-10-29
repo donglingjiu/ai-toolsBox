@@ -61,3 +61,4 @@
 - [ ] S3 隐私与数据安全：localStorage/IndexedDB 一键清空入口、导出文件脱敏选项、错误提示不泄露 Key
   ↳ 进度：S1 引擎+docs 入口实测通过；升级为 s1-io 浮动入口全站铺开
   ↳ N1 观察：旧世代页（brain 等）topnav 溢出截断（「设」被切）——导航统一时修复
+  ↳ 教训：预检告警必须 fail-closed 拦截动作——ppt.html 双 </body> 预检已报但循环仍注入，已去重修复
