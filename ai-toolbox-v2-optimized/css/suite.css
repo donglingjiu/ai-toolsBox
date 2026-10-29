@@ -74,3 +74,5 @@ td{border:1px solid #eee7dd;padding:4px 8px;
   overflow:hidden;text-overflow:ellipsis}
 tr:first-child td{background:#faf3ea;font-weight:600}
 @media(max-width:560px){h1{font-size:19px}}
+label{display:flex;gap:6px;align-items:center;font-size:12px;color:#7a7066}
+label input{accent-color:#e8836f}

@@ -12,11 +12,13 @@
   <div class="top">
     <a href="index.html">&larr; 返回工具箱</a>
   </div>
-  <h1>表格工具
+  <div class="s-hero"><h1>表格工具
     <span class="hint">纯浏览器本地处理，文件不出本机</span>
-  </h1>
+  </h1><span class="s-chip">✓ 100% 本地处理</span></div>
+  <p class="s-sub">读取 · 合并 · 清洗 · 拆分 —— 文件全程不出本机</p>
+  <div class="grid">
   <div class="card">
-    <h2>Excel / CSV 读取与转换</h2>
+    <h2><span class="ico">▤</span>读取与转换</h2>
     <input id="x-file" class="file" type="file"
       accept=".xlsx,.xls,.csv">
     <div><select id="x-sheet"></select></div>
@@ -27,9 +29,45 @@
       <span id="x-st" class="st"></span>
     </p>
   </div>
+    <div class="card">
+      <h2><span class="ico">⊞</span>合并工作簿</h2>
+      <p class="desc">多个文件合为一个 xlsx，每文件一个 sheet</p>
+      <input id="mg-file" class="file" type="file"
+        accept=".xlsx,.xls,.csv" multiple>
+      <button id="mg-go" class="mbtn"
+        type="button">合并并下载</button>
+      <span id="mg-st" class="st"></span>
+    </div>
+    <div class="card">
+      <h2><span class="ico">✦</span>数据清洗</h2>
+      <p class="desc">去重行 · trim 空格 · 去空行（第一个 sheet）</p>
+      <input id="cl-file" class="file" type="file"
+        accept=".xlsx,.xls,.csv">
+      <label><input type="checkbox" id="cl-dedup" checked> 去重行</label>
+      <label><input type="checkbox" id="cl-trim" checked> trim 单元格</label>
+      <label><input type="checkbox" id="cl-empty" checked> 去空行</label>
+      <button id="cl-go" class="mbtn"
+        type="button">清洗并下载</button>
+      <span id="cl-st" class="st"></span>
+    </div>
+    <div class="card">
+      <h2><span class="ico">✂</span>按行拆分</h2>
+      <p class="desc">每 N 行一份 CSV，保留表头</p>
+      <input id="sp-file" class="file" type="file"
+        accept=".xlsx,.xls,.csv">
+      <input id="sp-n" type="text" value="500">
+      <button id="sp-go" class="mbtn"
+        type="button">拆分并下载</button>
+      <span id="sp-st" class="st"></span>
+    </div>
+  </div>
 </div>
 <script src="js/vendor/xlsx.full.min.js"></script>
 <script src="js/excel-tools.js"></script>
+<script src="js/xl-util.js"></script>
+<script src="js/xl-merge.js"></script>
+<script src="js/xl-clean.js"></script>
+<script src="js/xl-split.js"></script>
 <script src="js/guard.js"></script>
 </body>
 </html>

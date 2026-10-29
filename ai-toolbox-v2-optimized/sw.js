@@ -1,5 +1,5 @@
 /* Nova SW：同源静态缓存层 v1（大版本发布时 CACHE 改 nova-v2 强制刷新）*/
-var CACHE = 'nova-v9';
+var CACHE = 'nova-v10';
 var CORE = ['./', 'css/tokens.css', 'css/nova.css', 'css/tokens-light.css',
   'js/nova-core.js', 'js/at-cmdk.js', 'js/s1-backup.js', 'js/s1-io.js'];
 self.addEventListener('install', function(e){
