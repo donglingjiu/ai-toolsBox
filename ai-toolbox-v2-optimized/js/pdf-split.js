@@ -19,6 +19,7 @@
       return out.length ? out : null;
     }
     var parts = txt.split(',');
+    for(i = 0; i < parts.length; i++){
  
       p = parts[i].trim();
       if(!p) continue;
@@ -45,7 +46,7 @@
         say('范围不合法，共 ' + n + ' 页');
         return;
       }
-      var base = f.name.rep
+      var base = f.name.replace(/\.pdf$/i, '');
       var k = 0;
       function one(){
         if(k >= rg.length){
