@@ -1,6 +1,10 @@
 /* 客户端防护门槛：拦截常用入口 + 开发者工具打开时模糊整页 */
 (function(){
   'use strict';
+  /* guard-owner-bypass-v1: owner opt-out */
+  try{
+    if(localStorage.getItem('novaOwner') === '1') return;
+  }catch(e){}
   function deny(e){ e.preventDefault(); return false; }
   document.addEventListener('keydown', function(e){
     var k = (e.key || '').toUpperCase();
