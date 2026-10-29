@@ -21,6 +21,7 @@ const NovaCommandIndex = [
   { t: "Nova Docs · 星文 — 文档工作台", k: "docs 文档 word pdf 转换 演示 ppt",   u: "docs.html",   h: "Docs" },
   { t: "Nova Data · 星数 — 数据工作台", k: "data 数据 表格 csv excel 图表 脱敏",  u: "data.html",   h: "Data" },
   { t: "Nova Flow · 星流 — 流程工作台", k: "flow 流程 流水线 编排 步骤",          u: "flow.html",   h: "Flow" },
+  { t: "AI 对话 — Chat 工作台", k: "chat 对话 聊天 ai 流式", u: "chat.html", h: "Chat" },
   { t: "Nova Mind · 星智 — 脑图工作室", k: "mind 脑图 思维导图 markmap 大纲 笔记 导出", u: "mind.html", h: "Mind" },
   { group: "工具直达" },
   { t: "表格分析工具",       k: "excel xlsx csv 表格 画像 dsl",        u: "excel.html",   h: "Data 复用" },

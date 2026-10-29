@@ -60,6 +60,7 @@
     ['excel.html','Excel 工具','表格画像与 AI 整理','EX','excel 表格 csv'],
     ['tryon.html','AI 试衣间','虚拟试衣','TY','tryon 试衣'],
     ['qr.html','挪车码','一键生成挪车码','QR','qr 二维码 挪车'],
+    ['chat.html','AI 对话','流式对话 · Markdown · Skill 加持','CH','chat 对话 聊天 ai'],
     ['settings.html','设置','模型 API 与代理配置','SE','settings 设置 配置']
   ];
 
