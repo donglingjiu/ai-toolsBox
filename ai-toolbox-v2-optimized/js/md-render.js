@@ -1,3 +1,5 @@
+/* S2: bootstrap DOMPurify (idempotent; until loaded, render falls back unsanitized) */
+(function(){if(!window.DOMPurify){var s=document.createElement('script');s.src='js/vendor/purify.min.js?v=1';document.head.appendChild(s);}})();
 /* md-render.js v3 - sync-first wrapper, lazy mermaid */
 (function () {
   var M = { ready: false, mermaidReady: false };

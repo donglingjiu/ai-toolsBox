@@ -85,3 +85,4 @@
   ↳ 注入面✅：用户侧 esc/escapeHtml；AI侧唯一漏斗 md-render→DOMPurify（自举+降级）
   ↳ P0复盘：BRE中\|是"或"→sed腐蚀222行已push；教训=改代码用脚本替换+锚计数断言；SW约定首次实战（bump v2强刷）
   ↳ guard.js定位：威慑性门神，无安全价值无风险——保留
+  ↳ 自举落地：py2 heredoc 含中文触发编码限制→全ASCII重试成功（lesson：共享机python默认py2，脚本块纯ASCII）
