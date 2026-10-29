@@ -205,9 +205,9 @@ function chatStream(msgs, onDelta, signal){
     return streamOnce(p, msgs, function(d, f){ gotAny = true; onDelta(d, f); }, signal).catch(function(e){
       if(gotAny || (signal && signal.aborted)) throw e;
       errs.push(e.message || String(e));
-      re
+      return nonStreamOnce(p, msgs, signal).then(function(full){
         onDelta(full, full); return full;
-      }).catch(f
+      }).catch(function(e2){
         errs.push(e2.message || String(e2));
         return attempt();
       });
