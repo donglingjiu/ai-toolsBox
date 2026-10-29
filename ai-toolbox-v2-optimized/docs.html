@@ -139,5 +139,37 @@
   });
 })();
 </script>
-<script src="js/at-cmdk.js" defer></script><script src="js/skills/skill-injector.js" defer></script><script src="js/skills/skill-picker.js" defer></script><script src="js/skills/skills-builtin.data.js" defer></script><script src="js/skills/skill-schema.js" defer></script><script src="js/skills/skill-store.js" defer></script></body>
+<script src="js/at-cmdk.js" defer></script><script src="js/skills/skill-injector.js" defer></script><script src="js/skills/skill-picker.js" defer></script><script src="js/skills/skills-builtin.data.js" defer></script><script src="js/skills/skill-schema.js" defer></script><script src="js/skills/skill-store.js" defer></script><script>
+/* vault-search-v1: self-mounting instant filter for Nova Vault */
+(function(){
+  var bar = document.querySelector('#tab-vault .bar');
+  var refresh = document.getElementById('vault-refresh');
+  var tbody = document.getElementById('vault-body');
+  if(!bar || 
+  var input = document.createElement('input');
+  input.id = 'vault-search';
+  input.type = 'search';
+  input.placeholder = '\u641c\u7d22\u661f\u5e93\uff08\u540d\u79f0/\u6765\u6e90/\u7c7b\u578b\uff09';
+  input.style.cssText = 'padding:8px 12px;border:1px solid #e6e8f2;border-radius:10px;font-size:13px;min-width:220px';
+  var count = document.createElement('span');
+  count.style.cssText = 'font-size:12px;color:#697086';
+  var wrap = document.createElement('div');
+  wrap.style.cssText = 'display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:10px 0';
+  wrap.appendChild(input); wrap.appendChild(count);
+  if(refresh.parentNode === bar){ bar.insertBefore(wrap, refresh); } else { bar.appendChild(wrap); }
+  function apply(){
+    var q = (input.value || '').trim().toLowerCase();
+    var rows = tbody.rows, hit = 0;
+    for(var i = 0; i < rows.length; i++){
+      var ok = !q || (rows[i].textContent || '').toLowerCase().indexOf(q) > -1;
+      rows[i].style.display = ok ? '' : 'none';
+      if(ok) hit++;
+    }
+    count.textContent = q ? (hit + ' / ' + rows.length) : '';
+  }
+  input.addEventListener('input', apply);
+  if(window.MutationObserver){ new MutationObserver(apply).observe(tbody, {childList: true}); }
+})();
+</script>
+</body>
 </html>

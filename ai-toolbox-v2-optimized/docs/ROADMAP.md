@@ -89,3 +89,7 @@
   ↳ 对标改判：docs=文件转换+星库（非md编辑器）——大纲/快照不适用结案；docs真缺口=星库搜索（侦察中）
   ↳ F2手术：mind PNG导出（自装脚本 svg→canvas 2x + markmap CSS内联 + toBlob fail-closed）；SVG下载本就有
   ↳ SW缓存bump nova-v3（内容变更刷新约定第二次实战）
+  ↳ F2修复：PNG导出v2——根因=WHATWG html#10641（blob URL+foreignObject必污染canvas，data URI干净，全浏览器一致）；附带剔除url()规则+20px留白+toBlob自诊断alert
+  ↳ F1手术：星库即时搜索（自装脚本行级过滤+命中计数+MutationObserver跟随刷新，零侵入refreshVault）
+  ↳ SW缓存bump nova-v4（两文件变更，约定第三次实战）
+  ↳ sw.js:40离线uncaught fetch定性：NewCard扩展透传×离线，cosmetic——下轮recon(30-60行)后加catch
