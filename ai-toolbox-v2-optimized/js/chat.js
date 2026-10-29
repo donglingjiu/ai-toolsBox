@@ -125,7 +125,7 @@ function streamOnce(p, msgs, onDelta, signal){
     model: p.model || p.modelName || 'glm-4-flash',
     messages: msgs, temperature: 0.7, stream: true
   }) };
-  if(signal) opt.signal = signal;
+  if(signal) opt.signal = signal.signal || signal;
   return fetch(url, opt).then(function(r){
     if(!r.ok){
       var why = r.status === 402 ? '（欠费）' : r.status === 401 ? '（Key 无效）' : r.status === 429 ? '（限流）' : r.status === 404 ? '（路径错误）' : '';
@@ -177,7 +177,7 @@ function nonStreamOnce(p, msgs, signal){
     model: p.model || p.modelName || 'glm-4-flash',
     messages: msgs, temperature: 0.7, stream: false
   }) };
-  if(signal) opt.signal = signal;
+  if(signal) opt.signal = signal.signal || signal;
   return fetch(url, opt).then(function(r){
     if(!r.ok){
       var why = r.status === 402 ? '（欠费）' : r.status === 401 ? '（Key 无效）' : r.status === 429 ? '（限流）' : r.status === 404 ? '（路径错误）' : '';
