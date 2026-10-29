@@ -67,3 +67,8 @@
   ↳ 挂账 N1-2：旧世代 6 页（brain/mood/advisor/resume/tryon/prompts）顶栏换装 nova 统一 topbar（根治溢出与风格分裂）
   ↳ 性能分诊：基线健康（brain 冷加载 DCL 1.81s），30s 为离群值；系统性风险=jsdelivr 外链阻塞脚本，已全部本地化（marked→js/vendor，mammoth 复用本地件）
   ↳ P2 挂账：CSS 4→1 合并、Service Worker 缓存层（当前请求数与 DCL 不构成瓶颈，暂不动刀）
+  ↳ 托管确认：Cloudflare Pages；内网 curl 实测 DNS 2.5s 为大头，出口抖动=随机停顿离群值根因
+  ↳ marked 处置：v12.0.2 还原（brain/flow 原配），v9.1.6 独立为 marked-9（4 页原配）——匹配还原零风险
+  ↳ 复测判读：docs 冷加载 14.4→3.65s 基线健康（页面未改动，纯环境波动回落）；prompts 16s 为离群值
+  ↳ SW 缓存层上线（SWR HTML + 缓存优先静态）：重复访问零网络依赖，随机停顿不再影响体验
+  ↳ SW 维护约定：大版本发布将 CACHE 'nova-v1' bump 'nova-v2'
