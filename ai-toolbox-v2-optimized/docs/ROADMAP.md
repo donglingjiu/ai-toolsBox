@@ -62,3 +62,6 @@
   ↳ 进度：S1 引擎+docs 入口实测通过；升级为 s1-io 浮动入口全站铺开
   ↳ N1 观察：旧世代页（brain 等）topnav 溢出截断（「设」被切）——导航统一时修复
   ↳ 教训：预检告警必须 fail-closed 拦截动作——ppt.html 双 </body> 预检已报但循环仍注入，已去重修复
+  ↳ ppt 确诊修复：导出字符串混入 profile/guard + skill 栈（裸 </script> 截断整个内联脚本，页面静默瘫痪）——历史误注入遗留，已清除恢复
+  ↳ N1 巡检：data/flow/mind 达标免大刀；修 s1 悬浮球被 K 按钮压住（bottom 60px）；旧导航 flex-wrap 缓解
+  ↳ 挂账 N1-2：旧世代 6 页（brain/mood/advisor/resume/tryon/prompts）顶栏换装 nova 统一 topbar（根治溢出与风格分裂）
