@@ -74,6 +74,23 @@ function loadProfiles(){
       if(ok2.length) return ok2;
     }
   }catch(e){}
+  try{
+    var s1 = JSON.parse(localStorage.getItem('at_settings_v1') || '{}');
+    var okS = validProfiles(s1.llmProfiles || []);
+    if(okS.length) return okS;
+  }catch(e){}
+  try{
+    var found = null;
+    for(var wk in window){
+      try{
+        var wv = window[wk];
+        if(wv && !Array.isArray(wv) && typeof wv.baseUrl === 'string' && wv.baseUrl.indexOf('bigmodel') >= 0){ found = wv; break; }
+        if(Array.isArray(wv) && wv.length && wv[0] && wv[0].baseUrl && String(wv[0].baseUrl).indexOf('bigmodel') >= 0){ found = wv[0]; break; }
+      }catch(e2){}
+    }
+    if(found){ var okG = validProfiles([found]); if(okG.length) return okG; }
+  }catch(e){}
+  return [{ name:'内置代理', baseUrl:'https://ai.donglingjiu.top/llm/bigmodel/api/paas/v4', apiKey:'', model:'glm-4-flash', enabled:true }];
   return [];
 }
 
