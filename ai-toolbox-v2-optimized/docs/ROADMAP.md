@@ -76,3 +76,5 @@
   ↳ 判读修正：旧顶栏非 app.js 生成（app.js 零 nav 代码），系各页内联 HTML——app.js 为页逻辑工厂，保留不动
   ↳ 教训：grep -c 数行不数个数——链接保全抽查误报「2」，正确口径为 grep -o | wc -l 与 href 多重集 diff
   ↳ 教训：探针须自校验基线非空；git show 相对路径带 ./（仓库根≠cwd）；引用历史提交锚定 hash，HEAD~N 会随提交漂移（差点造出假绿灯）
+  ↳ S2 环境lesson：老coreutils——sed用-r非-E、grep无--exclude-dir（ls|xargs替代）、git grep无-o
+  ↳ S2手术：md-render唯一漏斗包DOMPurify（缺失时降级直出）——AI输出XSS面关闭
