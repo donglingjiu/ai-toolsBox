@@ -4,57 +4,84 @@
 <meta charset="utf-8">
 <meta name="viewport"
   content="width=device-width,initial-scale=1">
-<title>表格工具 · Nova 工具箱</title>
+<title>表格工具箱 · Nova</title>
 <link rel="stylesheet" href="css/suite.css">
 </head>
 <body>
-<div class="wrap">
-  <div class="top">
-    <a href="index.html">&larr; 返回工具箱</a>
+<div class="suite">
+  <div class="s-top">
+    <a href="index.html">← 返回 Nova 工具箱</a>
   </div>
-  <div class="s-hero"><h1>表格工具
-    <span class="hint">纯浏览器本地处理，文件不出本机</span>
-  </h1><span class="s-chip">✓ 100% 本地处理</span></div>
-  <p class="s-sub">读取 · 合并 · 清洗 · 拆分 —— 文件全程不出本机</p>
+  <div class="s-hero">
+    <h1>表格工具箱</h1>
+    <span class="s-chip">✓ 100% 本地处理</span>
+  </div>
+  <p class="s-sub">读取 · 合并 · 清洗 · 拆分
+    —— 文件全程不出本机</p>
   <div class="grid">
-  <div class="card">
-    <h2><span class="ico">▤</span>读取与转换</h2>
-    <input id="x-file" class="file" type="file"
-      accept=".xlsx,.xls,.csv">
-    <div><select id="x-sheet"></select></div>
-    <div id="x-prev"></div>
-    <p>
-      <button id="x-csv" class="mbtn" type="button">导出 CSV</button>
-      <button id="x-json" class="mbtn alt" type="button">导出 JSON</button>
-      <span id="x-st" class="st"></span>
-    </p>
-  </div>
     <div class="card">
-      <h2><span class="ico">⊞</span>合并工作簿</h2>
+      <h2><span class="tile">▤</span>读取与转换</h2>
+      <p class="desc">预览 sheet，导出 CSV / JSON</p>
+      <label class="drop" for="x-file">
+        <span class="up">⇪</span>
+        <b>点击选择表格文件</b>
+        <span>xlsx · xls · csv</span>
+      </label>
+      <input id="x-file" class="sr-file"
+        type="file" accept=".xlsx,.xls,.csv">
+      <select id="x-sheet"></select>
+      <div id="x-prev"></div>
+      <div class="row">
+        <button id="x-csv" class="mbtn"
+          type="button">导出 CSV</button>
+        <button id="x-json" class="mbtn alt"
+          type="button">导出 JSON</button>
+      </div>
+      <span id="x-st" class="st"></span>
+    </div>
+    <div class="card">
+      <h2><span class="tile">⊞</span>合并工作簿</h2>
       <p class="desc">多个文件合为一个 xlsx，每文件一个 sheet</p>
-      <input id="mg-file" class="file" type="file"
-        accept=".xlsx,.xls,.csv" multiple>
+      <label class="drop" for="mg-file">
+        <span class="up">⇪</span>
+        <b>点击选择多个文件</b>
+        <span>xlsx · xls · csv</span>
+      </label>
+      <input id="mg-file" class="sr-file"
+        type="file" accept=".xlsx,.xls,.csv"
+        multiple>
       <button id="mg-go" class="mbtn"
         type="button">合并并下载</button>
       <span id="mg-st" class="st"></span>
     </div>
     <div class="card">
-      <h2><span class="ico">✦</span>数据清洗</h2>
-      <p class="desc">去重行 · trim 空格 · 去空行（第一个 sheet）</p>
-      <input id="cl-file" class="file" type="file"
-        accept=".xlsx,.xls,.csv">
-      <label><input type="checkbox" id="cl-dedup" checked> 去重行</label>
-      <label><input type="checkbox" id="cl-trim" checked> trim 单元格</label>
-      <label><input type="checkbox" id="cl-empty" checked> 去空行</label>
+      <h2><span class="tile v">✦</span>数据清洗</h2>
+      <p class="desc">去重行 · trim · 去空行（第一个 sheet）</p>
+      <label class="drop" for="cl-file">
+        <span class="up">⇪</span>
+        <b>点击选择表格文件</b>
+      </label>
+      <input id="cl-file" class="sr-file"
+        type="file" accept=".xlsx,.xls,.csv">
+      <label><input type="checkbox"
+        id="cl-dedup" checked> 去重行</label>
+      <label><input type="checkbox"
+        id="cl-trim" checked> trim 单元格</label>
+      <label><input type="checkbox"
+        id="cl-empty" checked> 去空行</label>
       <button id="cl-go" class="mbtn"
         type="button">清洗并下载</button>
       <span id="cl-st" class="st"></span>
     </div>
     <div class="card">
-      <h2><span class="ico">✂</span>按行拆分</h2>
+      <h2><span class="tile">✂</span>按行拆分</h2>
       <p class="desc">每 N 行一份 CSV，保留表头</p>
-      <input id="sp-file" class="file" type="file"
-        accept=".xlsx,.xls,.csv">
+      <label class="drop" for="sp-file">
+        <span class="up">⇪</span>
+        <b>点击选择表格文件</b>
+      </label>
+      <input id="sp-file" class="sr-file"
+        type="file" accept=".xlsx,.xls,.csv">
       <input id="sp-n" type="text" value="500">
       <button id="sp-go" class="mbtn"
         type="button">拆分并下载</button>

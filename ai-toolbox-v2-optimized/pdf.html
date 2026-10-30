@@ -20,40 +20,58 @@
     图片转PDF —— 文件全程不出本机</p>
   <div class="grid">
     <div class="card">
-      <h2><span class="ico">⊕</span>合并 PDF</h2>
+      <h2><span class="tile">⊕</span>合并 PDF</h2>
       <p class="desc">多个 PDF 按列表顺序合成一个</p>
-      <input id="m-files" class="file" type="file"
-        accept="application/pdf" multiple>
+      <label class="drop" for="m-files">
+        <span class="up">⇪</span>
+        <b>点击选择 PDF 文件</b>
+        <span>支持多选 · 顺序可调</span>
+      </label>
+      <input id="m-files" class="sr-file"
+        type="file" accept="application/pdf"
+        multiple>
       <ul id="m-list" class="m-list"></ul>
       <button id="m-go" class="mbtn"
         type="button">合并并下载</button>
       <span id="m-st" class="st"></span>
     </div>
     <div class="card">
-      <h2><span class="ico">✂</span>拆分 PDF</h2>
+      <h2><span class="tile">✂</span>拆分 PDF</h2>
       <p class="desc">范围如 1-3,5；every:2 每2页一拆</p>
-      <input id="s-file" class="file" type="file"
-        accept="application/pdf">
+      <label class="drop" for="s-file">
+        <span class="up">⇪</span>
+        <b>点击选择 PDF 文件</b>
+      </label>
+      <input id="s-file" class="sr-file"
+        type="file" accept="application/pdf">
       <input id="s-range" type="text" value="1-1">
       <button id="s-go" class="mbtn"
         type="button">拆分并下载</button>
       <span id="s-st" class="st"></span>
     </div>
     <div class="card">
-      <h2><span class="ico">▤</span>提取页</h2>
+      <h2><span class="tile">▤</span>提取页</h2>
       <p class="desc">抽出指定页合成新 PDF</p>
-      <input id="e-file" class="file" type="file"
-        accept="application/pdf">
+      <label class="drop" for="e-file">
+        <span class="up">⇪</span>
+        <b>点击选择 PDF 文件</b>
+      </label>
+      <input id="e-file" class="sr-file"
+        type="file" accept="application/pdf">
       <input id="e-range" type="text" value="1-3,5">
       <button id="e-go" class="mbtn"
         type="button">提取并下载</button>
       <span id="e-st" class="st"></span>
     </div>
     <div class="card">
-      <h2><span class="ico">↻</span>旋转页面</h2>
+      <h2><span class="tile">↻</span>旋转页面</h2>
       <p class="desc">整份或指定页旋转方向</p>
-      <input id="r-file" class="file" type="file"
-        accept="application/pdf">
+      <label class="drop" for="r-file">
+        <span class="up">⇪</span>
+        <b>点击选择 PDF 文件</b>
+      </label>
+      <input id="r-file" class="sr-file"
+        type="file" accept="application/pdf">
       <select id="r-deg">
         <option value="90">顺时针 90°</option>
         <option value="180">旋转 180°</option>
@@ -66,16 +84,22 @@
       <span id="r-st" class="st"></span>
     </div>
     <div class="card">
-      <h2><span class="ico">▣</span>图片转 PDF</h2>
+      <h2><span class="tile">▣</span>图片转 PDF</h2>
       <p class="desc">PNG/JPG 按顺序合成一份 PDF</p>
-      <input id="i2p-file" class="file" type="file"
-        accept=".png,.jpg,.jpeg" multiple>
+      <label class="drop" for="i2p-file">
+        <span class="up">⇪</span>
+        <b>点击选择图片</b>
+        <span>png · jpg · 多选</span>
+      </label>
+      <input id="i2p-file" class="sr-file"
+        type="file" accept=".png,.jpg,.jpeg"
+        multiple>
       <button id="i2p-go" class="mbtn"
         type="button">合成 PDF 并下载</button>
       <span id="i2p-st" class="st"></span>
     </div>
     <div class="card">
-      <h2><span class="ico">⇄</span>格式转换</h2>
+      <h2><span class="tile v">⇄</span>格式转换</h2>
       <p class="desc">PDF→Word/TXT/MD 批量流水线</p>
       <a class="mbtn alt" href="docs.html">去 Docs 转换台 →</a>
       <span class="st">转换产物自动存入星库</span>
