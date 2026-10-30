@@ -1,6 +1,7 @@
 /* pdf-extract v1: extract page ranges into one PDF */
 (function(){
   var L = window.PDFLib;
+  var P = window.NovaPdf;
  
   var ef = document.getElementById('e-file');
   var er = document.getElementById('e-range');

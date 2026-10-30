@@ -130,3 +130,4 @@
   ↳ P2-1b: suite.css暖色重做+pdf重建+excel换肤；表情4字节UTF-8被粘贴链路碾成0xED代理对(CESU-8)→破案: index.html@8034同源！图标改BMP符号(⊕✂▤↻▣⇄)；0xED金丝雀进门(valid UTF-8永不含ED字节)
   ↳ P2-2: 表格套件=合并工作簿/数据清洗(去重·trim·空行)/按行拆分CSV；index@80340xED残骸清除(挂账兑现)；JS变更轮→sw v10
   ↳ P2-2b: 视觉v2「Obsidian工作台」暗色(品牌薄荷#45E0C8)+自绘dropzone+tile图标+mono状态行；bump规则补全:覆写缓存资产必bump(v11)；门规约+1:计数断言先print后assert(自诊断)，本轮门拦下操作员自己的6vs5算术错
+  ↳ P2-2c: 运行时逮住门漏放的伤——第6截断把extract.js的var P整行蒸发(结构门全免疫,ReferenceError才现形)；修复+全家族声明扫描进门(第6层)；扫描名单显式枚举不用glob(vendor混入教训)；套件页favicon灭404；sw v12
