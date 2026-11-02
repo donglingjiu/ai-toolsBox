@@ -113,6 +113,9 @@ const OP_UI = {
                     { k: "_mcol", t: "col", label: "度量列" }, { k: "_magg", t: "select", label: "聚合", opts: ["sum","count","avg","min","max"] }],
   add_computed:    [{ k: "formula", t: "select", label: "公式", opts: ["concat","add","subtract","multiply","divide"] },
                     { k: "columns", t: "multi", label: "参与列（算术选 2 列）" }, { k: "as", t: "text", label: "新列名" }],
+  split_col:       [{ k: "column", t: "col", label: "被拆列" }, { k: "sep", t: "text", label: "分隔符" }, { k: "into", t: "text", label: "新列名（逗号分隔）" }],
+  map_values:      [{ k: "column", t: "col", label: "列" }, { k: "pairs", t: "text", label: '映射JSON，如 {"旧":"新"}' }],
+  fill_empty:      [{ k: "column", t: "col", label: "列" }, { k: "value", t: "text", label: "填充值" }],
 };
 
 function renderOpFields() {
@@ -139,6 +142,9 @@ function gatherOp() {
   if (type === "sort_rows")    { op.column = get("column"); op.order = get("order"); }
   if (type === "coerce_number") op.column = get("column");
   if (type === "add_computed") { op.formula = get("formula"); op.columns = getMulti("columns"); op.as = get("as"); }
+  if (type === "split_col")   { op.column = get("column"); op.sep = get("sep"); op.into = (get("into") || "").split(/[,，]/).map((x) => x.trim()).filter(Boolean); }
+  if (type === "map_values")  { op.column = get("column"); try { op.pairs = JSON.parse(get("pairs") || "{}"); } catch (e) { op.pairs = null; } }
+  if (type === "fill_empty")  { op.column = get("column"); op.value = get("value"); }
   if (type === "group_aggregate") {
     op.groupBy = getMulti("groupBy");
     op.metrics = [{ column: get("_mcol"), op: get("_magg") }];

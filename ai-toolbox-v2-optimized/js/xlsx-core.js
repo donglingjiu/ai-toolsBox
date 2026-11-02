@@ -101,7 +101,7 @@ function isSensitiveColumn(name) {
 }
 
 /* ---------- 受限变换 DSL 校验 ---------- */
-var ALLOWED_OPS = ['select_columns', 'rename_column', 'filter_rows', 'sort_rows', 'dedupe_rows', 'trim_text', 'coerce_number', 'group_aggregate', 'add_computed'];
+var ALLOWED_OPS = ['select_columns', 'rename_column', 'filter_rows', 'sort_rows', 'dedupe_rows', 'trim_text', 'coerce_number', 'group_aggregate', 'add_computed','split_col','map_values','fill_empty'];
 var ALLOWED_AGG = ['sum', 'count', 'avg', 'min', 'max'];
 
 function validateTransformPlan(plan, table) {
@@ -140,6 +140,21 @@ function validateTransformPlan(plan, table) {
           if (ALLOWED_AGG.indexOf(m.op) === -1) throw new Error(tag + '：非法聚合 ' + m.op);
         });
         headers = (op.groupBy || []).concat((op.metrics || []).map(function (m) { return m.as || (m.op + '_' + m.column); }));
+        break;
+      case 'split_col':
+        assertCol(op.column, tag);
+        if (typeof op.sep !== 'string' || op.sep === '') throw new Error(tag + '：分隔符sep必填');
+        if (!Array.isArray(op.into) || !op.into.length) throw new Error(tag + '：缺少新列名数组into');
+        op.into.forEach(function (c) { if (headers.indexOf(c) !== -1) throw new Error(tag + '：新列名「' + c + '」重名'); });
+        headers = headers.slice(0, headers.indexOf(op.column) + 1).concat(op.into, headers.slice(headers.indexOf(op.column) + 1));
+        break;
+      case 'map_values':
+        assertCol(op.column, tag);
+        if (!op.pairs || typeof op.pairs !== 'object' || Array.isArray(op.pairs)) throw new Error(tag + '：缺少映射表pairs');
+        break;
+      case 'fill_empty':
+        assertCol(op.column, tag);
+        if (!('value' in op)) throw new Error(tag + '：缺少填充值value');
         break;
       case 'add_computed':
         if (!op.as) throw new Error(tag + '：缺少新列名 as');
@@ -227,6 +242,25 @@ function applyTransformPlan(table, plan) {
         return o;
       });
       headers = outHeaders; rows = outRows;
+    } else if (op.type === 'split_col') {
+      var _si = headers.indexOf(op.column);
+      headers = headers.slice(0, _si + 1).concat(op.into, headers.slice(_si + 1));
+      rows = rows.map(function (r) {
+        var parts = String(r[op.column] == null ? '' : r[op.column]).split(op.sep);
+        var nr = {};
+        headers.forEach(function (h) {
+          var ii = op.into.indexOf(h);
+          nr[h] = ii !== -1 ? (ii < parts.length ? parts[ii] : '') : r[h];
+        });
+        return nr;
+      });
+    } else if (op.type === 'map_values') {
+      rows.forEach(function (r) {
+        var v = r[op.column];
+        if (v != null && Object.prototype.hasOwnProperty.call(op.pairs, String(v))) r[op.column] = op.pairs[String(v)];
+      });
+    } else if (op.type === 'fill_empty') {
+      rows.forEach(function (r) { if (r[op.column] == null || r[op.column] === '') r[op.column] = op.value; });
     } else if (op.type === 'add_computed') {
       rows.forEach(function (r) {
         if (op.formula === 'concat') r[op.as] = (op.columns || []).map(function (c) { return r[c] == null ? '' : r[c]; }).join(op.sep || '');
