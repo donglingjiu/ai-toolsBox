@@ -84,7 +84,68 @@
         type="button">旋转并下载</button>
       <span id="r-st" class="st"></span>
     </div>
+        <div class="card">
+      <h2><span class="tile">#</span>页码</h2>
+      <p class="desc">为每页添加页码，可选位置与起始号</p>
+      <label class="drop" for="n-file">
+        <span class="up">⇪</span>
+        <b>点击选择 PDF 文件</b>
+      </label>
+      <input id="n-file" class="sr-file"
+        type="file" accept="application/pdf">
+      <select id="n-pos">
+        <option value="bc">底部居中</option>
+        <option value="br">底部右侧</option>
+        <option value="tr">顶部右侧</option>
+      </select>
+      <input id="n-size" type="number" value="12"
+        min="6" max="36" style="width:80px">
+      <input id="n-start" type="number" value="1"
+        min="1" style="width:80px">
+      <label><input id="n-skip" type="checkbox"> 跳过首页</label>
+      <button id="n-go" class="mbtn"
+        type="button">添加页码并下载</button>
+      <span id="n-st" class="st"></span>
+    </div>
     <div class="card">
+      <h2><span class="tile">§</span>水印</h2>
+      <p class="desc">平铺 45° 半透明水印（v1 限英文/数字）</p>
+      <label class="drop" for="w-file">
+        <span class="up">⇪</span>
+        <b>点击选择 PDF 文件</b>
+      </label>
+      <input id="w-file" class="sr-file"
+        type="file" accept="application/pdf">
+      <input id="w-text" type="text"
+        placeholder="CONFIDENTIAL">
+      <select id="w-density">
+        <option value="0">稀疏</option>
+        <option value="1" selected>标准</option>
+        <option value="2">密集</option>
+      </select>
+      <select id="w-op">
+        <option value="0.08">淡</option>
+        <option value="0.15" selected>中</option>
+        <option value="0.25">浓</option>
+      </select>
+      <button id="w-go" class="mbtn"
+        type="button">添加水印并下载</button>
+      <span id="w-st" class="st"></span>
+    </div>
+    <div class="card">
+      <h2><span class="tile">◈</span>压缩瘦身</h2>
+      <p class="desc">结构级优化，如实报告前后体积（图片不重采样）</p>
+      <label class="drop" for="z-file">
+        <span class="up">⇪</span>
+        <b>点击选择 PDF 文件</b>
+      </label>
+      <input id="z-file" class="sr-file"
+        type="file" accept="application/pdf">
+      <button id="z-go" class="mbtn"
+        type="button">优化并下载</button>
+      <span id="z-st" class="st"></span>
+    </div>
+<div class="card">
       <h2><span class="tile">▣</span>图片转 PDF</h2>
       <p class="desc">PNG/JPG 按顺序合成一份 PDF</p>
       <label class="drop" for="i2p-file">
@@ -113,7 +174,7 @@
 <script src="js/pdf-split.js"></script>
 <script src="js/pdf-rotate.js"></script>
 <script src="js/pdf-img2pdf.js"></script>
-<script src="js/pdf-extract.js"></script>
+<script src="js/pdf-extract.js"></script>\n<script src="js/pdf-annot.js?v=1"></script>
 <script src="js/guard.js"></script>
 </body>
 </html>
