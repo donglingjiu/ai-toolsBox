@@ -133,3 +133,4 @@
   ↳ P2-2c: 运行时逮住门漏放的伤——第6截断把extract.js的var P整行蒸发(结构门全免疫,ReferenceError才现形)；修复+全家族声明扫描进门(第6层)；扫描名单显式枚举不用glob(vendor混入教训)；套件页favicon灭404；sw v12
   ↳ P2-3: 变换算子+3(列拆分/值映射/填充空值)，侦察砍掉2个伪空白(分组聚合/转数值已存在)；六触点齐改=白名单+校验case+执行分支+OP_UI+gatherOp+下拉；validate证实STRICT(陌生类型throw)→白名单必须同步；无node→平衡增量断言(插入对称才放行)；cache-bust?v=2双文件；sw v13
   ↳ P2-4: 脑图导出三格式(OPML 2.0/FreeMind 1.0.1/归一化MD)；架构=从#mind-src源头解析，零耦合markmap闭包；复用mind-png动态注入模式；Python镜像测试验树形；门盲区一课=裸字符计数把列表正则字符类[.)]里的)计入→假阳性，源码改十六进制转义规避(功能不变)，真·JS词法门(剥离字符串/注释/正则再计数)挂账P3工具债
+  ↳ P2-4b: 浏览器终验抓出 toMd 双失真(collapse后根标题被虚拟深度d=0吞掉；li被一律转标题违背承诺)→v2 kind感知修复：h按语义深度、li/p相对最近标题祖先缩进，导出↔导入幂等；覆写bust?v=2；sw免bump(URL键新取)；OPML/.mm截图实证collapse生效；挂账=mind页窄屏按钮挤压(视觉P3)

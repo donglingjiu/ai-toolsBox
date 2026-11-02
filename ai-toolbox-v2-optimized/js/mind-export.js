@@ -1,7 +1,7 @@
-/* mind-export-v1: OPML / FreeMind / Markdown export
+/* mind-export-v2: OPML / FreeMind / Markdown export
    源头单一事实源 = #mind-src（Markdown 原文）
-   解析：标题(#~######) + 列表(缩进/2=层级) + 段落挂父节点
-   输出：OPML 2.0 / FreeMind 1.0.1 / 归一化 MD（>6级转缩进列表） */
+   v2: toMd 改 kind 感知——h 按语义深度出标题(根 H1 不再丢)，
+   li/p 相对最近标题祖先出缩进列表(列表语义保留)，导出↔导入幂等 */
 (function(){
   'use strict';
   var src = document.getElementById('mind-src');
@@ -54,12 +54,18 @@
   }
   function toMd(root) {
     var out = [];
-    (function walk(n, d) {
-      if (d > 0) {
-        if (d <= 6) out.push(new Array(d + 1).join('#') + ' ' + n.text);
-        else out.push(new Array(d - 5).join('  ') + '- ' + n.text);
+    (function walk(n, base) {
+      if (n.depth > 0) {
+        if (n.kind === 'h') {
+          if (out.length) out.push('');
+          out.push(new Array(n.depth + 1).join('#') + ' ' + n.text);
+        } else {
+          var lvl = Math.max(1, n.depth - base);
+          out.push(new Array(lvl).join('  ') + (n.kind === 'p' ? '' : '- ') + n.text);
+        }
       }
-      (n.children || []).forEach(function (c) { walk(c, d + 1); });
+      var nb = n.kind === 'h' ? n.depth : base;
+      (n.children || []).forEach(function (c) { walk(c, nb); });
     })(root, 0);
     return out.join('\n') + '\n';
   }
