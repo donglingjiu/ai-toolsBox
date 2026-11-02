@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>具身智能工具箱 · Nova Robot</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%2345E0C8' d='M12 2 14.4 9.6 22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4Z'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="css/suite.css">
+</head>
+<body>
+<div class="suite">
+  <div class="s-top">
+    <a href="index.html">← 返回 Nova 工具箱</a>
+  </div>
+  <div class="s-hero">
+    <h1>具身智能工具箱</h1>
+    <span class="s-chip">✓ 100% 本地处理</span>
+  </div>
+  <p class="s-sub">URDF 查看 · FK 运动学 · 量化估算 —— 模型与网格全程不出本机</p>
+  <div class="grid">
+    <div class="card">
+      <h2><span class="tile">⚙</span>URDF 模型查看器</h2>
+      <p class="desc">URDF + STL 本地三维渲染，关节滑条实时驱动（内置示例臂零依赖）</p>
+      <label class="drop" for="u-file">
+        <span class="up">⇪</span>
+        <b>点击选择 URDF（.urdf / .xml）</b>
+      </label>
+      <input id="u-file" class="sr-file" type="file" accept=".urdf,.xml,application/xml">
+      <label class="drop" for="u-mesh">
+        <span class="up">⇪</span>
+        <b>选择网格文件（可多选 .stl，按文件名匹配）</b>
+      </label>
+      <input id="u-mesh" class="sr-file" type="file" accept=".stl" multiple>
+      <button id="u-demo" class="mbtn" type="button">加载内置示例机械臂</button>
+      <button id="u-load" class="mbtn" type="button">渲染 URDF</button>
+      <div id="u-view" style="height:420px;border:1px solid rgba(110,140,180,.25);border-radius:12px;overflow:hidden;margin:10px 0"></div>
+      <div id="u-joints"></div>
+      <span id="u-st" class="st"></span>
+    </div>
+    <div class="card">
+      <h2><span class="tile">∮</span>FK 正运动学计算器</h2>
+      <p class="desc">标准 DH 参数表 → 各关节变换矩阵与末端位姿（纯数学，零依赖，零上传）</p>
+      <div id="fk-rows"></div>
+      <button id="fk-go" class="mbtn" type="button">计算正运动学</button>
+      <pre id="fk-out" style="white-space:pre-wrap;color:#9fe8d8;font-size:12px;min-height:1em"></pre>
+    </div>
+    <div class="card">
+      <h2><span class="tile">▤</span>量化显存估算器</h2>
+      <p class="desc">AI 编译器的诚实切片：参数量 × 精度 → 权重显存 + 端侧芯片适配判定（KV/激活另计）</p>
+      <label style="font-size:13px;display:block;margin:6px 0">参数量（B）：<input id="q-b" type="number" value="7" min="0.1" step="0.1" style="width:90px;padding:6px 8px"></label>
+      <label style="font-size:13px;display:block;margin:6px 0">开销系数：<input id="q-oh" type="number" value="1.2" min="1" step="0.05" style="width:90px;padding:6px 8px"></label>
+      <button id="q-go" class="mbtn" type="button">估算显存与芯片适配</button>
+      <pre id="q-out" style="white-space:pre-wrap;color:#9fe8d8;font-size:12px;min-height:1em"></pre>
+    </div>
+  </div>
+</div>
+<script src="js/vendor/three.min.js"></script>
+<script src="js/vendor/urdf-loader.umd.js"></script>
+<script src="js/robot-core.js?v=1"></script>
+</body>
+</html>
