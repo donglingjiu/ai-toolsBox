@@ -132,3 +132,4 @@
   ↳ P2-2b: 视觉v2「Obsidian工作台」暗色(品牌薄荷#45E0C8)+自绘dropzone+tile图标+mono状态行；bump规则补全:覆写缓存资产必bump(v11)；门规约+1:计数断言先print后assert(自诊断)，本轮门拦下操作员自己的6vs5算术错
   ↳ P2-2c: 运行时逮住门漏放的伤——第6截断把extract.js的var P整行蒸发(结构门全免疫,ReferenceError才现形)；修复+全家族声明扫描进门(第6层)；扫描名单显式枚举不用glob(vendor混入教训)；套件页favicon灭404；sw v12
   ↳ P2-3: 变换算子+3(列拆分/值映射/填充空值)，侦察砍掉2个伪空白(分组聚合/转数值已存在)；六触点齐改=白名单+校验case+执行分支+OP_UI+gatherOp+下拉；validate证实STRICT(陌生类型throw)→白名单必须同步；无node→平衡增量断言(插入对称才放行)；cache-bust?v=2双文件；sw v13
+  ↳ P2-4: 脑图导出三格式(OPML 2.0/FreeMind 1.0.1/归一化MD)；架构=从#mind-src源头解析，零耦合markmap闭包；复用mind-png动态注入模式；Python镜像测试验树形；门盲区一课=裸字符计数把列表正则字符类[.)]里的)计入→假阳性，源码改十六进制转义规避(功能不变)，真·JS词法门(剥离字符串/注释/正则再计数)挂账P3工具债
