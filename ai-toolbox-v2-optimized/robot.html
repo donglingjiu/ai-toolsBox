@@ -63,8 +63,248 @@
     </div>
   </div>
 </div>
+<style>
+#simCard button{background:#16223B;color:#DCE6F5;border:1px solid #2A3B5E;border-radius:9px;padding:7px 14px;font-size:13px;cursor:pointer}
+#simCard button:hover{border-color:#45E0C8;color:#45E0C8}
+#simCard button.on{border-color:#45E0C8;color:#45E0C8;background:#12253C}
+#simCard .mj-go{background:#123A34;border-color:#2AAE93;color:#45E0C8;font-weight:700}
+.mj-spin{width:26px;height:26px;border:3px solid #2A3B5E;border-top-color:#45E0C8;border-radius:50%;animation:mjspin .9s linear infinite}
+@keyframes mjspin{to{transform:rotate(360deg)}}
+</style>
+<section id="simCard" style="background:#0E1526;border:1px solid #223052;border-radius:14px;padding:18px;margin-top:16px">
+  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+    <div style="width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,#45E0C8,#3B82F6);display:flex;align-items:center;justify-content:center;color:#06121F;font-weight:800">◉</div>
+    <div><div style="font-weight:700;font-size:15px;color:#E8EFFB">物理仿真 · MuJoCo WASM</div>
+    <div style="font-size:12px;color:#8CA3C7">官方 @mujoco/mujoco 3.17.0 · MJCF 场景 · 本地实时求解</div></div>
+    <span id="mjState" style="margin-left:auto;font:12px ui-monospace,monospace;color:#8CA3C7">idle</span>
+  </div>
+  <div id="mjPick" style="display:flex;gap:8px;margin:12px 0 8px;flex-wrap:wrap">
+    <button data-scene="pend" class="on">单摆</button>
+    <button data-scene="cart">推车倒立摆</button>
+    <button data-scene="chain">落链</button>
+  </div>
+  <div style="position:relative;border:1px solid #23324F;border-radius:12px;overflow:hidden;background:#0B1220;height:340px">
+    <canvas id="mjCanvas" style="display:block;width:100%;height:100%"></canvas>
+    <div id="mjBoot" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;color:#8CA3C7;font-size:13px;text-align:center;padding:0 16px">
+      <div>物理引擎未启动 —— MJCF 内嵌，求解全在本地</div>
+      <button id="mjBootBtn" class="mj-go">启动物理引擎（首次加载 ~11MB）</button>
+    </div>
+  </div>
+  <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;align-items:center">
+    <button id="mjPokeP">+拨动</button>
+    <button id="mjPokeN">−拨动</button>
+    <button id="mjPause">暂停</button>
+    <button id="mjReset">重置</button>
+    <button id="mjGrav">重力 OFF</button>
+    <span id="mjTelemetry" style="font:12px ui-monospace,monospace;color:#9FB3D1;margin-left:auto">启动后显示遥测</span>
+  </div>
+</section>
 <script src="js/vendor/three.min.js"></script>
 <script src="js/vendor/urdf-loader.umd.js"></script>
 <script src="js/robot-core.js?v=2"></script>
+
+<script>
+(function(){
+  var $=function(id){return document.getElementById(id);};
+  var DT=0.002;
+  var st={mod:null,model:null,data:null,sc:null,cam:null,ren:null,ctl:null,groups:null,
+          ready:false,running:false,scene:'pend',grav:true,simT:0,steps:0,acc:0,lastTs:0,
+          prevTh:0,lastPos:0,Tavg:0};
+  function gd(v,i){return Number(v.get(i));}
+  function gi(v,i){return Number(v.get(i));}
+  function xml(id){
+    var g=st.grav?'0 0 -9.81':'0 0 0';
+    var h='<mujoco><option timestep="0.002" gravity="'+g+'"'+(id==='pend'?' integrator="RK4"':'')+'/>';
+    if(id==='pend')return h+'<worldbody>'
+      +'<geom type="box" pos="0 0 -0.05" size="0.55 0.55 0.05" rgba="0.13 0.19 0.32 1"/>'
+      +'<body name="pole" p
+      +'<geom type="capsule" fromto="0 0 0 0 0 -1" size="0.016" mass="0.001" rgba="0.35 0.5 0.78 1"/>'
+      +'<body name="bob" pos="0 0 -1"><geom type="sphere" size="0.06" mass="1" rgba="0.27 0.88 0.78 1"/></body>'
+      +'</body></worldbody><keyframe><key name="i" qpos="0.1"/></keyframe></mujoco>';
+    if(id==='cart')return h+'<worldbody>'
+      +'<geom type="box" pos="0 0 -0.05" size="0.7 0.35 0.05" rgba="0.13 0.19 0.32 1"/>'
+      +'<body name="cart" pos="0 0 0.12"><joint name="sx" type="slide" axis="1 0 0" damping="0.4"/>'
+      +'<geom type="box" size="0.16 0.12 0.06" rgba="0.45 0.55 0.78 1"/>'
+      +'<body name="pole"><joint name="hp" type="hinge" axis="0 1 0" damping="0.1"/>'
+      +'<geom type="capsule" fromto="0 0 0 0 0 0.6" size="0.02" mass="0.1" rgba="0.27 0.88 0.78 1"/>'
+      +'<geom type="sphere" pos="0 0 0.6" size="0.045" mass="0.2" rgba="0.95 0.75 0.3 1"/>'
+      +'</body></body></worldbody><keyframe><key name="i" qpos="0 0.15"/></keyframe></mujoco>';
+    return h+'<worldbody>'
+      +'<geom type="box" pos="0 0 -0.05" size="0.7 0.7 0.05" rgba="0.13 0.19 0.32 1"/>'
+      +'<body name="l1" pos="0 0 0.9"><freejoint/>'
+      +'<geom type="capsule" fromto="0 0 0.22 0 0 -0.22" size="0.03" mass="0.3" rgba="0.42 0.52 0.75 1"/>'
+      +'<body name="l2" pos="0 0 -0.25"><joint type="hinge" axis="0 1 0"/>'
+      +'<geom type="capsule" fromto="0 0 0.22 0 0 -0.22" size="0.03" mass="0.3" rgba="0.5 0.6 0.82 1"/>'
+      +'<body name="l3" pos="0 0 -0.25"><joint type="hinge" axis="1 0 0"/>'
+      +'<geom type="capsule" fromto="0 0 0.22 0 0 -0.22" size="0.03" mass="0.3" rgba="0.58 0.68 0.88 1"/>'
+      +'<geom type="sphere" pos="0 0 -0.28" size="0.06" mass="0.4" rgba="0.27 0.88 0.78 1"/>'
+      +'</body></body></body></worldbody>'
+      +'<keyframe><key name="i" qpos="0 0 0.9 1 0 0 0 0.1 -0.08"/></keyframe></mujoco>';
+  }
+  function loadModel(s){
+    var tries=[
+      function(){return st.mod.from_xml_string(s,null);},
+      function(){return st.mod.mj_loadXML(s);},
+      function(){var vfs=new st.mod.MjVFS();try{return st.mod.from_xml_string(s,vfs);}finally{try{vfs.delete();}catch(e){}}}
+    ];
+    for(var i=0;i<tries.length;i++){try{var m=tries[i]();if(m)return m;}catch(e){}}
+    return null;
+  }
+  function geomMesh(model,j){
+    try{
+      var t=gi(model.geom_type,j);
+      var s0=gd(model.geom_size,3*j),s1=gd(model.geom_size,3*j+1),s2=gd(model.geom_size,3*j+2);
+      var geo=null;
+      if(t===2)geo=new THREE.SphereGeometry(Math.max(s0,0.012),22,14);
+      else if(t===3||t===5){
+        geo=(t===3&&THREE.CapsuleGeometry)?new THREE.CapsuleGeometry(s0,2*s1,4,14):new THREE.CylinderGeometry(s0,s0,2*s1,16);
+        geo.rotateX(Math.PI/2);
+      }else if(t===6)geo=new THREE.BoxGeometry(2*s0,2*s1,2*s2);
+      else if(t===0){geo=new THREE.PlaneGeometry(2.6,2.6);geo.rotateX(-Math.PI/2);}
+      if(!geo)return null;
+      var c=0x55688f;
+      try{c=new THREE.Color(gd(model.geom_rgba,4*j),gd(model.geom_rgba,4*j+1),gd(model.geom_rgba,4*j+2)).getHex();}catch(e){}
+      var m=new THREE.Mesh(geo,new THREE.MeshStandardMaterial({color:c,roughness:0.55,metalness:0.15}));
+      m.position.set(gd(model.geom_pos,3*j),gd(model.geom_pos,3*j+1),gd(model.geom_pos,3*j+2));
+      m.quaternion.set(gd(model.geom_quat,4*j+1),gd(model.geom_quat,4*j+2),gd(model.geom_quat,4*j+3),gd(model.geom_quat,4*j));
+      return m;
+    }catch(e){return null;}
+  }
+  function disposeScene(sc){sc.traverse(function(o){if(o.geometry)o.geometry.dispose();if(o.material)o.material.dispose();});}
+  function initGL(){
+    var cv=$('mjCanvas');
+    st.ren=new THREE.WebGLRenderer({canvas:cv,antialias:true});
+    st.ren.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+    st.cam=new THREE.PerspectiveCamera(45,1.6,0.05,60);
+    function fit(){var w=cv.clientWidth||640,h=cv.clientHeight||340;st.ren.setSize(w,h,false);st.cam.aspect=w/h;st.cam.updateProjectionMatrix();}
+    window.addEventListener('resize',fit);fit();
+    st.ctl=miniOrbit(cv,st.cam);
+  }
+  function miniOrbit(cv,cam){
+    var tgt=new THREE.Vector3(0,0.35,0),th=0.8,ph=1.05,r=3.6,down=false,px=0,py=0;
+    function upd(){cam.position.set(tgt.x+r*Math.sin(ph)*Math.cos(th),tgt.y+r*Math.cos(ph),tgt.z+r*Math.sin(ph)*Math.sin(th));cam.lookAt(tgt);}
+    upd();
+    cv.addEventListener('pointerdown',function(e){down=true;px=e.clientX;py=e.clientY;});
+    window.addEventListener('pointerup',function(){down=false;});
+    window.addEventListener('pointermove',function(e){if(!down)return;th-=(e.clientX-px)*0.008;ph=Math.max(0.15,Math.min(1.45,ph-(e.clientY-py)*0.006));px=e.clientX;py=e.clientY;upd();});
+    cv.addEventListener('wheel',function(e){e.preventDefault();r=Math.max(1.2,Math.min(9,r*(e.deltaY>0?1.08:0.93)));upd();},{passive:false});
+    return{target:tgt,upd:upd};
+  }
+  function rebuild(){
+    var model=loadModel(xml(st.scene));
+    if(!model){fail('\u6A21\u578B\u6784\u5EFA\u5931\u8D25\uFF08XML/API \u53C2\u89C1\u63A7\u5236\u53F0\uFF09');return false;}
+    var data=new st.mod.MjData(model);
+    try{st.mod.mj_resetDataKeyframe(model,data,0);}catch(e){st.mod.mj_resetData(model,data);}
+    st.model=model;st.data=data;st.simT=0;st.steps=0;st.acc=0;st.Tavg=0;st.lastPos=0;
+    st.prevTh=gd(data.qpos,0);
+    if(st.sc)disposeScene(st.sc);
+    var sc=new THREE.Scene();sc.rotation.x=-Math.PI/2;
+    sc.background=new THREE.Color(0x0B1220);
+    sc.add(new THREE.HemisphereLight(0x9db4d6,0x1a2438,0.95));
+    var dl=new THREE.DirectionalLight(0xffffff,0.7);dl.position.set(3,5,4);sc.add(dl);
+    var grid=new THREE.GridHelper(3,30,0x2a3b5e,0x1c2942);grid.position.y=0.001;sc.add(grid);
+    var groups=[];
+    for(var b=0;b<model.nbody;b++){
+      var grp=new THREE.Group();
+      for(var j=0;j<model.ngeom;j++){if(gi(model.geom_bodyid,j)===b){var ms=geomMesh(model,j);if(ms)grp.add(ms);}}
+      groups.push(grp);sc.add(grp);
+    }
+    st.groups=groups;st.sc=sc;
+    if(!st.ren)initGL();
+    if(st.ctl)st.ctl.upd();
+    updX();return true;
+  }
+  function updX(){
+    if(!st.data||!st.groups)return;
+    for(var b=1;b<st.groups.length;b++){
+      st.groups[b].position.set(gd(st.data.xpos,3*b),gd(st.data.xpos,3*b+1),gd(st.data.xpos,3*b+2));
+      st.groups[b].quaternion.set(gd(st.data.xquat,4*b+1),gd(st.data.xquat,4*b+2),gd(st.data.xquat,4*b+3),gd(st.data.xquat,4*b));
+    }
+  }
+  function poke(sgn){
+    if(!st.ready)return;
+    var v=3.0*sgn;
+    try{st.data.qvel.set(0,v);return;}catch(e){}
+    try{
+      var nv=st.model.nv,arr=[];
+      for(var k=0;k<nv;k++)arr.push(gd(st.data.qvel,k));
+      arr[0]=v;st.mod.mj_setState(st.model,st.data,arr,4);return;
+    }catch(e2){flash('\u62E8\u52A8\u4E0D\u88AB\u652F\u6301');}
+  }
+  function flash(t){var el=$('mjState');el.textContent=t;setTimeout(function(){el.textContent=st.running?'running':'paused';},1600);}
+  function fail(t){
+    $('mjState').textContent='\u5931\u8D25';$('mjState').style.color='#ff7b7b';
+    var b=$('mjBoot');b.style.display='flex';
+    b.innerHTML='<div style="color:#ff9b9b;font-size:13px">'+t+'</div>';
+  }
+  function tick(ts){
+    requestAnimationFrame(tick);
+    if(!st.ready||!st.ren||!st.sc)return;
+    if(!st.lastTs)st.lastTs=ts;
+    var dts=Math.min(0.05,(ts-st.lastTs)/1000);st.lastTs=ts;
+    if(st.running){
+      st.acc+=dts;var n=0;
+      while(st.acc>=DT&&n<60){st.mod.mj_step(st.model,st.data);st.acc-=DT;st.simT+=DT;st.steps++;n++;}
+      if(st.scene==='pend'){
+        var th=gd(st.data.qpos,0),w=gd(st.data.qvel,0);
+        if(st.prevTh<=0&&th>0&&w>0){
+          if(st.lastPos>0){var T=st.simT-st.lastPos;st.Tavg=st.Tavg?(st.Tavg*0.7+T*0.3):T;}
+          st.lastPos=st.simT;
+        }
+        st.prevTh=th;
+      }
+      updX();
+    }
+    var tel='t='+st.simT.toFixed(2)+'s \u00B7 steps='+st.steps;
+    if(st.scene==='pend')tel='\u03B8='+(gd(st.data.qpos,0)*57.2958).toFixed(1)+'\u00B0 \u00B7 T\u5B9E\u6D4B='+(st.Tavg?st.Tavg.toFixed(3)+'s':'\u2014')+' \u00B7 T\u7406\u8BBA=2.006s \u00B7 '+tel;
+    $('mjTelemetry').textContent=tel;
+    st.ren.render(st.sc,st.cam);
+  }
+  requestAnimationFrame(tick);
+  $('mjBootBtn').addEventListener('click',function(){
+    if(!window.THREE){fail('THREE \u672A\u52A0\u8F7D\uFF08\u6E32\u67D3\u5E93\u7F3A\u5931\uFF09');return;}
+    $('mjBoot').innerHTML='<div class="mj-spin"></div><div>\u52A0\u8F7D MuJoCo WASM\u2026 \u9996\u6B21\u7EA6 11MB\uFF08\u5DF2\u7F13\u5B58\u5219\u79D2\u5F00\uFF09</div>';
+    $('mjState').textContent='loading';$('mjState').style.color='#45E0C8';
+    import('js/vendor/mujoco/mujoco.js').then(function(m){
+      var fac=m.default||m;
+      return Promise.resolve(fac());
+    }).then(function(mod){
+      st.mod=mod;
+      try{console.log('[mujoco] api:',['from_xml_string','mj_loadXML','mj_step','mj_forward','mj_resetDataKeyframe','mj_setState','MjData','MjVFS'].map(function(k){return k+':'+typeof mod[k];}).join(' '));}catch(e){}
+      if(!rebuild())return;
+      st.ready=true;st.running=true;st.lastTs=0;
+      $('mjBoot').style.display='none';
+      $('mjState').textContent='running';
+    }).catch(function(e){fail('\u5F15\u64CE\u52A0\u8F7D\u5931\u8D25\uFF1A'+(e&&e.message||e));});
+  });
+  var btns=document.querySelectorAll('#mjPick button');
+  for(var i=0;i<btns.length;i++){(function(b){
+    b.addEventListener('click',function(){
+      if(!st.ready){flash('\u5148\u542F\u52A8\u5F15\u64CE');return;}
+      st.scene=b.getAttribute('data-scene');
+      for(var k=0;k<btns.length;k++)btns[k].className=(btns[k]===b?'on':'');
+      if(rebuild()){st.running=true;$('mjPause').textContent='\u6682\u505C';$('mjState').textContent='running';}
+    });
+  })(btns[i]);}
+  $('mjPokeP').addEventListener('click',function(){poke(1);});
+  $('mjPokeN').addEventListener('click',function(){poke(-1);});
+  $('mjPause').addEventListener('click',function(){
+    if(!st.ready)return;
+    st.running=!st.running;this.textContent=st.running?'\u6682\u505C':'\u7EE7\u7EED';
+    $('mjState').textContent=st.running?'running':'paused';
+  });
+  $('mjReset').addEventListener('click',function(){
+    if(!st.ready)return;
+    try{st.mod.mj_resetDataKeyframe(st.model,st.data,0);}catch(e){st.mod.mj_resetData(st.model,st.data);}
+    st.simT=0;st.steps=0;st.acc=0;st.Tavg=0;st.lastPos=0;st.prevTh=gd(st.data.qpos,0);
+    updX();
+  });
+  $('mjGrav').addEventListener('click',function(){
+    if(!st.ready)return;
+    st.grav=!st.grav;this.textContent=st.grav?'\u91CD\u529B OFF':'\u91CD\u529B ON';
+    if(rebuild()){st.running=true;$('mjState').textContent='running';}
+  });
+})();
+</script>
 </body>
 </html>
