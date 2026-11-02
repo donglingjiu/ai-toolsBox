@@ -137,3 +137,4 @@
   ↳ C-阶段2: PDF三新卡=页码(3位置/字号/起始号/跳首页)+水印(ASCII守卫中文如实提示/密度3档/透明度3档/45°平铺)+压缩瘦身(objectStreams结构级,前后字节如实报,图片重采样超纲不吹)；卡四件套照抄；NovaPdf.fr/dl全复用；6卡→9卡；新文件?v=1；教训=门脚本一行生成噪声致SyntaxError，编译期死=零副作用(&&链护仓)，门脚本最小化原则再+1
   ↳ D1-阶段1: 具身机器人线(robot.html)=URDF查看器(内置图元示例臂+关节滑条+STL文件名映射+迷你轨道控制)+DH-FK计算器+量化显存估算器(AI编译器诚实切片)；皮=suite.css,骨架=div.suite/s-top/s-hero/s-chip/s-sub/grid(诊断五问实锤)；传输对策=裸heredoc直写+三小段&&串联+尾标签断言；astral规则划界=只扫新增字符串,既有文件全body不扫(index深藏合法emoji致误伤)；门哑弹自查=nav精确串计数1非2
   ↳ 导航规范化=全站topbar nav补齐7链(只补缺,已有链含aria-current一字不碰)；robot.html suite系s-top内联flex nav行(Robot青色高亮)；Phase2侦察入册=@mujoco/mujoco官方WASM绑定(Emscripten MODULARIZE异步工厂),MJCF原生+URDF支持,渲染接线=qpos→three网格(openarm web先例),wasm数MB需自托管vendor+加载态
+  ↳ data编码Bug结案=xlsx-core.js唯一读入口加嗅探层(PK/OLE2签名放行二进制,UTF-16 BOM直解,strict-UTF8→GB18030级联覆盖无BOM CSV与中国Excel默认编码)；法证教训=「å§ å」=UTF8字节按cp1252逐字节解的教科书签名,诊断脚本曾因未剥?v=查空文件+被vendor压缩库噪声淹没(200条fromCharCode=SheetJS合法cp表),剥query+项目层过滤后一行定罪

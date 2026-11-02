@@ -5,7 +5,26 @@
 /* ---------- 解析工作簿 ---------- */
 /* 返回 { sheetNames, sheets:{name:{aoa}} }；aoa 为二维数组，保留原始类型 */
 function xlsxParse(arrayBuffer) {
-  var wb = XLSX.read(arrayBuffer, { type: 'array', cellDates: true, cellNF: false });
+  var wb = (function(buf){
+  var u8 = buf instanceof Uint8Array ? buf : new Uint8Array(buf);
+  var bin4 = (u8[0] << 24) | (u8[1] << 16) | (u8[2] << 8) | (u8[3] || 0);
+  if((bin4 >>> 16) === 0x504B || bin4 === (0xD0CF11E0 | 0))
+    return XLSX.read(buf, { type: 'array', cellDates: true, cellNF: false });
+  var text;
+  if(u8.length >= 2 && u8[0] === 0xFF && u8[1] === 0xFE)
+    text = new TextDecoder('utf-16le').decode(u8);
+  else if(u8.length >= 2 && u8[0] === 0xFE && u8[1] === 0xFF)
+    text = new TextDecoder('utf-16be').decode(u8);
+  else {
+    try { text = new TextDecoder('utf-8', { fatal: true }).decode(u8); }
+    catch(e) {
+      try { text = new TextDecoder('gb18030').decode(u8); }
+      catch(e2) { text = new TextDecoder('utf-8').decode(u8); }
+    }
+    if(text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
+  }
+  return XLSX.read(text, { type: 'string', cellDates: true, cellNF: false });
+})(arrayBuffer);
   var out = { sheetNames: wb.SheetNames.slice(), sheets: {} };
   wb.SheetNames.forEach(function (nm) {
     var ws = wb.Sheets[nm];
