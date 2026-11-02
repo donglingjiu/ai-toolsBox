@@ -136,3 +136,4 @@
   ↳ P2-4b: 浏览器终验抓出 toMd 双失真(collapse后根标题被虚拟深度d=0吞掉；li被一律转标题违背承诺)→v2 kind感知修复：h按语义深度、li/p相对最近标题祖先缩进，导出↔导入幂等；覆写bust?v=2；sw免bump(URL键新取)；OPML/.mm截图实证collapse生效；挂账=mind页窄屏按钮挤压(视觉P3)
   ↳ C-阶段2: PDF三新卡=页码(3位置/字号/起始号/跳首页)+水印(ASCII守卫中文如实提示/密度3档/透明度3档/45°平铺)+压缩瘦身(objectStreams结构级,前后字节如实报,图片重采样超纲不吹)；卡四件套照抄；NovaPdf.fr/dl全复用；6卡→9卡；新文件?v=1；教训=门脚本一行生成噪声致SyntaxError，编译期死=零副作用(&&链护仓)，门脚本最小化原则再+1
   ↳ D1-阶段1: 具身机器人线(robot.html)=URDF查看器(内置图元示例臂+关节滑条+STL文件名映射+迷你轨道控制)+DH-FK计算器+量化显存估算器(AI编译器诚实切片)；皮=suite.css,骨架=div.suite/s-top/s-hero/s-chip/s-sub/grid(诊断五问实锤)；传输对策=裸heredoc直写+三小段&&串联+尾标签断言；astral规则划界=只扫新增字符串,既有文件全body不扫(index深藏合法emoji致误伤)；门哑弹自查=nav精确串计数1非2
+  ↳ 导航规范化=全站topbar nav补齐7链(只补缺,已有链含aria-current一字不碰)；robot.html suite系s-top内联flex nav行(Robot青色高亮)；Phase2侦察入册=@mujoco/mujoco官方WASM绑定(Emscripten MODULARIZE异步工厂),MJCF原生+URDF支持,渲染接线=qpos→three网格(openarm web先例),wasm数MB需自托管vendor+加载态
