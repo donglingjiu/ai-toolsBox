@@ -74,10 +74,11 @@
       if(!urdf) return;
       Object.keys(urdf.joints).forEach(function(nm){
         var j = urdf.joints[nm];
-        if(!j || j.type === 'fixed') return;
+        var jt = j.jointType || j.type;
+        if(!j || jt === 'fixed') return;
         var lo, hi, mul;
-        if(j.type === 'continuous'){ lo = -Math.PI; hi = Math.PI; mul = Math.PI/180; }
-        else if(j.type === 'prismatic'){
+        if(jt === 'continuous'){ lo = -Math.PI; hi = Math.PI; mul = Math.PI/180; }
+        else if(jt === 'prismatic'){
           lo = (j.limit && isFinite(j.limit.lower)) ? j.limit.lower : 0;
           hi = (j.limit && isFinite(j.limit.upper)) ? j.limit.upper : 0.2;
           mul = 1;
@@ -90,7 +91,7 @@
         row.style.margin = '4px 0';
         var lb = document.createElement('label');
         lb.style.cssText = 'display:flex;justify-content:space-between;font-size:12px;color:#9fb0c3';
-        lb.textContent = nm + ' \u00b7 ' + j.type;
+        lb.textContent = nm + ' \u00b7 ' + jt;
         var val = document.createElement('span');
         var rng = document.createElement('input');
         rng.type = 'range';
@@ -103,7 +104,7 @@
         rng.value = String(cur / mul);
         function apply(){
           urdf.setJointValue(nm, parseFloat(rng.value) * mul);
-          val.textContent = rng.value;
+          val.textContent = Number(rng.value).toFixed(1);
         }
         rng.addEventListener('input', apply);
         apply();
@@ -129,7 +130,8 @@
       }
       cam(); sliders(); fit();
       var jc = Object.keys(urdf.joints).filter(function(k){
-        return urdf.joints[k] && urdf.joints[k].type !== 'fixed';
+        var t = urdf.joints[k];
+        return t && (t.jointType || t.type) !== 'fixed';
       }).length;
       us.textContent = tag + ' rendered, movable joints: ' + jc + ' (drag to orbit, wheel to zoom)';
     }
@@ -211,13 +213,16 @@
         var td = document.createElement('td');
         var inp = document.createElement('input');
         inp.type = 'number'; inp.step = '0.01'; inp.value = String(v);
-        inp.style.cssText = 'width:74px;padding:4px 6px';
+        inp.style.cssText = 'width:60px;padding:4px 6px';
         td.appendChild(inp); tr.appendChild(td);
         rowCells.push(inp);
       });
       tbl.appendChild(tr); cells.push(rowCells);
     });
-    rows.appendChild(tbl);
+    var wrap = document.createElement('div');
+    wrap.style.overflowX = 'auto';
+    wrap.appendChild(tbl);
+    rows.appendChild(wrap);
     go.addEventListener('click', function(){
       function mul4(A, B){
         var O = [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]];
