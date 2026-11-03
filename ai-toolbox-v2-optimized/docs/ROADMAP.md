@@ -174,3 +174,4 @@
   ↳ 【终扫双绿·浏览器实拍收尾】rename三笔=rename_column已执行+已应用1变换+敏感锁标(姓名/手机号)+零控制台错误；Robot终扫=a6028b2除警野外实证(UMD弃用零出现)+MuJoCo实时求解(steps=2153,T实测2.016s≈理论2.006s)+URDF滑条实时驱动(joints:3)+IBL/ACES/shadow就绪——本session工单全清(P0三件套+rename+robot)
   ↳ 【第29课·锚不誊抄=切片直取】旧行含异形字符（■/·/模板串）时不手工重打锚——从文件切片取旧行，新行只写BMP字符+BMP断言护航（27课延伸）；【图表小修包】pie图例div→<text>+tspan(div为HTML元素入SVG外来内容不渲染=实拍不可见根因)+clearChart首行挂载(拒单统一清场)+v5/v15配对bump(94348b3家规)
   ↳ 【图表小修包·野外验收】pie图例首现(div-in-svg死因根除,<text>+tspan随SVG下载归档)+拒单清场(clearChart统一清画布+禁陈图下载)+v5/v15配对生效——观察队列清偿2/3(余rename空新列名拒单=下小刀,先recon校验区归属)；第28课即时兑现:canonical探针poll0命中,40秒定谳
+  ↳ 【第30课·可见≠新代码】小修包野外首拍反证:下载SVG含<div class="legend">=旧drawPie指纹,客户端仍跑v4(SWv14未让位+普通reload走缓存旧/data,哨兵curl绕SW故poll0全绿=服务端≠客户端)；页上图例可见是解析器逃逸假阳性(div/span=外来内容breakout标签,以HTML身份渲染在svg下方恰似成功)——权威判据=下载文件含<text x="0"(独立SVG=XML解析无逃逸,div必死)；FP记录先行一步,本笔追认
