@@ -161,7 +161,7 @@
       function(){return st.mod.mj_loadXML(s);},
       function(){var vfs=new st.mod.MjVFS();try{return st.mod.from_xml_string(s,vfs);}finally{try{vfs.delete();}catch(e){}}}
     ];
-    for(var i=0;i<tries.length;i++){try{var m=tries[i]();if(m)return m;}catch(e){}}
+    for(var i=0;i<tries.length;i++){try{var m=tries[i]();if(m)return m;}catch(e){console.warn('[sim] xml try#'+i, e && e.message);}}
     return null;
   }
   function geomMesh(model,j){
@@ -289,7 +289,7 @@
       st.ready=true;st.running=true;st.lastTs=0;
       $('mjBoot').style.display='none';
       $('mjState').textContent='running';
-    }).catch(function(e){fail('\u5F15\u64CE\u52A0\u8F7D\u5931\u8D25\uFF1A'+(e&&e.message||e));});
+    }).catch(function(e){console.error('[sim] STACK>', e && (e.stack || e));fail('\u5F15\u64CE\u52A0\u8F7D\u5931\u8D25\uFF1A'+(e&&e.message||e));});
   });
   var btns=document.querySelectorAll('#mjPick button');
   for(var i=0;i<btns.length;i++){(function(b){
