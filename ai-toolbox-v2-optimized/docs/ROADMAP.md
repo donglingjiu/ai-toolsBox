@@ -179,3 +179,4 @@
   ↳ 【第31课·修订版·拒单在第一副作用之前】原稿的build、apply二分过粗——GPROBE实证gatherOp(@133纯构建器return op)与applyOne(@155唯一漏斗)是两函数,build行裸return会吐undefined喂调用方;真刀位=副作用边界:applyOne函数头(try与applyTransformPlan之前):不变表,不入OPS,无成功toast,覆盖一切调用方,replay直连天然绕行;刀位锚=函数名(行号会漂);守门#11拦下的是错误假设,白赚一张架构图
   ↳ 【第32课·账本指纹=负空间证据】rename 实拍四拍：拒单 toast 逐字=新代码指纹(该串仅存在于 v6)+无chip+无成功toast；表头更新+已应用1项变换=拒单零残留的账本证明(两次拒单+一次成功,OPS=1≠3)——系统自带计数器是最便宜的验收断言；push 重试链吞掉 SSL 抖动(2db0f34 落库),双保险首次立功；N4 rider:pdf-lib 根目录与 vendor 同尺寸重复,pdfjs 新旧两版并存,kickoff 卡已补
   ↳ 【第33课·删除三证】删库文件先集齐:①字节证=sha256完全相同(0f9a5cad 双胞胎)②引用证=全仓唯一引用点(D7扫全仓仅 convert.html x1)③缓存证=SW bump 冲运行时旧条目(预缓存零 pdf 资产→pdf 全靠运行时,HTML 变更必 bump)；三证齐才 git rm；同波多刀共用一 bump 一哨兵=部署波纪律；D2 版本头 6KB 无果,入档不阻断
+  ↳ 【第34课·真单冒烟大于合成冒烟】卫生波验收三证:真实简历 PDF→Word 转出结构化 docx(WPS 实开,H2、编号、加粗俱在)=比任何合成用例都硬的端到端指纹;Network 面板按 v 过滤即得 stamp 清单(?v=1 六连 200);根路径 404 由哨兵首拍钉死=第33课删除三证的现场闭环;加时二收官,pdf 战场余正刀三题(版本归一、cantoo、canonical)

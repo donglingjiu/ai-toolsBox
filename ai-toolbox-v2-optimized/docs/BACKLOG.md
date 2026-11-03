@@ -13,6 +13,7 @@
 - 加时赛：rename 空新列名拒单 ✅（漏斗头 gate@applyOne 首行、try 之前=第一副作用之前：不变表、不入 OPS、无成功 toast；GPROBE 实证 gatherOp=纯构建器,applyOne=唯一漏斗,replay 直连绕行安全；原 build 行裸 return 计划作废,会吐 undefined；duplicate 新列名=新观察项）；nova-data v5→v6 + SW v15→v16 配对
 - pdf 三件套 kickoff 卡（弹药已入库）：①双轨并存=legacy js/pdfjs/ 与 root pdf-lib(convert.html?v=11) 对 vendor pdf-lib(pdf.html)②cantoo 采纳决策(602K 零引用 vs 在用 512K)③pdf.html 七加载器 stamp 卫生(仅 annot?v=1 其余裸奔)④sw.js 预缓存清单含否 pdf 资产待查⑤引爆半径=23 处导航入口,大刀慢动⑥pdf 区零 TODO=干净；N4 rider 补充：root js/pdf-lib.min.js 与 vendor 同为 512.8KB=重复副本(dedup 候选)；pdfjs 双版本共存=legacy 312.5KB(在用) vs vendor 368.3KB(新弹药)，归一时需版本决策
 - 加时赛二：pdf 卫生波 ✅（pdf-lib 去重落地=sha256 同字节 0f9a5cad×2 + 全仓唯一引用 convert.html x1 + git rm 根副本，convert.html 改指 vendor 且 ?v=11 语义原样；pdf.html 7 裸加载器补 ?v=1，annot 不动，guard.js 非本域不动；④销案=预缓存 8 项零 pdf 资产→pdf 全靠运行时缓存→HTML 变更必配 SW bump；v16→v17 冲刷；遗留正刀=pdfjs 双版本归一/cantoo 采纳/canonical/D2 版本深探）
+- 加时赛二·冒烟三证 ✅：convert 真单全链路=真实简历 PDF→Word 转出结构化 docx(H2 标题、编号列表、加粗俱在,WPS 实开)=vendor pdf-lib 与 legacy pdfjs 与 pdf2word-core 全链活体证明；pdf.html Network 实拍六加载器 ?v=1 全 200(merge、split、rotate、img2pdf、extract、annot)；root js/pdf-lib.min.js 404=哨兵 poll 0 即中,删除闭环
 - 证据：图表分析 tab + 生成图表 + 下载SVG 已存在（RECON5），d3.min.js vendor 已就位；对标 ChatExcel 主卖点
 - 动工前置：RECON-ALL C 段定性现有图表种类，只补高频缺口（候选：直方图/箱线/面积/热力）
 - 验收：新图表渲染正确 + SVG 下载 + 缓存戳 + 三场景零回归
