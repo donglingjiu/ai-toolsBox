@@ -138,6 +138,8 @@ function validateTransformPlan(plan, table) {
         break;
       case 'rename_column':
         assertCol(op.from, tag);
+        if (typeof op.to !== 'string' || op.to.trim() === '') throw new Error(tag + '：新列名to必填');
+        if (op.to !== op.from && headers.indexOf(op.to) !== -1) throw new Error(tag + '：新列名「' + op.to + '」重名');
         headers = headers.map(function (h) { return h === op.from ? op.to : h; });
         break;
       case 'filter_rows':
@@ -179,6 +181,7 @@ function validateTransformPlan(plan, table) {
         if (!op.as) throw new Error(tag + '：缺少新列名 as');
         if (op.formula !== 'concat' && op.formula !== 'add' && op.formula !== 'subtract' && op.formula !== 'multiply' && op.formula !== 'divide') throw new Error(tag + '：仅支持 concat/add/subtract/multiply/divide');
         (op.columns || []).forEach(function (c) { assertCol(c, tag); });
+        if (headers.indexOf(op.as) !== -1) throw new Error(tag + '：新列名「' + op.as + '」重名');
         headers = headers.concat([op.as]);
         break;
     }

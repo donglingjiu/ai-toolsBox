@@ -159,3 +159,6 @@
   ↳ 【姓名PII·决策记录】第21课定性+用户续令，按产品立场代拍：页面自述「数据不出境」+个保法姓名属PII+开关默认关可逆→isSensitiveColumn白名单补姓名|；连锁=预览/导出打码、画像敏感徽章、AI摘要默认不含；回滚=删一个词；外链JS改动必戳缓存版本v3→v4
   ↳ 英文name列变体(user_name等)刻意缓刑：裸name子串误伤filename类列，等真实需求再上段锚正则
   ↳ rename_column空名边角：R1侦察输出在案待定性
+  ↳ 【粘贴层损伤·第22课】heredoc内emoji(增补平面)经终端粘贴被编为CESU-8代理对(0xed开头)，Python解码stdin即SyntaxError——解析期死亡零执行零改动；与17课同族不同机制；制度=heredoc只用ASCII+BMP汉字
+  ↳ 【同名孪生·第23课】M1锚点全文件x2=校验区/执行区各一份rename映射；上轮侦察窗口(120-190)只见校验区=窗口局部性偏差；assert唯一性守门写盘前拒绝=第三次零伤害；制度=锚点唯一性对全文件验证，双区模式(validate+execute)是本库常态，修校验区用边界法(以「执行受限变换」注释为界)，执行区孪生不碰(其作用域无tag变量,注入即ReferenceError)
+  ↳ 【R1收刀落地】rename_column补to空/重名拒单、add_computed补as重名拒单(对照split_col自有标准)；缓存戳v4→v5；R-A/R-B/R-C调用链打印随跑在案
