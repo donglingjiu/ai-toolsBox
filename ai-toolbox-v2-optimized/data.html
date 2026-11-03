@@ -120,7 +120,7 @@
         <select id="chart-type" class="fld">
           <option value="bar">柱状图</option>
           <option value="line">折线图</option><option value="area">面积图</option>
-          <option value="pie">饼图（占比）</option><option value="hist">直方图</option><option value="box">箱线图</option>
+          <option value="pie">饼图（占比）</option><option value="hist">直方图</option><option value="box">箱线图</option><option value="scatter">散点图（X/Y）</option>
         </select>
       </label>
       <label class="field">维度列（分类）
@@ -140,13 +140,13 @@
     </div>
     <div class="table-wrap chart-wrap"><div id="chart-box" class="chart-box"></div>
       <div id="chart-empty" class="empty">选择维度与度量，生成纯本地 SVG 图表</div></div>
-    <p class="boundary">柱状/折线/面积取聚合 Top 20；饼图取 Top 8 其余合并为「其他」；直方图取度量列分布（12 箱）；箱线图按维度分组取五数概括（Top 20 组，min/Q1/中位/Q3/max）。度量列留空时自动按计数统计（直方图/箱线图需度量列）。</p>
+    <p class="boundary">柱状/折线/面积取聚合 Top 20；饼图取 Top 8 其余合并为「其他」；直方图取度量列分布（12 箱）；箱线图按维度分组取五数概括（Top 20 组，min/Q1/中位/Q3/max）。度量列留空时自动按计数统计（直方图/箱线图/散点图需度量列，散点图维度亦需数值）。</p>
   </section>
 </main>
 
 <script src="js/vendor/xlsx.full.min.js"></script>
 <script src="js/xlsx-core.js?v=5"></script>
 <script src="js/nova-core.js"></script>
-<script src="js/nova-data.js?v=3"></script>
+<script src="js/nova-data.js?v=4"></script>
 <script src="js/at-cmdk.js" defer></script><script src="js/skills/skill-injector.js" defer></script><script src="js/skills/skill-picker.js" defer></script><script src="js/skills/skills-builtin.data.js" defer></script><script src="js/skills/skill-schema.js" defer></script><script src="js/skills/skill-store.js" defer></script><script src="js/s1-backup.js?v=1"></script><script src="js/sw-register.js?v=1"></script><script src="js/s1-io.js?v=2"></script></body>
 </html>

@@ -341,6 +341,29 @@ function drawBox(groups) {
   return svgWrap(W, H, s);
 }
 
+function drawScatter(pts, dim, measure) {
+  const W = 860, H = 420, M = { l: 70, r: 24, t: 24, b: 64 };
+  const iw = W - M.l - M.r, ih = H - M.t - M.b;
+  const xs = pts.map((d) => d.x);
+  const x0 = Math.min(...xs), x1 = Math.max(...xs);
+  const y0 = Math.min(0, Math.min(...pts.map((d) => d.y)));
+  const y1 = niceMax(Math.max(...pts.map((d) => d.y)));
+  const sx = (v) => M.l + ((v - x0) / ((x1 - x0) || 1)) * iw;
+  const sy = (v) => M.t + ih - ((v - y0) / ((y1 - y0) || 1)) * ih;
+  let s = "";
+  for (let g = 0; g <= 4; g++) {
+    const gv = y0 + ((y1 - y0) / 4) * g, gy = sy(gv);
+    s += `<line x1="${M.l}" y1="${gy}" x2="${W - M.r}" y2="${gy}" stroke="var(--line)"/><text x="${M.l - 8}" y="${gy + 4}" text-anchor="end" font-size="11" fill="currentColor">${fmtN(gv)}</text>`;
+  }
+  const step = Math.ceil(pts.length / 400);
+  const show = pts.filter((_, i) => i % step === 0);
+  show.forEach((d) => {
+    s += `<circle cx="${sx(d.x).toFixed(1)}" cy="${sy(d.y).toFixed(1)}" r="3" fill="${PALETTE[1]}" fill-opacity="0.75"><title>${esc(String(d.k))}：${fmtN(d.x)}，${fmtN(d.y)}</title></circle>`;
+  });
+  s += `<text x="${M.l + iw / 2}" y="${H - M.b + 16}" text-anchor="middle" font-size="11" fill="currentColor">${esc(dim)} × ${esc(measure)}（${show.length}/${pts.length} 点）</text>`;
+  return svgWrap(W, H, s);
+}
+
 function drawChart() {
   if (!TABLE || !TABLE.rows.length) { novaToast("请先加载数据", "error"); return; }
   const type = $d("#chart-type").value, dim = $d("#chart-dim").value;
@@ -370,7 +393,16 @@ function drawChart() {
     LASTCHART = drawBox(groups);
     $d("#chart-box").innerHTML = LASTCHART; $d("#chart-empty").hidden = true; $d("#chart-svg").disabled = false;
     return;
-  }  let data = aggregate(dim, measure, agg).sort((a, b) => b.v - a.v);
+  }  if (type === "scatter") {
+    if (!measure) { novaToast("散点图需选择度量列（Y 轴数值）", "error"); return; }
+    const pts = TABLE.rows.map((r) => ({ x: toNum(r[dim]), y: toNum(r[measure]), k: r[dim] }))
+      .filter((d) => d.x != null && d.y != null);
+    if (!pts.length) { novaToast("无可绘点：维度与度量需均为数值", "error"); return; }
+    LASTCHART = drawScatter(pts, dim, measure);
+    $d("#chart-box").innerHTML = LASTCHART; $d("#chart-empty").hidden = true; $d("#chart-svg").disabled = false;
+    return;
+  }
+  let data = aggregate(dim, measure, agg).sort((a, b) => b.v - a.v);
   if (type === "line" || type === "area") {
     const isDate = data.every((d) => /^\d{4}[-/]/.test(d.k));
     data = isDate ? data.sort((a, b) => a.k.localeCompare(b.k)) : data;

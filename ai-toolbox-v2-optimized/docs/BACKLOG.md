@@ -7,6 +7,7 @@
 ## P0（对标核心缺口，本轮起逐项实现）
 
 ### [x] P0-1 data.html 图表种类扩容
+- 尾刀（31972ed 后·本会话）：散点图补齐=第 7 图（drawScatter 维度X×度量Y 双数值，>400 点自动抽样，缺列/无值 toast 拒单）；nova-data ?v=3→v4；SW nova-v13→v14（并行写手 bump 了 JS 戳但未 bump SW，缓存优先下旧 data.html 不换代）；UI 验收=散点渲染+下载+6 旧图零回归
 - 证据：图表分析 tab + 生成图表 + 下载SVG 已存在（RECON5），d3.min.js vendor 已就位；对标 ChatExcel 主卖点
 - 动工前置：RECON-ALL C 段定性现有图表种类，只补高频缺口（候选：直方图/箱线/面积/热力）
 - 验收：新图表渲染正确 + SVG 下载 + 缓存戳 + 三场景零回归
