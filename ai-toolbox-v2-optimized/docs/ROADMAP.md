@@ -168,3 +168,4 @@
   ↳ 【P0-2 出境定性·结案】五处网络调用全=用户自配端点(baseUrl/imgBase+apiKey用户键入，migrate出处探针随跑在案)；qr/call=hash传参零服务端；E1静态零外链+D段定性=审计闭环，叙事定稿入BACKLOG
   ↳ 【P0-1 图表扩容·结案】area/hist/box 三型 vanilla SVG 落地（quantile+drawHist/drawArea/drawBox，分发+select+boundary 同步），nova-data v2→3 戳；热力图尾巴入 P1（第二维度选择器跨框架）
   ↳ 【第26课·多写者战场/记忆作废制】同仓同工作区并行会话对刀：P0-1 三发手术被闸拦下(守门7连零伤害)后，并行写手 31972ed 以另一套实现收编 area/hist/box 并 CLOSED——上轮 dump=快照非事实，每轮动刀前 git log 对表+区带重读；本会话尾刀只补其未覆盖象限=scatter 第7图+SW v14；读断言前置+写盘殿后=全或无；守门第8次=折行断言缺续行符解析期死亡(零执行零伤害)
+  ↳ 【P0-1 七图总闭案】7/7 真渲染+SVG 下载+零回归；柱/折/饼(存量)+面积/直方/箱线(并行写手 31972ed)+散点(尾刀 90a4286)=三手联作无缝拼图；STALE=CDN 边缘假阴性(cache-buster 定性)；饼图图例 quirk 实拍入册
