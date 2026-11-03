@@ -6,10 +6,11 @@
 
 ## P0（对标核心缺口，本轮起逐项实现）
 
-### [ ] P0-1 data.html 图表种类扩容
+### [x] P0-1 data.html 图表种类扩容
 - 证据：图表分析 tab + 生成图表 + 下载SVG 已存在（RECON5），d3.min.js vendor 已就位；对标 ChatExcel 主卖点
 - 动工前置：RECON-ALL C 段定性现有图表种类，只补高频缺口（候选：直方图/箱线/面积/热力）
 - 验收：新图表渲染正确 + SVG 下载 + 缓存戳 + 三场景零回归
+- 判决：三型落地——面积图（line变体，闭合填充）/直方图（度量列12箱连续分箱）/箱线图（按维度分组五数概括，Top 20组）；全vanilla SVG零新依赖（d3.min.js在库不接线）；drawChart新增hist/box早退分支（需度量列）+area并入line数据管道（date-sort放宽）；缓存戳nova-data.js?v=2→3（cache-first硬要求，data.html走SWR自愈）；热力图尾巴→P1（需第二维度选择器，跨renderChartSelectors框架）。
 
 ### [x] P0-2 出境调用定性收尾（安全审计闭环）
 - 证据：settings/skills fetch x1、tryon x2、migrate XHR x1（RECON5 E2）；数据不出境是全站核心叙事
@@ -24,6 +25,8 @@
 - 验收：26 页头牌一致；缓存戳批次 bump；截图对比入册
 
 ## P1（功能密度补齐）
+
+- [ ] P1-热力图：data.html 图表第二维度（维度×维度热力矩阵+色标），P0-1 收尾移出项——需 renderChartSelectors 增第二维度选择器
 
 - [ ] P1-1 pdf.html 补高频三件：压缩分级 / 图片互转 / PDF加密（对标 Stirling PDF）
 - [ ] P1-2 data.html NL→受限变换 DSL：本地规则引擎一句话操作，零云端（对标 ChatExcel 一句话体验）

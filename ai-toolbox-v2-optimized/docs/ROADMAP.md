@@ -166,3 +166,4 @@
   ↳ 【three r160 EOL·结案】警告=自托管钉版UMD构建自带(REV=160)，r160移除对钉版副本零影响；C案整句摘除console.warn换void 0(配平扫描+span含靶双防误切)，引用戳?v=2(旧戳归一+引号前瞻防.map误伤)；A案module化条件入册(重启=下次主动碰渲染管线；难点=urdf-loader.umd第二消费者+blk4内联IIFE就绪模式)；按钮层级缩水结案(robot.html零z-index/fixed，atcmd FAB顶层属面板设计)
   ↳ 【BACKLOG v1 立账】对标驱动优化总清单=docs/BACKLOG.md：P0=图表扩容+出境定性+徽章统一(各带动工前置RECON段)，P1=pdf三件+NL-DSL+mind+robot+品牌统一，P2=模板库/批量/整合/A案/别名守卫；结案存档区防重开
   ↳ 【P0-2 出境定性·结案】五处网络调用全=用户自配端点(baseUrl/imgBase+apiKey用户键入，migrate出处探针随跑在案)；qr/call=hash传参零服务端；E1静态零外链+D段定性=审计闭环，叙事定稿入BACKLOG
+  ↳ 【P0-1 图表扩容·结案】area/hist/box 三型 vanilla SVG 落地（quantile+drawHist/drawArea/drawBox，分发+select+boundary 同步），nova-data v2→3 戳；热力图尾巴入 P1（第二维度选择器跨框架）

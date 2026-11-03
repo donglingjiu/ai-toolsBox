@@ -266,13 +266,112 @@ function drawPie(data) {
 
 const svgWrap = (w, h, inner) => `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg" role="img">${inner}</svg>`;
 
+function quantile(sorted, q) {
+  const pos = (sorted.length - 1) * q, base = Math.floor(pos), rest = pos - base;
+  return sorted[base + 1] !== undefined ? sorted[base] + rest * (sorted[base + 1] - sorted[base]) : sorted[base];
+}
+
+function drawHist(vals) {
+  const W = 860, H = 420, M = { l: 70, r: 24, t: 24, b: 64 };
+  const iw = W - M.l - M.r, ih = H - M.t - M.b;
+  let lo = Infinity, hi = -Infinity;
+  for (const v of vals) { if (v < lo) lo = v; if (v > hi) hi = v; }
+  if (lo === hi) { lo -= 0.5; hi += 0.5; }
+  const nb = 12, w = (hi - lo) / nb;
+  const counts = Array(nb).fill(0);
+  for (const v of vals) counts[Math.min(nb - 1, Math.floor((v - lo) / w))]++;
+  const max = niceMax(Math.max(...counts));
+  const y = (c) => M.t + ih - (c / max) * ih;
+  let s = "";
+  for (let g = 0; g <= 4; g++) {
+    const gv = (max / 4) * g, gy = y(gv);
+    s += `<line x1="${M.l}" y1="${gy}" x2="${W - M.r}" y2="${gy}" stroke="var(--line)"/><text x="${M.l - 8}" y="${gy + 4}" text-anchor="end" font-size="11" fill="currentColor">${fmtN(gv)}</text>`;
+  }
+  const bw = iw / nb;
+  counts.forEach((c, i) => {
+    const x = M.l + i * bw, by = y(c);
+    s += `<rect x="${x + 1}" y="${by}" width="${bw - 2}" height="${M.t + ih - by}" fill="${PALETTE[0]}" opacity="0.8"><title>${fmtN(lo + i * w)}–${fmtN(lo + (i + 1) * w)}：${c}</title></rect>`;
+    if (i % 3 === 0) s += `<text x="${x}" y="${H - M.b + 16}" text-anchor="middle" font-size="11" fill="currentColor">${fmtN(lo + i * w)}</text>`;
+  });
+  return svgWrap(W, H, s);
+}
+
+function drawArea(data) {
+  const W = 860, H = 420, M = { l: 70, r: 24, t: 24, b: 64 };
+  const iw = W - M.l - M.r, ih = H - M.t - M.b;
+  const max = niceMax(Math.max(...data.map((d) => d.v)));
+  const x = (i) => M.l + (data.length === 1 ? iw / 2 : (i / (data.length - 1)) * iw);
+  const y = (v) => M.t + ih - (v / max) * ih;
+  let s = "";
+  for (let g = 0; g <= 4; g++) {
+    const gv = (max / 4) * g, gy = y(gv);
+    s += `<line x1="${M.l}" y1="${gy}" x2="${W - M.r}" y2="${gy}" stroke="var(--line)"/><text x="${M.l - 8}" y="${gy + 4}" text-anchor="end" font-size="11" fill="currentColor">${fmtN(gv)}</text>`;
+  }
+  const seg = data.map((d, i) => `L${x(i)},${y(d.v)}`).join(" ");
+  s += `<path d="M${x(0)},${M.t + ih} ${seg} L${x(data.length - 1)},${M.t + ih} Z" fill="${PALETTE[0]}" opacity="0.15"/>`;
+  s += `<polyline points="${data.map((d, i) => `${x(i)},${y(d.v)}`).join(" ")}" fill="none" stroke="${PALETTE[0]}" stroke-width="2"/>`;
+  data.forEach((d, i) => {
+    s += `<circle cx="${x(i)}" cy="${y(d.v)}" r="3.5" fill="${PALETTE[0]}"><title>${esc(d.k)}：${fmtN(d.v)}</title></circle>`;
+    if (i % Math.ceil(data.length / 14) === 0) s += `<text x="${x(i)}" y="${H - M.b + 16}" text-anchor="middle" font-size="11" fill="currentColor">${esc(d.k.length > 8 ? d.k.slice(0, 7) + "…" : d.k)}</text>`;
+  });
+  return svgWrap(W, H, s);
+}
+
+function drawBox(groups) {
+  const W = 860, H = 420, M = { l: 96, r: 24, t: 24, b: 48 };
+  const iw = W - M.l - M.r, ih = H - M.t - M.b;
+  const max = niceMax(Math.max(...groups.map((g) => g.vs[g.vs.length - 1])));
+  const x = (v) => M.l + (v / max) * iw;
+  let s = "";
+  for (let g = 0; g <= 4; g++) {
+    const gv = (max / 4) * g, gx = x(gv);
+    s += `<line x1="${gx}" y1="${M.t}" x2="${gx}" y2="${H - M.b}" stroke="var(--line)"/><text x="${gx}" y="${H - M.b + 16}" text-anchor="middle" font-size="11" fill="currentColor">${fmtN(gv)}</text>`;
+  }
+  const rowH = ih / groups.length, bh = Math.min(26, rowH * 0.55);
+  groups.forEach((grp, i) => {
+    const q1 = quantile(grp.vs, 0.25), med = quantile(grp.vs, 0.5), q3 = quantile(grp.vs, 0.75);
+    const wlo = grp.vs[0], whi = grp.vs[grp.vs.length - 1], cy = M.t + i * rowH + rowH / 2, col = PALETTE[i % PALETTE.length];
+    s += `<line x1="${x(wlo)}" y1="${cy}" x2="${x(q1)}" y2="${cy}" stroke="${col}"/><line x1="${x(q3)}" y1="${cy}" x2="${x(whi)}" y2="${cy}" stroke="${col}"/>`;
+    s += `<line x1="${x(wlo)}" y1="${cy - bh / 3}" x2="${x(wlo)}" y2="${cy + bh / 3}" stroke="${col}"/><line x1="${x(whi)}" y1="${cy - bh / 3}" x2="${x(whi)}" y2="${cy + bh / 3}" stroke="${col}"/>`;
+    s += `<rect x="${x(q1)}" y="${cy - bh / 2}" width="${Math.max(2, x(q3) - x(q1))}" height="${bh}" fill="${col}" opacity="0.35" stroke="${col}"/>`;
+    s += `<line x1="${x(med)}" y1="${cy - bh / 2}" x2="${x(med)}" y2="${cy + bh / 2}" stroke="${col}" stroke-width="2"/>`;
+    s += `<text x="${M.l - 8}" y="${cy + 4}" text-anchor="end" font-size="11" fill="currentColor">${esc(grp.k.length > 10 ? grp.k.slice(0, 9) + "…" : grp.k)}</text>`;
+    s += `<rect x="${M.l}" y="${cy - rowH / 2}" width="${iw}" height="${rowH}" fill="transparent"><title>${esc(grp.k)}：min ${fmtN(wlo)} / Q1 ${fmtN(q1)} / 中位 ${fmtN(med)} / Q3 ${fmtN(q3)} / max ${fmtN(whi)}（n=${grp.vs.length}）</title></rect>`;
+  });
+  return svgWrap(W, H, s);
+}
+
 function drawChart() {
   if (!TABLE || !TABLE.rows.length) { novaToast("请先加载数据", "error"); return; }
   const type = $d("#chart-type").value, dim = $d("#chart-dim").value;
   const measure = $d("#chart-measure").value, agg = measure ? $d("#chart-agg").value : "count";
   if (!dim) return;
-  let data = aggregate(dim, measure, agg).sort((a, b) => b.v - a.v);
-  if (type === "line") {
+
+  if (type === "hist") {
+    if (!measure) { novaToast("直方图需选择度量列", "error"); return; }
+    const vals = TABLE.rows.map((r) => toNum(r[measure])).filter((v) => v != null);
+    if (!vals.length) { novaToast("度量列无有效数值", "error"); return; }
+    LASTCHART = drawHist(vals);
+    $d("#chart-box").innerHTML = LASTCHART; $d("#chart-empty").hidden = true; $d("#chart-svg").disabled = false;
+    return;
+  }
+  if (type === "box") {
+    if (!measure) { novaToast("箱线图需选择度量列", "error"); return; }
+    const gm = new Map();
+    for (const r of TABLE.rows) {
+      const n = toNum(r[measure]); if (n == null) continue;
+      const k = r[dim] == null || r[dim] === "" ? "(空)" : String(r[dim]);
+      if (!gm.has(k)) gm.set(k, []);
+      gm.get(k).push(n);
+    }
+    const groups = Array.from(gm, ([k, vs]) => ({ k, vs: vs.sort((a, b) => a - b) }))
+      .sort((a, b) => b.vs.length - a.vs.length).slice(0, 20);
+    if (!groups.length) { novaToast("度量列无有效数值", "error"); return; }
+    LASTCHART = drawBox(groups);
+    $d("#chart-box").innerHTML = LASTCHART; $d("#chart-empty").hidden = true; $d("#chart-svg").disabled = false;
+    return;
+  }  let data = aggregate(dim, measure, agg).sort((a, b) => b.v - a.v);
+  if (type === "line" || type === "area") {
     const isDate = data.every((d) => /^\d{4}[-/]/.test(d.k));
     data = isDate ? data.sort((a, b) => a.k.localeCompare(b.k)) : data;
   }
@@ -280,7 +379,7 @@ function drawChart() {
   else data = data.slice(0, 20);
   if (!data.length) { novaToast("聚合结果为空：检查维度/度量列", "error"); return; }
 
-  LASTCHART = type === "pie" ? drawPie(data) : type === "line" ? drawLine(data) : drawBar(data);
+  LASTCHART = type === "pie" ? drawPie(data) : type === "line" ? drawLine(data) : type === "area" ? drawArea(data) : drawBar(data);
   $d("#chart-box").innerHTML = LASTCHART;
   $d("#chart-empty").hidden = true;
   $d("#chart-svg").disabled = false;
