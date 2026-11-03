@@ -10,6 +10,8 @@
 - 尾刀（31972ed 后·本会话）：散点图补齐=第 7 图（drawScatter 维度X×度量Y 双数值，>400 点自动抽样，缺列/无值 toast 拒单）；nova-data ?v=3→v4；SW nova-v13→v14（并行写手 bump 了 JS 戳但未 bump SW，缓存优先下旧 data.html 不换代）；UI 验收=散点渲染+下载+6 旧图零回归
 - 验收终笔（浏览器实拍+补测）：7/7 真渲染通过（直方 12 箱/箱线 Top20 组/散点抽样点云）+ SVG 下载 + 旧四图零回归；散点守卫 toast 逐字命中；STALE 哨兵=CDN 边缘假阴性（cache-buster 定性）；观察入册：hist/box 拒单保留旧画布、饼图图例 div-in-svg 不可见（实拍实锤，排队 <text> 小修）；P0-1 七图总闭案（柱/折/饼+面积/直方/箱线/散点=三手联作）
 - 小修包（本会话）：饼图图例 div-in-svg→SVG <text>+tspan 色块（实拍不可见 quirk 修复；22px 行距与居中系数 11 自洽零改动）；clearChart() 挂 drawChart 首行=任意拒单（无维度/直方/箱线/散点/聚合空）统一清画布+禁下载，陈图不可导；nova-data ?v=4→v5 + SW v14→v15 配对 bump（循 94348b3 先例）；rename 空新列名拒单=下一小刀（需先 recon 校验区归属）
+- 加时赛：rename 空新列名拒单 ✅（漏斗头 gate@applyOne 首行、try 之前=第一副作用之前：不变表、不入 OPS、无成功 toast；GPROBE 实证 gatherOp=纯构建器,applyOne=唯一漏斗,replay 直连绕行安全；原 build 行裸 return 计划作废,会吐 undefined；duplicate 新列名=新观察项）；nova-data v5→v6 + SW v15→v16 配对
+- pdf 三件套 kickoff 卡（弹药已入库）：①双轨并存=legacy js/pdfjs/ 与 root pdf-lib(convert.html?v=11) 对 vendor pdf-lib(pdf.html)②cantoo 采纳决策(602K 零引用 vs 在用 512K)③pdf.html 七加载器 stamp 卫生(仅 annot?v=1 其余裸奔)④sw.js 预缓存清单含否 pdf 资产待查⑤引爆半径=23 处导航入口,大刀慢动⑥pdf 区零 TODO=干净
 - 证据：图表分析 tab + 生成图表 + 下载SVG 已存在（RECON5），d3.min.js vendor 已就位；对标 ChatExcel 主卖点
 - 动工前置：RECON-ALL C 段定性现有图表种类，只补高频缺口（候选：直方图/箱线/面积/热力）
 - 验收：新图表渲染正确 + SVG 下载 + 缓存戳 + 三场景零回归

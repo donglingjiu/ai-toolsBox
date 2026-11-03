@@ -153,6 +153,11 @@ function gatherOp() {
 }
 
 function applyOne(op, { record = true } = {}) {
+  if (op && op.type === "rename_column"
+      && (!op.to || !op.to.trim())) {
+    novaToast("重命名列需填写新列名", "error");
+    return;
+  }
   try {
     const nt = applyTransformPlan(TABLE, { operations: [op] });
     if (!nt || !Array.isArray(nt.headers)) throw new Error("变换引擎返回异常");
