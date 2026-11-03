@@ -258,7 +258,7 @@ function drawPie(data) {
     const p = (rr, a) => `${(cx + rr * Math.cos(a)).toFixed(2)},${(cy + rr * Math.sin(a)).toFixed(2)}`;
     const lg = a1 - a0 > Math.PI ? 1 : 0;
     s += `<path d="M${p(r, a0)} A${r},${r} 0 ${lg} 1 ${p(r, a1)} L${p(r0, a1)} A${r0},${r0} 0 ${lg} 0 ${p(r0, a0)} Z" fill="${PALETTE[i % PALETTE.length]}"><title>${esc(d.k)}：${fmtN(d.v)}（${(frac * 100).toFixed(1)}%）</title></path>`;
-    legend += `<div class="legend"><span><span style="color:${PALETTE[i % PALETTE.length]}">■</span> ${esc(d.k)} · ${fmtN(d.v)} · ${(frac * 100).toFixed(1)}%</span></div>`;
+    legend += `<text x="0" y="${i * 22 + 4}" font-size="12" fill="currentColor"><tspan fill="${PALETTE[i % PALETTE.length]}">■</tspan> ${esc(d.k)} · ${fmtN(d.v)} · ${(frac * 100).toFixed(1)}%</text>`;
     a0 = a1;
   });
   return svgWrap(W, H, s + `<g transform="translate(${cx + r + 60},${cy - data.length * 11})">${legend}</g>`);
@@ -364,7 +364,15 @@ function drawScatter(pts, dim, measure) {
   return svgWrap(W, H, s);
 }
 
+function clearChart() {
+  LASTCHART = "";
+  $d("#chart-box").innerHTML = "";
+  $d("#chart-empty").hidden = false;
+  $d("#chart-svg").disabled = true;
+}
+
 function drawChart() {
+  clearChart();
   if (!TABLE || !TABLE.rows.length) { novaToast("请先加载数据", "error"); return; }
   const type = $d("#chart-type").value, dim = $d("#chart-dim").value;
   const measure = $d("#chart-measure").value, agg = measure ? $d("#chart-agg").value : "count";
