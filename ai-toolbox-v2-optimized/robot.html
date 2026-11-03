@@ -187,7 +187,7 @@
   function disposeScene(sc){sc.traverse(function(o){if(o.geometry)o.geometry.dispose();if(o.material)o.material.dispose();});}
   function initGL(){
     var cv=$('mjCanvas');
-    st.ren=new THREE.WebGLRenderer({canvas:cv,antialias:true});window.__ren=ren;
+    st.ren=new THREE.WebGLRenderer({canvas:cv,antialias:true});
     st.ren.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
     st.cam=new THREE.PerspectiveCamera(45,1.6,0.05,60);
     function fit(){var w=cv.clientWidth||640,h=cv.clientHeight||340;st.ren.setSize(w,h,false);st.cam.aspect=w/h;st.cam.updateProjectionMatrix();}
@@ -215,7 +215,7 @@
     var sc=new THREE.Scene();sc.rotation.x=-Math.PI/2;
     sc.background=new THREE.Color(0x0B1220);
     sc.add(new THREE.HemisphereLight(0x9db4d6,0x1a2438,0.95));
-    var dl=new THREE.DirectionalLight(0xffffff,0.9);dl.position.set(4,6,3);dl.castShadow=true;dl.shadow.mapSize.set(2048,2048);dl.shadow.camera.left=-4;dl.shadow.camera.right=4;dl.shadow.camera.top=4;dl.shadow.camera.bottom=-4;dl.shadow.bias=-0.0005;sc.add(dl);var amb=new THREE.AmbientLight(0x3a4050,0.55);sc.add(amb);try{var cnv=document.createElement("canvas");cnv.width=1024;cnv.height=512;var g2=cnv.getContext("2d");var grd=g2.createLinearGradient(0,0,0,512);grd.addColorStop(0,"#3d434c");grd.addColorStop(0.45,"#22262e");grd.addColorStop(0.55,"#14171e");grd.addColorStop(1,"#0a0c10");g2.fillStyle=grd;g2.fillRect(0,0,1024,512);g2.fillStyle="rgba(255,255,255,0.92)";g2.fillRect(140,90,200,110);g2.fillRect(680,120,160,90);g2.fillStyle="rgba(160,190,255,0.55)";g2.fillRect(430,70,130,80);var envTex=new THREE.CanvasTexture(cnv);envTex.mapping=THREE.EquirectangularReflectionMapping;if(!window.__ren){throw new Error("renderer tracker missing at boot time");}var pmrem=new THREE.PMREMGenerator(window.__ren);var envRT=pmrem.fromEquirectangular(envTex);sc.environment=envRT.texture;sc.background=envTex;sc.fog=new THREE.Fog(0x0a0c10,8,26);window.__ren.toneMapping=THREE.ACESFilmicToneMapping;window.__ren.toneMappingExposure=1.05;window.__ren.outputColorSpace=THREE.SRGBColorSpace;window.__ren.shadowMap.enabled=true;window.__ren.shadowMap.type=THREE.PCFSoftShadowMap;console.log("[sim] visual: IBL+toneMap+fog+shadowMap live");}catch(e){console.warn("[sim] visual partial:",e.message);}
+    var dl=new THREE.DirectionalLight(0xffffff,0.9);dl.position.set(4,6,3);dl.castShadow=true;dl.shadow.mapSize.set(2048,2048);dl.shadow.camera.left=-4;dl.shadow.camera.right=4;dl.shadow.camera.top=4;dl.shadow.camera.bottom=-4;dl.shadow.bias=-0.0005;sc.add(dl);var amb=new THREE.AmbientLight(0x3a4050,0.55);sc.add(amb);
     var grid=new THREE.GridHelper(3,30,0x2a3b5e,0x1c2942);grid.position.y=0.001;sc.add(grid);
     var groups=[];
     for(var b=0;b<model.nbody;b++){
@@ -225,6 +225,40 @@
     }
     st.groups=groups;st.sc=sc;
     if(!st.ren)initGL();
+try{
+  if(!st.envRT){
+    var cnv=document.createElement("canvas");
+    cnv.width=1024;cnv.height=512;
+    var g2=cnv.getContext("2d");
+    var grd=g2.createLinearGradient(0,0,0,512);
+    grd.addColorStop(0,"#3d434c");
+    grd.addColorStop(0.45,"#22262e");
+    grd.addColorStop(0.55,"#14171e");
+    grd.addColorStop(1,"#0a0c10");
+    g2.fillStyle=grd;g2.fillRect(0,0,1024,512);
+    g2.fillStyle="rgba(255,255,255,0.92)";
+    g2.fillRect(140,90,200,110);
+    g2.fillRect(680,120,160,90);
+    g2.fillStyle="rgba(160,190,255,0.55)";
+    g2.fillRect(430,70,130,80);
+    var envTex=new THREE.CanvasTexture(cnv);
+    envTex.mapping=
+      THREE.EquirectangularReflectionMapping;
+    var pmrem=new THREE.PMREMGenerator(st.ren);
+    st.envRT=pmrem.fromEquirectangular(envTex);
+    pmrem.dispose();
+    st.envTex=envTex;
+    st.ren.toneMapping=THREE.ACESFilmicToneMapping;
+    st.ren.toneMappingExposure=1.05;
+    st.ren.outputColorSpace=THREE.SRGBColorSpace;
+    st.ren.shadowMap.enabled=true;
+    st.ren.shadowMap.type=THREE.PCFSoftShadowMap;
+    console.log("[sim] visual: IBL+ACES+shadow ready");
+  }
+  sc.environment=st.envRT.texture;
+  sc.background=st.envTex;
+  sc.fog=new THREE.Fog(0x0a0c10,8,26);
+}catch(e){console.warn("[sim] visual partial:",e.message);}
     if(st.ctl)st.ctl.upd();
     updX();return true;
   }
