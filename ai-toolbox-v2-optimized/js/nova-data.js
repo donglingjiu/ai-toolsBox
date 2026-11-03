@@ -153,10 +153,17 @@ function gatherOp() {
 }
 
 function applyOne(op, { record = true } = {}) {
-  if (op && op.type === "rename_column"
-      && (!op.to || !op.to.trim())) {
-    novaToast("重命名列需填写新列名", "error");
-    return;
+  if (op && op.type === "rename_column") {
+    if (!op.to || !op.to.trim()) {
+      novaToast("重命名列需填写新列名", "error");
+      return;
+    }
+    if (TABLE && Array.isArray(TABLE.headers)
+        && op.to !== op.from
+        && TABLE.headers.indexOf(op.to) !== -1) {
+      novaToast("新列名「" + op.to + "」已存在", "error");
+      return;
+    }
   }
   try {
     const nt = applyTransformPlan(TABLE, { operations: [op] });
