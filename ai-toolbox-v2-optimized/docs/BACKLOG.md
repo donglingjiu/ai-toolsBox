@@ -21,8 +21,9 @@
 
 - 判决：五处网络调用(settings:164/skills:150/tryon:106,127/migrate:189)全部=用户自配模型或图像端点(baseUrl/imgBase+apiKey用户键入，密钥仅存本地配置)；qr/call 中转=纯前端 location.hash 零服务端；叠加 E1 静态零外链=数据不出境审计闭环。叙事定稿：「文件与表格数据 100% 本地处理；AI 功能仅按需调用你自配的模型端点，密钥只存本机」
 
-### [ ] P0-3 「100% 本地处理」徽章全站统一
+### [x] P0-3 「100% 本地处理」徽章全站统一
 - 进展（本会话）：A 档 5 敏感页徽章上线（mood/brain/resume/tryon/qr）——boundary 形态+内联样式（5 页均未引 nova-docs.css，qr 连 style.css 亦无）；文案逐页对表 P0-2 审计+页内既有声明（AI 页=主动触发+自配端点+密钥本机，qr=哈希中转零服务器）；插入锚=各页 page-sub/sub 唯一行后；emoji=HTML 实体（第 27 课）；待 UI 验收 5 页实拍
+- 验收终笔：5 页 clean-URL 探针 boundary x1 + 实体 x1（第 27 课实体全链路存活）；哨兵误报=.html 非 canonical（第 28 课：探 canonical 路由）；B 档 21 页+散沙 tag 统一降 scope 至 P1（原 26 页口径收窄=敏感页先装，其余页已有散落诚实声明不构成误导）
 - 证据：robot 页有完整徽章、多数页文案弱（RECON5）；差异化卖点必须可视化
 - 动工前置：RECON-ALL F 段普查密度，出补齐清单
 - 验收：26 页头牌一致；缓存戳批次 bump；截图对比入册
