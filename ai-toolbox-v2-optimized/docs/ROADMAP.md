@@ -162,3 +162,5 @@
   ↳ 【粘贴层损伤·第22课】heredoc内emoji(增补平面)经终端粘贴被编为CESU-8代理对(0xed开头)，Python解码stdin即SyntaxError——解析期死亡零执行零改动；与17课同族不同机制；制度=heredoc只用ASCII+BMP汉字
   ↳ 【同名孪生·第23课】M1锚点全文件x2=校验区/执行区各一份rename映射；上轮侦察窗口(120-190)只见校验区=窗口局部性偏差；assert唯一性守门写盘前拒绝=第三次零伤害；制度=锚点唯一性对全文件验证，双区模式(validate+execute)是本库常态，修校验区用边界法(以「执行受限变换」注释为界)，执行区孪生不碰(其作用域无tag变量,注入即ReferenceError)
   ↳ 【R1收刀落地】rename_column补to空/重名拒单、add_computed补as重名拒单(对照split_col自有标准)；缓存戳v4→v5；R-A/R-B/R-C调用链打印随跑在案
+  ↳ 【第24课·软探针与硬闸门分离】REVISION正则按未压缩源码形态直取并assert(压缩构建里REVISION非直赋形态,实况见探针上下文转储)——记录字段竟成闸门杀死手术；制度=元数据只探针不assert(打印上下文留证)，assert只测正确性：标记唯一/span含靶/API五连/括号与长度精确delta；零伤害第四次兑现(死于首个open(w)之前)
+  ↳ 【three r160 EOL·结案】警告=自托管钉版UMD构建自带(REV=160)，r160移除对钉版副本零影响；C案整句摘除console.warn换void 0(配平扫描+span含靶双防误切)，引用戳?v=2(旧戳归一+引号前瞻防.map误伤)；A案module化条件入册(重启=下次主动碰渲染管线；难点=urdf-loader.umd第二消费者+blk4内联IIFE就绪模式)；按钮层级缩水结案(robot.html零z-index/fixed，atcmd FAB顶层属面板设计)
