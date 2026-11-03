@@ -244,6 +244,8 @@ try{
     var envTex=new THREE.CanvasTexture(cnv);
     envTex.mapping=
       THREE.EquirectangularReflectionMapping;
+    if(THREE.SRGBColorSpace){envTex.colorSpace=THREE.SRGBColorSpace;}
+    else{envTex.encoding=THREE.sRGBEncoding;}
     var pmrem=new THREE.PMREMGenerator(st.ren);
     st.envRT=pmrem.fromEquirectangular(envTex);
     pmrem.dispose();
@@ -251,6 +253,7 @@ try{
     st.ren.toneMapping=THREE.ACESFilmicToneMapping;
     st.ren.toneMappingExposure=1.05;
     st.ren.outputColorSpace=THREE.SRGBColorSpace;
+    if(!THREE.SRGBColorSpace){st.ren.outputEncoding=THREE.sRGBEncoding;}
     st.ren.shadowMap.enabled=true;
     st.ren.shadowMap.type=THREE.PCFSoftShadowMap;
     console.log("[sim] visual: IBL+ACES+shadow ready");

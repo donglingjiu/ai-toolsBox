@@ -149,3 +149,8 @@
   ↳ 【画面升级·第13课】用户判定画面「假」——单摆本体是geom_rgba真数据，假的是地面/网格/灯光/背景四件硬编码+渲染器三缺(ACES/sRGB/shadowMap)；修复=Canvas现场生成studio渐变equirect→PMREMGenerator.fromEquirectangular→scene.environment(IBL反射)+Fog+ACESFilmicToneMapping+outputColorSpace=SRGB+PCFSoftShadowMap；不拉市面直链(第8课MIME/CORS三重雷)；备选=Poly Haven CC0 HDR入仓(先curl -I验CT)。制度=①画面质感两把钥匙=IBL+tone mapping，先拧这两把再谈贴图；②场景数据真≠画面真——材质与渲染配置决定90%观感
   ↳ 【前缀撞车·第16课】替换锚点取前缀ren.toneMapping，而toneMappingExposure已先换成window.__ren.toneMappingExposure——新串恰含旧前缀→断言count=2崩(写盘前，磁盘零伤，第9课三度兑现)；制度=①替换/断言锚点必须完整语句级(ren.toneMapping=THREE...;)，前缀互为子串必撞车；②git add -A是扫帚——粘贴回声行首>当重定向默默创建done/echo/fi/main/sleep五个空文件，若python成功即被扫入仓库；制度=git add只点名具体文件，工作区异常先git status；③清理流程=ls -la验体积→rm→status复查
   ↳ 【成员伪装·第18课】三轮ren迷案根凶=D1正则(\w+)=new匹配st.ren=new...时只捕获ren——st.前缀被截断，报出从未存在的裸变量名；c41ce08的VU引裸ren被自身catch接住(引擎尚活)；1a03afe把window.__ren=ren追加进190行initGL→内部ReferenceError→st.cam/st.ctl未建→上抛.catch→引擎死；P6全文地图20分钟定罪，栈证词190:77与毒点列号吻合。制度=①成员赋值≠变量声明：锚边界须(?<![\w.$])或全路径[\w.$]+，否则st.前缀截断造幽灵；②同一假设连败两次=立即回源码全文侦察，一轮读+一轮修=最少往返；③st对象是全模块共享状态仓，跨作用域一律st.xxx不用window桥；④VIS工艺：PMREM/渲染器配置once(st.envRT守卫)，environment/background/fog每rebuild赋新scene
+  ↳ 【作用域盲区·第14课】(补录)VU引裸ren跨作用域，regex变量捕获必须验作用域；诊断方向正确、修法后被18课重判
+  ↳ 【粘贴回声·第15课】(补录)日志粘回bash=噪音零伤害；行首>建空文件险被add -A扫入；curl(23)=grep -q命中关管道
+  ↳ 【粘贴层损伤·第17课】(补录)heredoc内超长中文行被终端粘贴折断→SyntaxError解析期死亡、零执行零伤害；制度=heredoc行≤72列，长文案拆多次短write
+  ↳ 【全读再修·第19课】同一假设连败两次=立即回源码全文；P0-P7一轮侦察+一轮手术=最短路径，侦察脚本只读零风险
+  ↳ 【双伽马·第20课】CanvasTexture是sRGB像素，未标注colorSpace被当linear→输出再sRGB编码=整体发灰变亮；修复=贴图标注colorSpace(须在PMREM烘焙前)+渲染器输出colorSpace；r150/151无colorSpace API须双模守卫(SRGBColorSpace?colorSpace:encoding)；升级渲染管线先核three版本再选API形态
