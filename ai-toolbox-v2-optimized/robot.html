@@ -265,7 +265,7 @@
     if(!window.THREE){fail('THREE \u672A\u52A0\u8F7D\uFF08\u6E32\u67D3\u5E93\u7F3A\u5931\uFF09');return;}
     $('mjBoot').innerHTML='<div class="mj-spin"></div><div>\u52A0\u8F7D MuJoCo WASM\u2026 \u9996\u6B21\u7EA6 11MB\uFF08\u5DF2\u7F13\u5B58\u5219\u79D2\u5F00\uFF09</div>';
     $('mjState').textContent='loading';$('mjState').style.color='#45E0C8';
-    import('js/vendor/mujoco/mujoco.js').then(function(m){
+    import('./js/vendor/mujoco/mujoco.js').then(function(m){
       var fac=m.default||m;
       return Promise.resolve(fac());
     }).then(function(mod){
