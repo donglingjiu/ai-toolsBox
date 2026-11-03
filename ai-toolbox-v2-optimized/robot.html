@@ -161,7 +161,14 @@
       function(){return st.mod.mj_loadXML(s);},
       function(){var vfs=new st.mod.MjVFS();try{return st.mod.from_xml_string(s,vfs);}finally{try{vfs.delete();}catch(e){}}}
     ];
-    for(var i=0;i<tries.length;i++){try{var m=tries[i]();if(m)return m;}catch(e){console.warn('[sim] xml try#'+i, e && e.message);}}
+        var errs=[];
+    for(var i=0;i<tries.length;i++){
+      try{var m=tries[i]();if(m)return m;}
+      catch(e){errs.push(
+        "try#"+i+": "+(e&&e.message||e));}
+    }
+    if(errs.length){console.warn(
+      "[sim] xml all-failed | "+errs.join(" | "));}
     return null;
   }
   function geomMesh(model,j){

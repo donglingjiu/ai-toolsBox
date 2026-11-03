@@ -154,3 +154,5 @@
   ↳ 【粘贴层损伤·第17课】(补录)heredoc内超长中文行被终端粘贴折断→SyntaxError解析期死亡、零执行零伤害；制度=heredoc行≤72列，长文案拆多次短write
   ↳ 【全读再修·第19课】同一假设连败两次=立即回源码全文；P0-P7一轮侦察+一轮手术=最短路径，侦察脚本只读零风险
   ↳ 【双伽马·第20课】CanvasTexture是sRGB像素，未标注colorSpace被当linear→输出再sRGB编码=整体发灰变亮；修复=贴图标注colorSpace(须在PMREM烘焙前)+渲染器输出colorSpace；r150/151无colorSpace API须双模守卫(SRGBColorSpace?colorSpace:encoding)；升级渲染管线先核three版本再选API形态
+  ↳ 【无米下锅·第21课】data.html脱敏「前后一致」三案定性：接线三层全通(开关324/预览30/导出292-303)+规则=列名白名单(xlsx-core:119手机|身份证|邮箱等16词)+测试列零命中→no-op=按设计非bug；空列名已有守卫且优于拒绝(解析时自动命名列N,xlsx-core:49)；红点真身=badge-sens敏感徽章(nova-data:92,列名命中规则即现身)。制度=「特性没生效」四种可能:①死接线②规则未命中③时序未到④按设计静默——判决前必须读规则内容；接线通≠可见,有米才下锅
+  ↳ 【xml降噪】loadModel三策略逐个warn改收集errs、全败才一条all-failed汇总；正常路径零警告，场景切换不再累积黄警(实测3→9→15无界增长)
