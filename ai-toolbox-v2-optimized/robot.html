@@ -124,8 +124,8 @@
   var st={mod:null,model:null,data:null,sc:null,cam:null,ren:null,ctl:null,groups:null,
           ready:false,running:false,scene:'pend',grav:true,simT:0,steps:0,acc:0,lastTs:0,
           prevTh:0,lastPos:0,Tavg:0};
-  function gd(v,i){return Number(v.get(i));}
-  function gi(v,i){return Number(v.get(i));}
+  function gd(v,i){return Number(v.get?v.get(i):v[i]);}
+  function gi(v,i){return Number(v.get?v.get(i):v[i]);}
   function xml(id){
     var g=st.grav?'0 0 -9.81':'0 0 0';
     var h='<mujoco><option timestep="0.002" gravity="'+g+'"'+(id==='pend'?' integrator="RK4"':'')+'/>';
@@ -238,7 +238,7 @@
   function poke(sgn){
     if(!st.ready)return;
     var v=3.0*sgn;
-    try{st.data.qvel.set(0,v);return;}catch(e){}
+    try{var qv=st.data.qvel;if(qv.get){qv.set(0,v);}else{qv[0]=v;}return;}catch(e){}
     try{
       var nv=st.model.nv,arr=[];
       for(var k=0;k<nv;k++)arr.push(gd(st.data.qvel,k));
