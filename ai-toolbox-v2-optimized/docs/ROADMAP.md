@@ -164,3 +164,4 @@
   ↳ 【R1收刀落地】rename_column补to空/重名拒单、add_computed补as重名拒单(对照split_col自有标准)；缓存戳v4→v5；R-A/R-B/R-C调用链打印随跑在案
   ↳ 【第24课·软探针与硬闸门分离】REVISION正则按未压缩源码形态直取并assert(压缩构建里REVISION非直赋形态,实况见探针上下文转储)——记录字段竟成闸门杀死手术；制度=元数据只探针不assert(打印上下文留证)，assert只测正确性：标记唯一/span含靶/API五连/括号与长度精确delta；零伤害第四次兑现(死于首个open(w)之前)
   ↳ 【three r160 EOL·结案】警告=自托管钉版UMD构建自带(REV=160)，r160移除对钉版副本零影响；C案整句摘除console.warn换void 0(配平扫描+span含靶双防误切)，引用戳?v=2(旧戳归一+引号前瞻防.map误伤)；A案module化条件入册(重启=下次主动碰渲染管线；难点=urdf-loader.umd第二消费者+blk4内联IIFE就绪模式)；按钮层级缩水结案(robot.html零z-index/fixed，atcmd FAB顶层属面板设计)
+  ↳ 【BACKLOG v1 立账】对标驱动优化总清单=docs/BACKLOG.md：P0=图表扩容+出境定性+徽章统一(各带动工前置RECON段)，P1=pdf三件+NL-DSL+mind+robot+品牌统一，P2=模板库/批量/整合/A案/别名守卫；结案存档区防重开
