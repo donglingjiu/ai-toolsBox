@@ -156,3 +156,6 @@
   ↳ 【双伽马·第20课】CanvasTexture是sRGB像素，未标注colorSpace被当linear→输出再sRGB编码=整体发灰变亮；修复=贴图标注colorSpace(须在PMREM烘焙前)+渲染器输出colorSpace；r150/151无colorSpace API须双模守卫(SRGBColorSpace?colorSpace:encoding)；升级渲染管线先核three版本再选API形态
   ↳ 【无米下锅·第21课】data.html脱敏「前后一致」三案定性：接线三层全通(开关324/预览30/导出292-303)+规则=列名白名单(xlsx-core:119手机|身份证|邮箱等16词)+测试列零命中→no-op=按设计非bug；空列名已有守卫且优于拒绝(解析时自动命名列N,xlsx-core:49)；红点真身=badge-sens敏感徽章(nova-data:92,列名命中规则即现身)。制度=「特性没生效」四种可能:①死接线②规则未命中③时序未到④按设计静默——判决前必须读规则内容；接线通≠可见,有米才下锅
   ↳ 【xml降噪】loadModel三策略逐个warn改收集errs、全败才一条all-failed汇总；正常路径零警告，场景切换不再累积黄警(实测3→9→15无界增长)
+  ↳ 【姓名PII·决策记录】第21课定性+用户续令，按产品立场代拍：页面自述「数据不出境」+个保法姓名属PII+开关默认关可逆→isSensitiveColumn白名单补姓名|；连锁=预览/导出打码、画像敏感徽章、AI摘要默认不含；回滚=删一个词；外链JS改动必戳缓存版本v3→v4
+  ↳ 英文name列变体(user_name等)刻意缓刑：裸name子串误伤filename类列，等真实需求再上段锚正则
+  ↳ rename_column空名边角：R1侦察输出在案待定性

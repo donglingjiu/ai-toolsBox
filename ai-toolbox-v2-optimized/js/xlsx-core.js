@@ -116,7 +116,7 @@ function profileTable(table, opt) {
 
 /* 判断列名是否疑似敏感（默认不发送给 AI） */
 function isSensitiveColumn(name) {
-  return /手机|电话|phone|mobile|身份证|idcard|邮箱|email|地址|address|密码|password|token|secret|银行|卡号|account/i.test(String(name || ''));
+  return /姓名|手机|电话|phone|mobile|身份证|idcard|邮箱|email|地址|address|密码|password|token|secret|银行|卡号|account/i.test(String(name || ''));
 }
 
 /* ---------- 受限变换 DSL 校验 ---------- */
