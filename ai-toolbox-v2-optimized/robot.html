@@ -105,6 +105,20 @@
 
 <script>
 (function(){
+  var _f0 = window.fetch;
+  window.fetch = function(u, o) {
+    var p = _f0.apply(this, arguments);
+    if (String(u).indexOf('mujoco.wasm') >= 0) {
+      return p.then(function(rs) {
+        if (!rs.ok) { return rs; }
+        return rs.arrayBuffer().then(function(buf) {
+          return new Response(buf, { status: 200, headers: new Headers({ 'Content-Type': 'application/wasm' }) });
+        });
+      });
+    }
+    return p;
+  };
+  console.log('[sim] fetch shim v2: mujoco.wasm rebuilt as application/wasm');
   var $=function(id){return document.getElementById(id);};
   var DT=0.002;
   var st={mod:null,model:null,data:null,sc:null,cam:null,ren:null,ctl:null,groups:null,
