@@ -506,6 +506,73 @@ function initData() {
     if (!LASTCHART) return;
     download(new Blob([LASTCHART], { type: "image/svg+xml" }), `${BASE}-chart.svg`);
   });
+  $d("#pipeline-run").addEventListener("click", runPipeline);
+  $d("#export-jsonl").addEventListener("click", exportJsonl);
+}
+
+/* ---------- 清洗流水线（JD#3 · 数据生产与清洗） ---------- */
+let QBEFORE = null;
+function numCols() {
+  return TABLE.headers.filter(function (h) {
+    let t = 0, n = 0;
+    TABLE.rows.forEach(function (r) {
+      const v = r[h];
+      if (v == null || String(v).trim() === "") return;
+      t++;
+      const s = String(v).replace(/,/g, "");
+      if (s !== "" && !isNaN(Number(s))) n++;
+    });
+    return t > 0 && n === t;
+  });
+}
+function qualitySnapshot() {
+  const H = TABLE.headers, seen = new Set();
+  let missing = 0, dups = 0;
+  TABLE.rows.forEach(function (r) {
+    const k = JSON.stringify(H.map(function (h) { return r[h]; }));
+    if (seen.has(k)) dups++; else seen.add(k);
+    H.forEach(function (h) {
+      if (r[h] == null || String(r[h]).trim() === "") missing++;
+    });
+  });
+  return { rows: TABLE.rows.length, missing: missing, dups: dups };
+}
+function renderQuality() {
+  const el = $d("#quality-card");
+  if (!QBEFORE) { el.hidden = true; return; }
+  const b = qualitySnapshot();
+  el.hidden = false;
+  el.textContent = "质量报告 · 行 " + QBEFORE.rows + "→" + b.rows
+    + "（去重 " + (QBEFORE.rows - b.rows) + "）· 缺失单元 "
+    + QBEFORE.missing + "→" + b.missing
+    + " · 重复行 " + QBEFORE.dups + "→" + b.dups;
+}
+function runPipeline() {
+  if (!TABLE || !TABLE.headers.length) { novaToast("请先加载数据", "error"); return; }
+  const key = $d("#pipeline-select").value;
+  const all = TABLE.headers.slice();
+  const seq = [];
+  if (key === "quick" || key === "full") {
+    seq.push({ type: "trim_text", columns: all.slice() });
+    seq.push({ type: "dedupe_rows", keys: all.slice() });
+  }
+  if (key === "full") numCols()
+    .filter(function (h) { return !isSensitiveColumn(h); })
+    .forEach(function (c) {
+      seq.push({ type: "coerce_number", column: c });
+    });
+  if (!seq.length) { novaToast("流水线为空", "error"); return; }
+  QBEFORE = qualitySnapshot();
+  seq.forEach(function (op) { applyOne(op); });
+  renderQuality();
+  novaToast("✅ 流水线完成：" + seq.length + " 步");
+}
+function exportJsonl() {
+  const rows = exportRows(); if (!rows) return;
+  const lines = rows.map(function (r) { return JSON.stringify(r); });
+  download(new Blob([lines.join("\n")], { type: "application/x-ndjson" }),
+    `${BASE}-${SHEET}${maskOn() ? "-masked" : ""}.jsonl`);
+  novaToast("✅ JSONL 已导出" + (maskOn() ? "（含脱敏）" : ""));
 }
 
 document.addEventListener("DOMContentLoaded", initData);
