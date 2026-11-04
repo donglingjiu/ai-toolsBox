@@ -1,6 +1,6 @@
 'use strict';
 (function(){
-  var CK='chat_probe_v1', TTL=600000, STRICT=false;
+  var CK='chat_probe_v2', TTL=600000, STRICT=false;
   var cache={};
   try{cache=JSON.parse(localStorage.getItem(CK)||'{}')}catch(e){}
   function saveC(){try{localStorage.setItem(CK,JSON.stringify(cache))}catch(e){}}
@@ -15,25 +15,40 @@
     return 'HTTP '+code;
   }
   function probe(p,signal){
-    var t0=Date.now();
-    var url=(p.endpoint||'').replace(/\/+$/,'')+'/chat/completions';
-    var opt={method:'POST',signal:signal,
-      headers:{'Content-Type':'application/json',
-        'Authorization':'Bearer '+(p.key||'')},
-      body:JSON.stringify({model:p.model||'',
-        messages:[{role:'user',content:'ping'}],
-        max_tokens:1,stream:false})};
-    return fetch(url,opt).then(function(r){
-      var ms=Date.now()-t0;
-      if(r.ok)return{ok:true,ms:ms};
-      return r.text().catch(function(){return '';}).then(function(t){
-        return{ok:false,ms:ms,code:r.status,hint:hintFor(r.status,t)};});
-    }).catch(function(e){
-      if(e.name==='AbortError')return{ok:false,code:0,hint:'检测超时/取消'};
-      return{ok:false,code:-1,hint:'网络不可达或CORS拦截'};
-    });
+  var t0=Date.now();
+  if(typeof window._llmCallProfile==='function'){
+    return _llmCallProfile(p,[{role:'user',content:'ping'}],
+      {stream:false,signal:signal})
+      .then(function(){return{ok:true,ms:Date.now()-t0};})
+      .catch(function(e){
+        if(e&&e.name==='AbortError')
+          return{ok:false,code:0,hint:'检测超时/取消'};
+        var h=(e&&e.message)||'未知错误';
+        if(h.length>80)h=h.slice(0,80)+'…';
+        return{ok:false,code:(e&&e.httpStatus)||-1,hint:h};
+      });
   }
-  function profiles(){try{return window.getProfiles?getProfiles()||[]:[]}catch(e){return[]}}
+  var base;
+  try{base=sanitizeBaseUrl(p.baseUrl);}
+  catch(e){return Promise.resolve({ok:false,code:-1,hint:e.message});}
+  return fetch(base+'/chat/completions',{method:'POST',signal:signal,
+    headers:{'Content-Type':'application/json',
+      'Authorization':'Bearer '+(p.apiKey||'')},
+    body:JSON.stringify({model:p.model||'',
+      messages:[{role:'user',content:'ping'}],
+      max_tokens:1,stream:false})})
+    .then(function(r){
+      if(r.ok)return{ok:true,ms:Date.now()-t0};
+      return r.text().catch(function(){return '';}).then(function(t){
+        return{ok:false,ms:Date.now()-t0,code:r.status,
+          hint:hintFor(r.status,t)};});})
+    .catch(function(e){
+      if(e.name==='AbortError')
+        return{ok:false,code:0,hint:'检测超时/取消'};
+      return{ok:false,code:-1,hint:'网络不可达或CORS拦截'};});
+}
+
+  function profiles(){try{return (window.getProfiles?getProfiles():[]).filter(function(p){return p&&p.enabled!==false})}catch(e){return[]}}
   function fresh(v){return !!(v&&v.ts&&(Date.now()-v.ts)<TTL)}
   function pname(p){return (p.name||'')+' · '+(p.model||'')}
   function paint(id,st){
