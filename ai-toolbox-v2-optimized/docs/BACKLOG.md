@@ -15,6 +15,7 @@
 - 加时赛二：pdf 卫生波 ✅（pdf-lib 去重落地=sha256 同字节 0f9a5cad×2 + 全仓唯一引用 convert.html x1 + git rm 根副本，convert.html 改指 vendor 且 ?v=11 语义原样；pdf.html 7 裸加载器补 ?v=1，annot 不动，guard.js 非本域不动；④销案=预缓存 8 项零 pdf 资产→pdf 全靠运行时缓存→HTML 变更必配 SW bump；v16→v17 冲刷；遗留正刀=pdfjs 双版本归一/cantoo 采纳/canonical/D2 版本深探）
 - 加时赛二·冒烟三证 ✅：convert 真单全链路=真实简历 PDF→Word 转出结构化 docx(H2 标题、编号列表、加粗俱在,WPS 实开)=vendor pdf-lib 与 legacy pdfjs 与 pdf2word-core 全链活体证明；pdf.html Network 实拍六加载器 ?v=1 全 200(merge、split、rotate、img2pdf、extract、annot)；root js/pdf-lib.min.js 404=哨兵 poll 0 即中,删除闭环
 - 正刀波 ✅：①rename duplicate 拒单=applyOne 闸门二层,条件式逐字取自引擎 validateTransformPlan(op.to!==op.from 且 headers.indexOf(op.to)!==-1),零语义漂移,引擎报错提前成 house voice「新列名「X」已存在」,同名 no-op 放行=引擎同款;待查=applyTransformPlan 是否内嵌 validate(高级 JSON 路径重名兜底取决于此)②死弹药删除=vendor/pdfjs(min 368.3K+worker 1107.1K)与 cantoo(602.3K)全仓零引用,git rm 共-2077.7KB,3.32.2 新弹药存 git history 可取回③正刀三题结案:版本归一=legacy 3.11.174 唯一真身,迁移=纯风险零收益;cantoo 采纳=否决;canonical=pdfjs 归 js/pdfjs/ 与 pdf-lib 归 js/vendor/④新观察:marked-9.min.js 与 marked.min.js 双双在库待查引用；data v6→v7 + SW v17→v18 配对
+- 正刀冒烟六拍 ✅：①dup 拒单实拍「新列名「部门」已存在」(v7 独有串)+无新 chip+表不变②同名 no-op(部门→部门)放行=引擎语义镜像③姓名→昵称 成功,chip 2 落账④空名回归「重命名列需填写新列名」(v6 闸门仍活)⑤账本指纹=「已应用 2 项变换」对 4+ 次按键:2 chip=2 OPS,两次拒单零残留(第32课负空间证据复用)⑥控制台无错误无警告(问题计数漂移=已知外观项)；M5 补证=applyTransformPlan 本体无校验(ctx@203 直改无 throw),JSON 直连路径重名兜底=无,重放域入下 session 观察
 - 证据：图表分析 tab + 生成图表 + 下载SVG 已存在（RECON5），d3.min.js vendor 已就位；对标 ChatExcel 主卖点
 - 动工前置：RECON-ALL C 段定性现有图表种类，只补高频缺口（候选：直方图/箱线/面积/热力）
 - 验收：新图表渲染正确 + SVG 下载 + 缓存戳 + 三场景零回归
