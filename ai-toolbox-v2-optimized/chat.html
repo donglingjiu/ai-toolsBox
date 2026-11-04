@@ -91,7 +91,10 @@ function dl(n,c){try{downloadText(n,c,'text/markdown;charset=utf-8')}
   catch(e){var a=document.createElement('a');
     a.href=URL.createObjectURL(new Blob([c]));a.download=n;a.click()}}
 function load(){try{sessions=JSON.parse(localStorage.getItem(KEY)||'[]')}
-  catch(e){sessions=[]}}
+  catch(e){sessions=[]}
+  sessions.forEach(function(s){var m=s.messages;
+    while(m.length&&m[m.length-1].role==='assistant'
+      &&!m[m.length-1].content){m.pop();}});}
 function save(){localStorage.setItem(KEY,JSON.stringify(sessions))}
 function cur(){for(var i=0;i<sessions.length;i++)
   if(sessions[i].id===curId)return sessions[i];return null}
@@ -177,7 +180,7 @@ function send(){var s=cur(),txt=q('#inp').value.trim();
     var m=e.name==='AbortError'?'已中断':e.message;
     asst.content+=(asst.content?'\n\n':'')+'⚠ '+m;tst(m)})
   .finally(function(){ctrl=null;s.updatedAt=Date.now();
-    save();renderAll();busy(false)})}
+    save();renderAll();busy(false);try{window.Mem&&Mem.onExchange(s);}catch(e){}})}
 q('#send').onclick=send;
 q('#stop').onclick=function(){if(ctrl)ctrl.abort()};
 q('#newBtn').onclick=newSess;
@@ -197,5 +200,6 @@ q('#expBtn').onclick=function(){var c=cur();if(!c)return;
 load();if(!sessions.length)newSess();renderAll();
 </script>
 <script src="js/chat-probe.js?v=3"></script>
+<script src="js/memory.js?v=1"></script>
 </body>
 </html>
