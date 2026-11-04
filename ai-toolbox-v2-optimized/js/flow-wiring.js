@@ -21,6 +21,12 @@
     var rec = { wf_id: WF, steps: ['s' + stage + ':' + event] };
     if (extra) for (var k in extra) rec[k] = extra[k];
     try { if (window.FlowTrace && FlowTrace.appendTrace) FlowTrace.appendTrace(rec); } catch (e) {}
+    try {
+      var K = 'flow_traces_' + WF, arr = [];
+      try { arr = JSON.parse(localStorage.getItem(K) || '[]'); } catch (e2) {}
+      arr.push(rec);
+      localStorage.setItem(K, JSON.stringify(arr));
+    } catch (e) {}
   }
 /* -- part 1 ok -- */
 
@@ -167,8 +173,15 @@
   window.WiringDebug = {
     get WF() { return WF; },
     version: 2,
+    dump: function () {
+      try {
+        var all = JSON.parse(localStorage.getItem('flow_traces_' + WF) || '[]');
+        copy(JSON.stringify(all)); console.log('dumped ' + all.length + ' traces to clipboard');
+        return all;
+      } catch (e) { return []; }
+    },
     seen: seen, startTs: startTs, rescan: scanCards, current: currentStage,
     product: productText
   };
-  T('v2 ready wf_id=' + WF);
+  T('v2.1 ready wf_id=' + WF);
 })();
