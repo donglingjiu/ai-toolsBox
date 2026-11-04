@@ -168,7 +168,7 @@ function send(){var s=cur(),txt=q('#inp').value.trim();
     if(m!==asst&&m.content)
       msgs.push({role:m.role,content:m.content})});
   ctrl=new AbortController();
-  llmChat(msgs,{signal:ctrl.signal,
+  (window.Agent?Agent.run:llmChat)(msgs,{signal:ctrl.signal,
     onProfile:function(n){tst('模型：'+n)},
     onDelta:function(d,full){asst.content=full;
       var a=document.querySelectorAll('.msg.assistant');
@@ -201,5 +201,6 @@ load();if(!sessions.length)newSess();renderAll();
 </script>
 <script src="js/chat-probe.js?v=3"></script>
 <script src="js/memory.js?v=1"></script>
+<script src="js/agent.js?v=1"></script>
 </body>
 </html>
