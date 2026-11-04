@@ -7,7 +7,23 @@
   try{store=JSON.parse(localStorage.getItem(KEY)||'[]');}catch(e){store=[];}
   function save(){try{localStorage.setItem(KEY,JSON.stringify(store));}catch(e){}}
   function all(){return store.slice();}
-  function add(items,src){
+    function nrm(x){return String(x).toLowerCase().replace(/[\s，。,.！!？?、；;：:"'()（）\-—_]/g,'');}
+  function bg(x){var r=[],i;for(i=0;i<x.length-1;i++)r.push(x.slice(i,i+2));return r;}
+  function similar(p,q){
+    var x=nrm(p),y=nrm(q);
+    if(!x||!y)return false;
+    if(x===y)return true;
+    if(x.indexOf(y)>=0||y.indexOf(x)>=0)return true;
+    var bx=bg(x),by=bg(y),i,j,inter=0;
+    for(i=0;i<bx.length;i++){
+      for(j=0;j<by.length;j++){
+        if(bx[i]===by[j]){inter++;break;}
+      }
+    }
+    var den=bx.length+by.length-inter;
+    return den>0&&(inter/den)>=0.55;
+  }
+function add(items,src){
     var n=0,i,t,j,dup;
     if(!items||!items.length)return 0;
     for(i=0;i<items.length;i++){
@@ -17,7 +33,7 @@
       if(t.length<4||t.length>120)continue;
       dup=false;
       for(j=0;j<store.length;j++){
-        if(store[j].content===t){dup=true;break;}
+        if(similar(store[j].content,t)){dup=true;break;}
       }
       if(dup)continue;
       store.push({id:'m'+Date.now().toString(36)+i,
