@@ -61,6 +61,7 @@ background:var(--pri);color:#fff;font-size:15px;cursor:pointer}
     <select id="modelSel"></select>
     <input id="sysInp" placeholder="系统提示词（可空）">
     <button id="expBtn">导出.md</button>
+      <button id="shareBtn">分享</button>
   </div>
   <div id="msgs"></div>
   <div id="inputBar">
@@ -192,8 +193,9 @@ q('#sysInp').onchange=function(){var c=cur();
   if(c){c.system=this.value;save()}};
 q('#modelSel').onchange=function(){var c=cur();
   if(c){c.profileId=this.value;save()}};
-q('#expBtn').onclick=function(){var c=cur();if(!c)return;
-  var md='# '+title(c)+'\n\n'+c.messages.map(function(m){
+q('#shareBtn').onclick=function(){ChatShare.share(cur());};
+  q('#expBtn').onclick=function(){var c=cur();if(!c)return;
+  var md='# '+title(c)+'\n\n'+(c.msgs||c.messages).map(function(m){
     return '**'+(m.role==='user'?'我':'AI')+'**：'+m.content}
     ).join('\n\n---\n\n');
   dl(title(c)+'.md',md)};
@@ -203,6 +205,6 @@ load();if(!sessions.length)newSess();renderAll();
 <script src="js/memory.js?v=4"></script>
 <script src="js/agent.js?v=10"></script>
 <script src="js/agent-extra.js?v=3"></script>
-<script src="js/skill.js?v=4"></script>
+<script src="js/skill.js?v=4"></script><script src="js/share.js?v=1"></script>
 </body>
 </html>
