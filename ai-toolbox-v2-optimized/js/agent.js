@@ -96,13 +96,13 @@
           &&L.indexOf('\uff08\u5de5\u5177\u8c03\u7528')!==0;})
       .join('\n');
     return {role:'assistant',content:t};}
-  function preCalc(msgs){
-    var last=null,i;
-    for(i=msgs.length-1;i>=0;i--){
-      if(msgs[i].role==='user'){last=msgs[i];break;}
+  function preCalc(base){
+    var idx=-1,i,t,out=[],seen={};
+    for(i=base.length-1;i>=0;i--){
+      if(base[i].role==='user'){idx=i;break;}
     }
-    if(!last)return [];
-    var t=String(last.content||''),out=[],seen={};
+    if(idx<0)return;
+    t=String(base[idx].content||'');
     var re=/[0-9(][0-9+\-*/().%\s]*[0-9)%]/g,m;
     while((m=re.exec(t))){
       var e=m[0].replace(/\s+/g,''),at=m.index;
@@ -126,17 +126,19 @@
       }catch(err){}
       if(out.length>=4)break;
     }
-    if(!out.length)return [];
-    return [{role:'system',content:'[系统计算器] 用户消息中的算式已预先计算：\n'
-      +out.join('\n')+'\n回答时直接引用此结果，无需再调用calc。'}];
+    if(!out.length)return;
+    base[idx]={role:'user',content:t
+      +'\n\n[系统计算器] 算式已预先计算：'
+      +out.join('；')
+      +'。若这已完整覆盖用户问题，直接引用结果；'
+      +'若问题还含其它运算，请对完整算式调用calc。'};
   }
   function run(msgs,opt){
     opt=opt||{};
     var man=manual(),prefix='',signal=opt.signal;
     var base=msgs.slice().map(cleanTrace),lastSig='';
     if(man)base=base.concat([{role:'system',content:man}]);
-    var pc=preCalc(msgs);
-    if(pc.length)base=base.concat(pc);
+    preCalc(base);
     function step(ms,n){
       if(n>MAXIT)
         return Promise.resolve(prefix+'（工具调用已达上限）');
