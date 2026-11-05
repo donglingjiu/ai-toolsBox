@@ -8,10 +8,10 @@
 - [ ] brain注入卡(音频/大纲/闪卡)收纳为正式tab, 内联markmap渲染(mind.html同款vendor)
 - [ ] 阶段式推进: 先tokens+导航, 再逐页, 不搞大爆炸
 
-## P1(下轮推荐先做 ①)
-- [ ] ① brain音频概览 — NotebookLM招牌功能的本地平替; Web Speech API双主持人(解说员+专家), 免费离线, 摘要脚本走已配置LLM
-- [ ] ② brain思维导图+闪卡 — markmap-lib/markmap-view 已在 vendor, 文档摘要→导图, 问答对→翻转卡
-- [ ] ③ chat对话分支+临时聊天 — 会话树(msgs快照分叉); 临时聊天不落 at_chat_sessions
+## P1(①②③已完成 2026-11-06)
+- [x] ① brain音频概览 — NotebookLM招牌功能的本地平替; Web Speech API双主持人(解说员+专家), 免费离线, 摘要脚本走已配置LLM
+- [x] ② brain思维导图+闪卡 — markmap-lib/markmap-view 已在 vendor, 文档摘要→导图, 问答对→翻转卡
+- [x] ③ chat对话分支+临时聊天 — 会话树(msgs快照分叉); 临时聊天不落 at_chat_sessions
 
 ## P2(远期)
 - [ ] 对话式数据分析 — excel受限DSL与chat融合(沙箱执行+图表)
