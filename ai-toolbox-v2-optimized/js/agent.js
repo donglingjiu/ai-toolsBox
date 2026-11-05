@@ -1,20 +1,26 @@
-/* agent.js M3 - ReAct tool loop (provider-agnostic)
- * 对标 LangChain Tools / Coze 插件的最小浏览器实现 */
+/* agent.js M3.2 - ReAct tool loop v2
+ * v2: tolerant parse + self-correct + loop guard */
 'use strict';
 (function(){
-  var TOOLS={}, MAXIT=4;
+  var TOOLS={}, MAXIT=6;
   function register(t){
     if(t&&t.name&&!TOOLS[t.name])TOOLS[t.name]=t;
+  }
+  function stripFence(s){
+    return s.replace(/\x60\x60\x60[^\n]*\n?/g,'')
+      .replace(/\x60\x60\x60/g,'');
   }
   function manual(){
     var names=[],k;
     for(k in TOOLS)names.push(TOOLS[k]);
     if(!names.length)return '';
-    var lines=['[可用工具] 仅在确有需要时调用。'
-      +'调用格式：单独输出一行以 TOOL_CALL: 开头，'
-      +'紧跟JSON：{"tool":"工具名","args":{...}}。'
-      +'收到[工具结果]后继续作答；'
-      +'无需工具时直接正常回答，禁止提及TOOL_CALL。'];
+    var lines=['[可用工具] 确有需要才调用。'
+      +'严格按一行输出：TOOL_CALL: '
+      +'{"tool":"工具名","args":{...}}',
+      '示例：TOOL_CALL: '
+      +'{"tool":"calc","args":{"expr":"(1+2)*3"}}',
+      '收到[工具结果]后基于结果继续作答；'
+      +'无需工具时直接正常回答，禁止输出TOOL_CALL字样。'];
     var i;
     for(i=0;i<names.length;i++){
       var t=names[i];
@@ -35,34 +41,77 @@
     }catch(e){return Promise.resolve('错误：'+e.message);}
   }
   function parseTool(text){
-    var s=String(text||'').trim();
-    if(s.indexOf('TOOL_CALL:')!==0)return null;
-    var j=s.slice(10),a=j.indexOf('{'),b=j.lastIndexOf('}');
-    if(a<0||b<=a)return null;
-    try{
-      var o=JSON.parse(j.slice(a,b+1));
-      return (o&&typeof o.tool==='string')?o:null;
-    }catch(e){return null;}
+    var s=stripFence(String(text||''));
+    var i=s.indexOf('TOOL_CALL');
+    if(i<0)return null;
+    var rest=s.slice(i+9).replace(/^[\s:：]+/,'');
+    var a=rest.indexOf('{'),b=rest.lastIndexOf('}');
+    var o=null,name=null,args={};
+    if(a>=0&&b>a){
+      try{o=JSON.parse(rest.slice(a,b+1));}
+      catch(e){o=null;}
+    }
+    if(o){
+      if(typeof o.tool==='string'){
+        name=o.tool;
+        args=(o.args&&typeof o.args==='object')?o.args:{};
+      }else{args=o;}
+    }
+    if(!name){
+      var m=rest.match(/^([A-Za-z_]\w*)/);
+      if(m){name=m[1];}
+      else if(o){
+        var k,found=null,pk,hit;
+        for(k in TOOLS){
+          hit=0;
+          for(pk in (TOOLS[k].params||{})){
+            if(args&&(pk in args))hit++;
+          }
+          if(hit>0&&(!found||hit>found.h))
+            found={n:k,h:hit};
+        }
+        if(found)name=found.n;
+      }
+    }
+    if(!name||!TOOLS[name])return null;
+    return {tool:name,args:args||{}};
   }
   function run(msgs,opt){
     opt=opt||{};
     var man=manual(),prefix='',signal=opt.signal;
-    var base=msgs.slice();
+    var base=msgs.slice(),lastSig='';
     if(man)base=base.concat([{role:'system',content:man}]);
     function step(ms,n){
-      if(n>MAXIT)return Promise.resolve(prefix);
+      if(n>MAXIT)
+        return Promise.resolve(prefix+'（工具调用已达上限）');
       return llmChat(ms,{signal:signal,
         onProfile:opt.onProfile,
         onDelta:function(d,full){
           if(opt.onDelta)opt.onDelta(d,prefix+full);}})
       .then(function(text){
         var call=parseTool(text);
-        if(!call)return prefix+text;
+        if(!call){
+          if(String(text).indexOf('TOOL_CALL')>=0){
+            if(opt.onDelta)opt.onDelta('',
+              prefix+'⚙ 正在解析工具调用…\n');
+            return step(ms.concat([
+              {role:'assistant',content:text},
+              {role:'user',content:'格式有误。严格输出一行：'
+                +'TOOL_CALL: {"tool":"工具名","args":{...}}'
+                +'，或直接给出最终回答（不要出现TOOL_CALL）。'}
+            ]),n+1);
+          }
+          return prefix+text;
+        }
+        var sig=call.tool+'|'+JSON.stringify(call.args||{});
+        if(sig===lastSig)return prefix;
+        lastSig=sig;
         var line='⚙ '+call.tool+'('
           +JSON.stringify(call.args||{})+')\n';
         if(opt.onDelta)opt.onDelta('',prefix+line);
         return exec(call.tool,call.args).then(function(res){
           prefix=prefix+line+'↳ '+res+'\n\n';
+          if(opt.onDelta)opt.onDelta('',prefix);
           if(opt.onEvent)try{opt.onEvent(call.tool,res);}
             catch(e){}
           return step(ms.concat([
