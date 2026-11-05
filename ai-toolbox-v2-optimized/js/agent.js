@@ -182,6 +182,38 @@
       setTimeout(function(){close(false);},60000);
     });
   }
+  var HOOKS=[
+    {re:/(现在|目前|当前)?(几点|什么时间)|今天(几号|星期|周)|当前日期/,
+     tool:'get_time',label:'系统时钟'},
+    {re:/(导出|下载|生成).{0,12}(报告|markdown|md)|(工作流|轨迹|流程).{0,8}(导出|报告)/,
+     tool:'export_flow_md',label:'轨迹导出'},
+    {re:/(配了|配置|列出|有哪些|哪些).{0,6}模型|模型(列表|状态|健康)/,
+     tool:'list_models',label:'模型清单'},
+    {re:/(工作流|轨迹|流程).{0,10}(进展|进度|状态|哪一步|哪步|阶段)|进展到哪|跑到哪/,
+     tool:'flow_status',label:'工作流状态'}
+  ];
+  function preIntent(base){
+    var idx=-1,i;
+    for(i=base.length-1;i>=0;i--){
+      if(base[i].role==='user'){idx=i;break;}
+    }
+    if(idx<0)return Promise.resolve();
+    var t=String(base[idx].content||'');
+    var hit=null;
+    for(i=0;i<HOOKS.length;i++){
+      if(HOOKS[i].re.test(t)){hit=HOOKS[i];break;}
+    }
+    if(!hit)return Promise.resolve();
+    return ask(hit.tool,{}).then(function(ok){
+      if(!ok)return;
+      return exec(hit.tool,{}).then(function(res){
+        base[idx]={role:'user',content:t
+          +'\n\n['+hit.label+'] 已代为执行工具'
+          +hit.tool+'，结果：'+res
+          +'\n请直接基于以上结果用自然语言回答。'};
+      });
+    });
+  }
   function run(msgs,opt){
     opt=opt||{};
     var man=manual(),prefix='',signal=opt.signal;
@@ -194,6 +226,7 @@
       base=[{role:'system',content:man}].concat(base);
   }
     preCalc(base);
+    function boot(){return step(base,1);}
     function step(ms,n){
       if(n>MAXIT)
         return Promise.resolve(prefix+'（工具调用已达上限）');
@@ -238,7 +271,7 @@
         });
       });
     }
-    return step(base,1);
+    return preIntent(base).then(boot);
   }
   register({name:'remember',
     desc:'把一条重要信息存入用户长期记忆',
