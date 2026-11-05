@@ -4,14 +4,32 @@
   function esc(s){return String(s).replace(/[&<>"']/g,function(c){ //qok
     return{'&':'&amp;','<':'&lt;','>':'&gt;',
       '"':'&quot;',"'":'&#39;'}[c];});} //qok
+  function mdInline(t){
+    var h=esc(t);
+    h=h.replace(/\*\*([^*\n]+)\*\*/g,'<b>$1</b>');
+    h=h.replace(/\u0060([^\u0060\n]+)\u0060/g,
+      '<code style="background:rgba(37,99,235,.08);'
+      +'border-radius:4px;padding:1px 4px;">$1</code>');
+    h=h.replace(/^#{1,4}\s+(.+)$/gm,'<b>$1</b>');
+    return '<p style="white-space:pre-wrap;margin:0;">'
+      +h+'</p>';
+  }
   function render(t){
-    var h='';
-    try{if(window.marked&&marked.parse)
-      h=marked.parse(String(t||''));}catch(e){}
-    if(!h)h='<p style="white-space:pre-wrap">'
-      +esc(t)+'</p>';
-    try{if(window.DOMPurify)h=DOMPurify.sanitize(h);}catch(e){}
-    return h;
+    var parts=String(t||'').split('\u0060\u0060\u0060'),
+      out='',i;
+    for(i=0;i<parts.length;i++){
+      if(i%2===1){
+        var seg=parts[i],nl=seg.indexOf('\n');
+        var code=nl>=0?seg.slice(nl+1):seg;
+        out+='<pre style="background:#0f172a;color:#e2e8f0;'
+          +'padding:10px;border-radius:8px;font-size:13px;'
+          +'overflow-x:auto;white-space:pre;margin:6px 0;">'
+          +esc(code)+'</pre>';
+      }else if(parts[i]!==''){
+        out+=mdInline(parts[i]);
+      }
+    }
+    return out;
   }
   function msgsOf(c){
     var m=(c&&(c.msgs||c.messages))||[];
