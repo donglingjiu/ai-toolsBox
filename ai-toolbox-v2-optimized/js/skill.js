@@ -166,7 +166,57 @@
       r.readAsText(f,'utf-8');
     };
   }
-  function buildPanel(){
+    function exportCfg(){
+    var g='0';
+    try{g=localStorage.getItem('agent_gate_v1')||'0';}catch(e){}
+    var d={kind:'agent-config',v:1,
+      exported_at:new Date().toISOString(),
+      gate:g,skills_custom:customs()};
+    var bl=new Blob([JSON.stringify(d,null,1)],
+      {type:'application/json'});
+    var a=document.createElement('a');
+    a.href=URL.createObjectURL(bl);
+    a.download='agent-config-'+Date.now()+'.json';
+    document.body.appendChild(a);a.click();
+    setTimeout(function(){document.body.removeChild(a);
+      URL.revokeObjectURL(a.href);},500);
+  }
+  function importCfg(txt){
+    var d=null;
+    try{d=JSON.parse(txt);}catch(e){
+      try{toast('JSON解析失败');}catch(e2){}return;}
+    if(!d||d.kind!=='agent-config'){
+      try{toast('不是有效的配置文件');}catch(e2){}return;}
+    var n=0;
+    if(Array.isArray(d.skills_custom)){
+      var cur=customs(),i,j,found;
+      for(i=0;i<d.skills_custom.length;i++){
+        var it=d.skills_custom[i];
+        if(!it||!it.name||!it.prompt)continue;
+        found=-1;
+        for(j=0;j<cur.length;j++)
+          if(cur[j].name===it.name){found=j;break;}
+        if(found>=0)cur[found]=it;
+        else{cur.push(it);n++;}
+      }
+      if(cur.length>20)cur=cur.slice(-20);
+      saveCustoms(cur);
+    }
+    if(d.gate==='0'||d.gate==='1'){
+      try{localStorage.setItem(
+        'agent_gate_v1',d.gate);}catch(e){}
+      var b=document.getElementById('gateBtn');
+      if(b){b.textContent='\u270b 确认门:'
+        +(d.gate==='1'?'开':'关');
+        b.style.borderColor=d.gate==='1'
+          ?'#f59e0b':'';}
+    }
+    refreshHead();
+    try{toast('配置已导入，新增技能'+n+'个');}
+    catch(e){}
+    render('','*');
+  }
+function buildPanel(){
     panel=document.createElement('div');
     panel.id='skillPanel';
     panel.style.cssText='display:none;position:fixed;'
@@ -194,9 +244,18 @@
       +'cursor:pointer;font-size:12px;">导入.md技能</button>'
       +'<button id="skillClr" style="border:0;background:none;'
       +'color:#c00;cursor:pointer;font-size:12px;">'
-      +'清空系统提示词</button></div>'
+      +'清空系统提示词</button>'
+      +'<button id="skillExp" style="border:1px solid #ddd;'
+      +'background:#fff;border-radius:8px;padding:4px 8px;'
+      +'cursor:pointer;font-size:12px;">导出配置</button>'
+      +'<button id="skillCfg" style="border:1px solid #ddd;'
+      +'background:#fff;border-radius:8px;padding:4px 8px;'
+      +'cursor:pointer;font-size:12px;">导入配置</button></div>'
       +'<input id="skillFile" type="file"'
-      +' accept=".md,text/markdown" style="display:none;">';
+      +' accept=".md,text/markdown" style="display:none;">'
+      +'<input id="skillCfgFile" type="file"'
+      +' accept=".json,application/json"'
+      +' style="display:none;">';
     document.body.appendChild(panel);
     list=document.getElementById('skillList');
     var q=document.getElementById('skillQ');
@@ -208,6 +267,17 @@
     document.getElementById('skillImp').onclick=function(){
       document.getElementById('skillFile').click();};
     document.getElementById('skillFile').onchange=onFile();
+    document.getElementById('skillExp').onclick=exportCfg;
+    document.getElementById('skillCfg').onclick=function(){
+      document.getElementById('skillCfgFile').click();};
+    document.getElementById('skillCfgFile').onchange=function(){
+      var fi=document.getElementById('skillCfgFile');
+      var f=fi.files&&fi.files[0];
+      if(!f)return;
+      var r=new FileReader();
+      r.onload=function(){importCfg(r.result);fi.value='';};
+      r.readAsText(f,'utf-8');
+    };
   }
   function toggle(){
     if(!panel)return;
