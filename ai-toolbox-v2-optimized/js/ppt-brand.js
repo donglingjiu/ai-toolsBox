@@ -85,9 +85,8 @@
     if(saved&&!PPT_THEMES.custom){
       var t2=validTheme(saved);
       if(t2){PPT_THEMES.custom=t2;
-        if(curKey()==='custom'
-          &&typeof fillThemeSel==='function')
-          fillThemeSel('custom');}}
+        if(typeof fillThemeSel==='function')
+          fillThemeSel(curKey());}}
   }
   if(document.readyState==='loading')
     document.addEventListener('DOMContentLoaded',boot);

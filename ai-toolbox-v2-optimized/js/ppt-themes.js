@@ -189,6 +189,7 @@ function buildPPTX(deck, themeKey) {
       slide.addShape('rect', { x: 0, y: 0, w: 10, h: 0.12, fill: { color: t.accent } });
       slide.addText(s.title, { x: 0.8, y: 0.55, w: 8.4, h: 0.75, fontFace: FONT, fontSize: 24, bold: true, color: t.title });
       slide.addText(String(idx + 1) + ' / ' + total, { x: 8.9, y: 5.2, w: 0.9, h: 0.3, align: 'right', fontFace: FONT, fontSize: 9, color: t.muted });
+      if (s.img) { try { slide.addImage({ data: s.img, x: 5.7, y: 1.55, w: 3.5, h: 2.85, sizing: { type: 'contain', w: 3.5, h: 2.85 } }); } catch (e) {} }
 
       if (s.layout === 'toc') {
         var pts = s.points || [];
