@@ -88,15 +88,24 @@
     if(!name||!TOOLS[name])return null;
     return {tool:name,args:args||{}};
   }
-  function cleanTrace(mm){
+  function cleanTrace(mm){/*PairAware*/
     if(mm.role!=='assistant')return mm;
-    var t=String(mm.content||'')
-      .split('\n').filter(function(L){
-        return L.indexOf('\u2699')!==0
-          &&L.indexOf('\u21B3')!==0
-          &&L.indexOf('\uff08\u5de5\u5177\u8c03\u7528')!==0;})
-      .join('\n');
-    return {role:'assistant',content:t};}
+    var Ls=String(mm.content||'').split('\n'),
+      out=[],i,nx,m;
+    for(i=0;i<Ls.length;i++){
+      var L=Ls[i];
+      if(L.indexOf('\u2699')===0
+        ||L.indexOf('\u21B3')===0
+        ||L.indexOf('\uff08\u5de5\u5177\u8c03\u7528')===0)continue;
+      m=L.match(/^([A-Za-z_]\w*)\s*$/);
+      if(m&&TOOLS[m[1]]&&i+1<Ls.length){
+        nx=Ls[i+1].trim();
+        if(nx.charAt(0)==='{'
+          &&nx.charAt(nx.length-1)==='}'){i++;continue;}
+      }
+      out.push(L);
+    }
+    return {role:'assistant',content:out.join('\n')};}
   function preCalc(base){
     var idx=-1,i,t,out=[],seen={};
     for(i=base.length-1;i>=0;i--){

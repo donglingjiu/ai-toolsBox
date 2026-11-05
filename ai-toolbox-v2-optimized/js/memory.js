@@ -26,6 +26,18 @@
 function add(items,src){
     var n=0,i,t,j,dup;
     if(!items||!items.length)return 0;
+    if(src!=='manual'){/*NoiseGate*/
+      var keep=[],ii,c2;
+      for(ii=0;ii<items.length;ii++){
+        c2=String(items[ii].content||'');
+        if(/现在几点|什么时间|今天几号|星期几|询问|天气/.test(c2))continue;
+        if(/^(你好|您好|hi|hello)/i.test(c2))continue;
+        if(/配置了哪些模型|模型状态|工作流轨迹|进展到哪|gate分/.test(c2))continue;
+        keep.push(items[ii]);
+      }
+      items=keep;
+      if(!items.length)return 0;
+    }
     for(i=0;i<items.length;i++){
       t=items[i]&&items[i].content;
       if(typeof t!=='string')continue;
@@ -86,6 +98,7 @@ function add(items,src){
     var tail=s.messages.slice(-6),i;
     for(i=0;i<tail.length;i++){
       if(tail[i].content)
+        if(tail[i].role!=='user')continue;/*UserOnly*/
         var cc=cleanTail(tail[i].content);
         if(cc)msgs.push({role:tail[i].role,content:cc});
     }
