@@ -133,6 +133,54 @@
       +'。若这已完整覆盖用户问题，直接引用结果；'
       +'若问题还含其它运算，请对完整算式调用calc。'};
   }
+  var gateOn=false;
+  try{gateOn=localStorage.getItem('agent_gate_v1')==='1';}catch(e){}
+  function setGate(v){
+    gateOn=v;
+    try{localStorage.setItem('agent_gate_v1',v?'1':'0');}catch(e){}
+    var b=document.getElementById('gateBtn');
+    if(b){b.textContent='\u270b 确认门:'+(v?'开':'关');
+      b.style.borderColor=v?'#f59e0b':'';}
+  }
+  function ask(name,args){
+    var need=gateOn||(TOOLS[name]&&TOOLS[name].needConfirm);
+    if(!need)return Promise.resolve(true);
+    return new Promise(function(res){
+      var ov=document.createElement('div');
+      ov.style.cssText='position:fixed;left:50%;top:18%;'
+        +'transform:translateX(-50%);width:340px;background:#fff;'
+        +'border:1px solid #f59e0b;border-radius:12px;padding:14px;'
+        +'z-index:1000;box-shadow:0 8px 30px rgba(0,0,0,.18);';
+      var h=document.createElement('div');
+      h.style.cssText='font-weight:600;margin-bottom:6px;';
+      h.textContent='\u270b Agent 请求执行工具（人工确认门）';
+      var d=document.createElement('div');
+      d.style.cssText='font-size:13px;margin-bottom:10px;'
+        +'white-space:pre-wrap;word-break:break-all;'
+        +'background:#f7f8fa;padding:8px;border-radius:8px;';
+      d.textContent=name+'('+JSON.stringify(args||{})+')';
+      var bar=document.createElement('div');
+      bar.style.cssText='text-align:right;';
+      var no=document.createElement('button');
+      no.textContent='拒绝';
+      no.style.cssText='border:1px solid #ddd;background:#fff;'
+        +'padding:5px 14px;border-radius:8px;cursor:pointer;'
+        +'margin-right:8px;';
+      var yes=document.createElement('button');
+      yes.textContent='执行';
+      yes.style.cssText='border:0;background:#2563eb;color:#fff;'
+        +'padding:5px 14px;border-radius:8px;cursor:pointer;';
+      bar.appendChild(no);bar.appendChild(yes);
+      ov.appendChild(h);ov.appendChild(d);ov.appendChild(bar);
+      document.body.appendChild(ov);
+      var done=false;
+      function close(v){if(done)return;done=true;
+        document.body.removeChild(ov);res(v);}
+      yes.onclick=function(){close(true);};
+      no.onclick=function(){close(false);};
+      setTimeout(function(){close(false);},60000);
+    });
+  }
   function run(msgs,opt){
     opt=opt||{};
     var man=manual(),prefix='',signal=opt.signal;
@@ -167,7 +215,11 @@
         var line='⚙ '+call.tool+'('
           +JSON.stringify(call.args||{})+')\n';
         if(opt.onDelta)opt.onDelta('',prefix+line);
-        return exec(call.tool,call.args).then(function(res){
+        return ask(call.tool,call.args).then(function(ok){
+          if(!ok){lastSig='';
+            return '（用户拒绝执行该工具）';}
+          return exec(call.tool,call.args);
+        }).then(function(res){
           prefix=prefix+line+'↳ '+res+'\n\n';
           if(opt.onDelta)opt.onDelta('',prefix);
           if(opt.onEvent)try{opt.onEvent(call.tool,res);}
@@ -236,6 +288,17 @@
       }
       return out.length?out.join('\n'):'（无模型）';
     }});
+  function gateInit(){
+    var top=document.getElementById('top');
+    if(!top||document.getElementById('gateBtn'))return;
+    var b=document.createElement('button');
+    b.id='gateBtn';
+    b.onclick=function(){setGate(!gateOn);};
+    var exp=document.getElementById('expBtn');
+    if(exp)top.insertBefore(b,exp);else top.appendChild(b);
+    setGate(gateOn);
+  }
+  gateInit();
   window.Agent={run:run,parseTool:parseTool,manual:manual};
   window.AgentTools={register:register};
 })();

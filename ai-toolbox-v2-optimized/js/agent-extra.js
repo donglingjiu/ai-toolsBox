@@ -146,4 +146,58 @@
         out.push('（另有'+(ws.length-2)+'个历史工作流）');
       return out.join('\n\n');
     }});
+  window.AgentTools.register({name:'export_flow_md',
+    desc:'把五阶段工作流轨迹导出为Markdown报告并下载',
+    params:{},
+    run:function(){
+      var i,k,arr,ws=[];
+      for(i=0;i<localStorage.length;i++){
+        k=localStorage.key(i);
+        if(k&&k.indexOf('flow_traces_')===0){
+          try{
+            arr=JSON.parse(localStorage.getItem(k)||'[]');
+            if(arr.length)ws.push({key:k,arr:arr});
+          }catch(e){}
+        }
+      }
+      if(!ws.length)return '（无轨迹可导出）';
+      var CN=['需求分析','技术调研','方案设计','代码实现','交付评审'];
+      var md='# 工作流轨迹报告\n\n生成时间：'
+        +new Date().toLocaleString('zh-CN')+'\n\n';
+      ws.sort(function(p,q){return q.arr.length-p.arr.length;});
+      ws.forEach(function(w){
+        md+='## '+w.key.replace('flow_traces_','')
+          +'（'+w.arr.length+'条轨迹）\n\n';
+        md+='| # | 阶段 | 状态 | 耗时s | gate |\n'
+          +'|---|---|---|---|---|\n';
+        var st={},j,r,m;
+        for(j=0;j<w.arr.length;j++){
+          r=w.arr[j];
+          m=String((r.steps&&r.steps[0])||'')
+            .match(/^s([0-5]):(\w+)$/);
+          if(m)st[+m[1]]={e:m[2],r:r};
+        }
+        for(j=1;j<=5;j++){
+          var s2=st[j]||{},g=s2.r&&s2.r.gate;
+          md+='| '+j+' | '+CN[j-1]+' | '+(s2.e||'-')+' | '
+            +(s2.r&&s2.r.dur_s!=null?s2.r.dur_s:'-')+' | '
+            +(g&&g.score!=null?(g.score+'/'
+              +(g.threshold!=null?g.threshold:'?')):'-')+' |\n';
+        }
+        md+='\n';
+      });
+      try{
+        var bl=new Blob([md],{type:'text/markdown'});
+        var a2=document.createElement('a');
+        a2.href=URL.createObjectURL(bl);
+        a2.download='flow-report-'+Date.now()+'.md';
+        document.body.appendChild(a2);a2.click();
+        setTimeout(function(){
+          document.body.removeChild(a2);
+          URL.revokeObjectURL(a2.href);},500);
+        return '已下载：'+ws.length+'个工作流，'
+          +ws.reduce(function(s,w){return s+w.arr.length;},0)
+          +'条轨迹';
+      }catch(e){return '导出失败：'+e.message;}
+    }});
 })();
