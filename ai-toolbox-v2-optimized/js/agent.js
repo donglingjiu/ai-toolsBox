@@ -19,6 +19,7 @@
       +'{"tool":"工具名","args":{...}}',
       '示例：TOOL_CALL: '
       +'{"tool":"calc","args":{"expr":"(1+2)*3"}}',
+      '规则：任何数学计算必须调用calc，禁止心算；',/*MathCalcRule*/
       '收到[工具结果]后基于结果继续作答；'
       +'无需工具时直接正常回答，禁止输出TOOL_CALL字样。'];
     var i;
@@ -43,7 +44,17 @@
   function parseTool(text){
     var s=stripFence(String(text||''));
     var i=s.indexOf('TOOL_CALL');
-    if(i<0)return null;
+    if(i<0){/*BareCall*/
+      var t2=s.trim().replace(/[\u3002.]\s*$/,'');
+      var m2=t2.match(/^([A-Za-z_]\w*)\s*\(?\s*(\{[\s\S]*\})?\s*\)?$/);
+      if(m2&&TOOLS[m2[1]]&&t2.length<200){
+        var ag={};
+        if(m2[2]){try{ag=JSON.parse(m2[2]);}catch(e){ag={};}}
+        if(ag&&typeof ag==='object')
+          return{tool:m2[1],args:ag};
+      }
+      return null;
+    }
     var rest=s.slice(i+9).replace(/^[\s:：]+/,'');
     var a=rest.indexOf('{'),b=rest.lastIndexOf('}');
     var o=null,name=null,args={};
@@ -76,10 +87,19 @@
     if(!name||!TOOLS[name])return null;
     return {tool:name,args:args||{}};
   }
+  function cleanTrace(mm){
+    if(mm.role!=='assistant')return mm;
+    var t=String(mm.content||'')
+      .split('\n').filter(function(L){
+        return L.indexOf('\u2699')!==0
+          &&L.indexOf('\u21B3')!==0
+          &&L.indexOf('\uff08\u5de5\u5177\u8c03\u7528')!==0;})
+      .join('\n');
+    return {role:'assistant',content:t};}
   function run(msgs,opt){
     opt=opt||{};
     var man=manual(),prefix='',signal=opt.signal;
-    var base=msgs.slice(),lastSig='';
+    var base=msgs.slice().map(cleanTrace),lastSig='';
     if(man)base=base.concat([{role:'system',content:man}]);
     function step(ms,n){
       if(n>MAXIT)

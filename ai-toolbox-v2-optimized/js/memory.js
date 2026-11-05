@@ -75,6 +75,10 @@ function add(items,src){
     +'用户身份/偏好、项目背景/约束、明确要求记住的事。'
     +'只输出JSON数组，每项{"type":"preference|fact|project",'
     +'"content":"一句话"}，最多3条，没有则输出[]。';
+  function cleanTail(t){
+    return String(t||'').split('\n').filter(function(L){
+      return L.indexOf('\u2699')!==0
+        &&L.indexOf('\u21B3')!==0;}).join('\n');}
   function extract(s){
     var p=pickProfile(s);
     if(!p)return;
@@ -82,7 +86,8 @@ function add(items,src){
     var tail=s.messages.slice(-6),i;
     for(i=0;i<tail.length;i++){
       if(tail[i].content)
-        msgs.push({role:tail[i].role,content:tail[i].content});
+        var cc=cleanTail(tail[i].content);
+        if(cc)msgs.push({role:tail[i].role,content:cc});
     }
     _llmCallProfile(p,msgs,{stream:false})
       .then(function(t){
