@@ -191,7 +191,7 @@
       +'justify-content:space-between;align-items:center;">'
       +'<button id="skillImp" style="border:1px solid #ddd;'
       +'background:#fff;border-radius:8px;padding:4px 10px;'
-      +'cursor:pointer;font-size:12px;">导入.md技能<
+      +'cursor:pointer;font-size:12px;">导入.md技能</button>'
       +'<button id="skillClr" style="border:0;background:none;'
       +'color:#c00;cursor:pointer;font-size:12px;">'
       +'清空系统提示词</button></div>'
