@@ -96,11 +96,47 @@
           &&L.indexOf('\uff08\u5de5\u5177\u8c03\u7528')!==0;})
       .join('\n');
     return {role:'assistant',content:t};}
+  function preCalc(msgs){
+    var last=null,i;
+    for(i=msgs.length-1;i>=0;i--){
+      if(msgs[i].role==='user'){last=msgs[i];break;}
+    }
+    if(!last)return [];
+    var t=String(last.content||''),out=[],seen={};
+    var re=/[0-9(][0-9+\-*/().%\s]*[0-9)%]/g,m;
+    while((m=re.exec(t))){
+      var e=m[0].replace(/\s+/g,''),at=m.index;
+      if(at>0&&/[A-Za-z0-9=_%]/.test(t.charAt(at-1)))continue;
+      if(e.length<3||e.length>60||seen[e])continue;
+      seen[e]=1;
+      if(!/[+\-*/%]/.test(e))continue;
+      if(/^\d+([\/.\-]\d+)+$/.test(e)
+        &&e.split(/[\/.\-]/).length-1>=2)continue;
+      var p=0,q=0,j;
+      for(j=0;j<e.length;j++){
+        if(e.charAt(j)==='(')p++;
+        else if(e.charAt(j)===')')q++;
+      }
+      while(q>p){e='('+e;p++;}
+      while(p>q){e=e+')';q++;}
+      try{
+        var v=Function('return ('+e+')')();
+        if(typeof v==='number'&&isFinite(v))
+          out.push(e+' = '+v);
+      }catch(err){}
+      if(out.length>=4)break;
+    }
+    if(!out.length)return [];
+    return [{role:'system',content:'[系统计算器] 用户消息中的算式已预先计算：\n'
+      +out.join('\n')+'\n回答时直接引用此结果，无需再调用calc。'}];
+  }
   function run(msgs,opt){
     opt=opt||{};
     var man=manual(),prefix='',signal=opt.signal;
     var base=msgs.slice().map(cleanTrace),lastSig='';
     if(man)base=base.concat([{role:'system',content:man}]);
+    var pc=preCalc(msgs);
+    if(pc.length)base=base.concat(pc);
     function step(ms,n){
       if(n>MAXIT)
         return Promise.resolve(prefix+'（工具调用已达上限）');
