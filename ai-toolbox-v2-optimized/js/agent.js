@@ -20,6 +20,7 @@
       '示例：TOOL_CALL: '
       +'{"tool":"calc","args":{"expr":"(1+2)*3"}}',
       '规则：任何数学计算必须调用calc，禁止心算；',/*MathCalcRule*/
+      '若用户要求查询/查看/导出数据（时间、模型、记忆、工作流、知识库），必须先调用对应工具并基于结果回答，禁止以无法访问外部系统为由拒绝调用；',/*ToolTriggerRule*/
       '收到[工具结果]后基于结果继续作答；'
       +'无需工具时直接正常回答，禁止输出TOOL_CALL字样。'];
     var i;
@@ -185,7 +186,13 @@
     opt=opt||{};
     var man=manual(),prefix='',signal=opt.signal;
     var base=msgs.slice().map(cleanTrace),lastSig='';
-    if(man)base=base.concat([{role:'system',content:man}]);
+    if(man){/*ManMerge*/
+    if(base.length&&base[0].role==='system')
+      base[0]={role:'system',
+        content:base[0].content+'\n\n'+man};
+    else
+      base=[{role:'system',content:man}].concat(base);
+  }
     preCalc(base);
     function step(ms,n){
       if(n>MAXIT)

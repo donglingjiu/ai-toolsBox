@@ -147,7 +147,7 @@
       return out.join('\n\n');
     }});
   window.AgentTools.register({name:'export_flow_md',
-    desc:'把五阶段工作流轨迹导出为Markdown报告并下载',
+    desc:'专用工具：用户要求导出/生成/下载工作流报告或轨迹报告时必须调用本工具',
     params:{},
     run:function(){
       var i,k,arr,ws=[];

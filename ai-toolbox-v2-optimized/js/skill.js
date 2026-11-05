@@ -1,18 +1,45 @@
-/* skill.js M4 - Skill runtime over PROMPT_TOOLS (501KB lib)
- * lazy-load on first open; search + category; apply to sys input */
+/* skill.js M6 - Skill runtime v2 (PROMPT_TOOLS + imported .md)
+ * lazy-load; search+cat; apply; import/delete customs */
 'use strict';
 (function(){
   var panel=null,list=null;
+  function customs(){
+    try{return JSON.parse(
+      localStorage.getItem('skills_custom_v1')||'[]');}
+    catch(e){return [];}}
+  function saveCustoms(a){
+    try{localStorage.setItem(
+      'skills_custom_v1',JSON.stringify(a));}catch(e){}}
   function lib(){
+    var base=[];
     try{if(typeof PROMPT_TOOLS!=='undefined')
-      return PROMPT_TOOLS||[];}catch(e){}
-    return [];
+      base=PROMPT_TOOLS||[];}catch(e){}
+    return base.concat(customs());
+  }
+  function parseMd(txt){
+    var s=String(txt||'').replace(/\r\n/g,'\n').trim();
+    var name='',body=s,m=s.match(/^---\n([\s\S]*?)\n---\n?/);
+    if(m){
+      var nm=m[1].match(/^name:\s*(.+)$/m);
+      if(nm)name=nm[1].trim();
+      body=s.slice(m[0].length).trim();
+    }
+    if(!name){
+      var h=body.match(/^#\s+(.+)$/m);
+      name=h?h[1].trim()
+        :('Imported skill'+new Date().toISOString()
+          .slice(5,10));
+    }
+    return {id:'c'+Date.now(),
+      name:name.slice(0,40),cat:'custom',score:0,
+      prompt:body.slice(0,6000)};
   }
   function ensureLib(cb){
-    if(lib().length)return cb(true);
+    if(typeof PROMPT_TOOLS!=='undefined')return cb(true);
     var s=document.createElement('script');
     s.src='js/prompts.js?v=1';
-    s.onload=function(){cb(lib().length>0);};
+    s.onload=function(){
+      cb(typeof PROMPT_TOOLS!=='undefined');};
     s.onerror=function(){cb(false);};
     document.head.appendChild(s);
   }
@@ -77,6 +104,19 @@
           +esc(it.cat||'')+' · '+(it.score||'-')+'分</span>';
         row.title=(it.prompt||'').slice(0,120);
         row.onclick=function(){apply(it);};
+        if(it.cat==='custom'){
+          var d=document.createElement('span');
+          d.textContent=' ✕';
+          d.style.cssText='color:#c00;cursor:pointer;'
+            +'font-size:12px;float:right;';
+          d.onclick=function(ev){
+            ev.stopPropagation();
+            saveCustoms(customs().filter(function(x){
+              return x.id!==it.id;}));
+            render(kw,cat);
+          };
+          row.appendChild(d);
+        }
         list.appendChild(row);
       })(L[i]);
     }
@@ -88,6 +128,43 @@
       tip.textContent='结果过多，仅显示前80条，请搜索缩小范围';
       list.appendChild(tip);
     }
+  }
+  function refreshHead(){
+    var cs=cats(),i,h='<option value="*">全部分类</option>';
+    for(i=0;i<cs.length;i++)
+      h+='<option value="'+esc(cs[i])+'">'
+        +esc(cs[i])+'</option>';
+    var sel=document.getElementById('skillC');
+    if(sel)sel.innerHTML=h;
+    var n=document.getElementById('skillN');
+    if(n)n.textContent=' 共'+lib().length+'个';
+  }
+  function onFile(){
+    var fi=document.getElementById('skillFile');
+    return function(){
+      var f=fi.files&&fi.files[0];
+      if(!f)return;
+      if(f.size>200*1024){
+        try{toast('文件过大（限200KB）');}catch(e){}
+        fi.value='';return;
+      }
+      var r=new FileReader();
+      r.onload=function(){
+        var it=parseMd(r.result);
+        var arr=customs().filter(function(x){
+          return x.name!==it.name;});
+        arr.push(it);
+        if(arr.length>20)arr=arr.slice(-20);
+        saveCustoms(arr);
+        fi.value='';
+        try{toast('技能已导入：'+it.name);}catch(e){}
+        refreshHead();
+        var sel=document.getElementById('skillC');
+        if(sel)sel.value='custom';
+        render('','custom');
+      };
+      r.readAsText(f,'utf-8');
+    };
   }
   function buildPanel(){
     panel=document.createElement('div');
@@ -110,10 +187,16 @@
       +'max-width:110px;"><option value="*">全部分类</option>'
       +'</select></div>'
       +'<div id="skillList"></div>'
-      +'<div style="margin-top:8px;text-align:right;">'
+      +'<div style="margin-top:8px;display:flex;'
+      +'justify-content:space-between;align-items:center;">'
+      +'<button id="skillImp" style="border:1px solid #ddd;'
+      +'background:#fff;border-radius:8px;padding:4px 10px;'
+      +'cursor:pointer;font-size:12px;">导入.md技能<
       +'<button id="skillClr" style="border:0;background:none;'
       +'color:#c00;cursor:pointer;font-size:12px;">'
-      +'清空系统提示词</button></div>';
+      +'清空系统提示词</button></div>'
+      +'<input id="skillFile" type="file"'
+      +' accept=".md,text/markdown" style="display:none;">';
     document.body.appendChild(panel);
     list=document.getElementById('skillList');
     var q=document.getElementById('skillQ');
@@ -122,6 +205,9 @@
     sel.onchange=function(){render(q.value.trim(),sel.value);};
     document.getElementById('skillClr').onclick=function(){
       setSys('','已清空系统提示词');};
+    document.getElementById('skillImp').onclick=function(){
+      document.getElementById('skillFile').click();};
+    document.getElementById('skillFile').onchange=onFile();
   }
   function toggle(){
     if(!panel)return;
@@ -129,6 +215,9 @@
     panel.style.display=open?'none':'block';
     if(open)return;
     document.getElementById('skillQ').value='';
+    if(typeof PROMPT_TOOLS!=='undefined'){
+      refreshHead();render('','*');return;
+    }
     document.getElementById('skillList').innerHTML=
       '<div style="color:#999;padding:8px;">加载技能库…</div>';
     ensureLib(function(ok){
@@ -138,13 +227,7 @@
           +'（js/prompts.js 缺失？）</div>';
         return;
       }
-      var cs=cats(),i,h='<option value="*">全部分类</option>';
-      for(i=0;i<cs.length;i++)
-        h+='<option value="'+esc(cs[i])+'">'
-          +esc(cs[i])+'</option>';
-      document.getElementById('skillC').innerHTML=h;
-      document.getElementById('skillN').textContent=
-        ' 共'+lib().length+'个';
+      refreshHead();
       render('','*');
     });
   }
@@ -160,5 +243,6 @@
     buildPanel();
   }
   init();
-  window.Skill={apply:apply,open:toggle};
+  window.Skill={apply:apply,open:toggle,
+    customs:customs,parseMd:parseMd};
 })();
