@@ -1,6 +1,6 @@
-/* chat-extra.js P1-3f - fork v6: storage double-signed
-   (messages field, derived titles, content-anchored index)
-   + v4 incognito intact */
+/* chat-extra.js P1-3g - fork v7: storage order aligned to
+   display order (updatedAt desc) so engine open-mapping
+   cannot misindex + v6 double-signed storage + v4 incognito */
 'use strict';
 (function(){
   var RK='chat_sessions_v1';
@@ -174,6 +174,9 @@
     fork.messages=src.messages.slice(0,idx+1);
     if('msgs' in fork)fork.msgs=[];
     arr.push(fork);
+    arr.sort(function(a,b){
+      return (b.updatedAt||0)-(a.updatedAt||0);
+    });
     var blob=JSON.stringify(arr.slice(0,50));
     try{localStorage.setItem(RK,blob);}catch(e){}
     toastS('\u5206\u53c9\u5df2\u5efa\uff0c\u6b63\u5728\u6253\u5f00\u2026');
