@@ -1,37 +1,54 @@
-/* chat-extra.js P1-3b - temp chat shield v2 (snapshot+restore) + fork + idle btn text fix */
+/* chat-extra.js P1-3c - FULL-storage snapshot shield (key-agnostic) + fork */
 'use strict';
 (function(){
   var KEY='at_chat_sessions';
-  var SK='at_temp_snap_v1';
+  var SK='at_temp_snap_v2';
   var on=false,
-    origSet=localStorage.setItem,
-    origDel=localStorage.removeItem;
+    oSet=localStorage.setItem,
+    oDel=localStorage.removeItem;
   function toastS(m){try{toast(m);}catch(e){}}
   localStorage.setItem=function(k,v){
     if(on&&k===KEY)return;
-    return origSet.call(localStorage,k,v);
+    return oSet.call(localStorage,k,v);
   };
   localStorage.removeItem=function(k){
     if(on&&k===KEY)return;
-    return origDel.call(localStorage,k);
+    return oDel.call(localStorage,k);
   };
+  function snapAll(){
+    var d={},i,k,n=localStorage.length;
+    for(i=0;i<n;i++){
+      k=localStorage.key(i);
+      d[k]=localStorage.getItem(k);
+    }
+    return d;
+  }
   function snapSave(){
     try{
-      var cur=localStorage.getItem(KEY);
       sessionStorage.setItem(SK,
-        cur===null?'\u0000':cur);
-    }catch(e){}
-  }
-  function snapRestore(){
-    try{
-      var s=sessionStorage.getItem(SK);
-      if(s===null)return false;
-      sessionStorage.removeItem(SK);
-      if(s==='\u0000')
-        origDel.call(localStorage,KEY);
-      else origSet.call(localStorage,KEY,s);
+        JSON.stringify(snapAll()));
       return true;
     }catch(e){return false;}
+  }
+  function snapRestore(){
+    var s=null,d=null,k,i,cur=[];
+    try{s=sessionStorage.getItem(SK);}catch(e){}
+    if(s===null)return false;
+    try{d=JSON.parse(s);}catch(e2){d=null;}
+    try{sessionStorage.removeItem(SK);}catch(e3){}
+    if(!d)return false;
+    for(i=0;i<localStorage.length;i++){
+      cur.push(localStorage.key(i));
+    }
+    for(i=0;i<cur.length;i++){
+      if(!(cur[i] in d))
+        oDel.call(localStorage,cur[i]);
+    }
+    for(k in d){
+      if(d[k]===null||d[k]===undefined)continue;
+      oSet.call(localStorage,k,d[k]);
+    }
+    return true;
   }
   function banner(){
     var b=document.getElementById('cxBan');
@@ -110,7 +127,7 @@
     for(i=0;i<bars.length;i++){
       if(bars[i].getAttribute('data-fk'))continue;
       bars[i].setAttribute('data-fk','1');
-      var b=document.createElement('button')
+      var b=document.createElement('button');
       b.className='act';
       b.textContent='\u5206\u53c9';
       b.onclick=(function(bar){
@@ -138,7 +155,12 @@
     b.onclick=function(){
       on=!on;
       if(on){
-        snapSave();banner();setBtn();
+        if(!snapSave()){
+          on=false;
+          toastS('\u5386\u53f2\u6570\u636e\u8fc7\u5927\uff0c\u4e34\u65f6\u6a21\u5f0f\u4e0d\u53ef\u7528','err');
+          return;
+        }
+        banner();setBtn();
         toastS('\u5df2\u5f00\u542f\u4e34\u65f6\u804a\u5929\uff0c\u672c\u523b\u8d77\u6d88\u606f\u4e0d\u4fdd\u5b58');
         return;
       }
