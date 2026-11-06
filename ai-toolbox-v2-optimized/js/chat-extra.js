@@ -1,5 +1,6 @@
-/* chat-extra.js P1-3e - fork wired to REAL inline engine
-   (msg.assistant / sess.on / chat_sessions_v1) + v4 incognito intact */
+/* chat-extra.js P1-3f - fork v6: storage double-signed
+   (messages field, derived titles, content-anchored index)
+   + v4 incognito intact */
 'use strict';
 (function(){
   var RK='chat_sessions_v1';
@@ -76,6 +77,25 @@
     if(b)b.textContent=on?'\u25cf \u4e34\u65f6\u4e2d'
       :'\u25cb \u4e34\u65f6\u804a\u5929';
   }
+  function norm(x){
+    return String(x===null||x===undefined?'':x)
+      .replace(/\s+/g,'');
+  }
+  function deriveTitle(s){
+    if(s&&s.messages&&s.messages.length){
+      var c0=s.messages[0].content;
+      if(c0)return String(c0).slice(0,18);
+    }
+    return (s&&s.title)||'';
+  }
+  function msgText(el){
+    var ps=el.querySelectorAll('p');
+    var out='',i;
+    for(i=0;i<ps.length;i++)out+=ps[i].textContent;
+    if(!out)out=el.textContent||'';
+    out=out.split('\u5206\u53c9').join('');
+    return out.trim();
+  }
   function msgIndex(el){
     var p=el.parentElement;
     if(!p)return -1;
@@ -88,26 +108,41 @@
     }
     return -1;
   }
-  function findSrc(count){
-    var arr=null,i,j;
+  function domCount(el){
+    var p=el.parentElement,n,c=0,ch=p?p.children:[];
+    for(n=0;n<ch.length;n++){
+      if((' '+ch[n].className+' ').indexOf(' msg ')>=0)c++;
+    }
+    return c;
+  }
+  function findSrc(){
+    var arr=null,i;
     try{arr=JSON.parse(
       localStorage.getItem(RK)||'[]');}catch(e){return null;}
     if(!arr||!arr.length)return null;
     var tt=document.querySelector('.sess.on .t');
-    var title=tt?tt.textContent:'';
-    var byCount=[],byTitle=[];
+    var t=tt?tt.textContent:'';
+    if(!t)return null;
     for(i=0;i<arr.length;i++){
-      var s=arr[i];
-      if(!s||!s.msgs)continue;
-      if(s.msgs.length===count)byCount.push(s);
-      if(title&&(s.title||'')===title)byTitle.push(s);
+      if(deriveTitle(arr[i])===t)return arr[i];
     }
-    var pool=byCount.length?byCount:byTitle;
-    for(j=0;j<pool.length;j++){
-      if(title&&(pool[j].title||'')===title)
-        return pool[j];
+    return null;
+  }
+  function locateIdx(src,msgEl){
+    var key=norm(msgText(msgEl)),i,j;
+    var steps=[40,20,10,6];
+    for(j=0;j<steps.length;j++){
+      var k2=key.slice(0,steps[j]);
+      if(!k2)break;
+      for(i=src.messages.length-1;i>=0;i--){
+        var m=src.messages[i];
+        if(m&&m.role==='assistant'
+          &&norm(m.content).indexOf(k2)>=0)return i;
+      }
     }
-    return pool.length?pool[0]:null;
+    if(domCount(msgEl)===src.messages.length)
+      return msgIndex(msgEl);
+    return -1;
   }
   function doFork(msgEl){
     if(on){
@@ -115,21 +150,16 @@
         +'\u8bf7\u5148\u5173\u95ed\u4e34\u65f6\u804a\u5929');
       return;
     }
-    var idx=msgIndex(msgEl);
-    if(idx<0){
-      toastS('\u5206\u53c9\u5931\u8d25:\u672a\u5b9a\u4f4d\u6d88\u606f');
-      return;
-    }
-    var box=msgEl.parentElement,count=0,n,ch=box?box.children:[];
-    for(n=0;n<ch.length;n++){
-      if((' '+ch[n].className+' ').indexOf(' msg ')>=0)count++;
-    }
-    var src=findSrc(count);
-    if(!src||!src.msgs||!src.msgs.length){
+    var src=findSrc();
+    if(!src||!src.messages||!src.messages.length){
       toastS('\u5206\u53c9\u5931\u8d25:\u672a\u627e\u5230\u6e90\u4f1a\u8bdd');
       return;
     }
-    if(idx>=src.msgs.length)idx=src.msgs.length-1;
+    var idx=locateIdx(src,msgEl);
+    if(idx<0){
+      toastS('\u5206\u53c9\u5931\u8d25:\u6d88\u606f\u672a\u5bf9\u9f50');
+      return;
+    }
     var arr=null;
     try{arr=JSON.parse(
       localStorage.getItem(RK)||'[]');}catch(e){}
@@ -137,13 +167,12 @@
       toastS('\u5206\u53c9\u5931\u8d25:\u5386\u53f2\u8bfb\u53d6\u5f02\u5e38');
       return;
     }
-    var fork={id:Date.now().toString(36)
-        +Math.random().toString(36).slice(2,7),
-      title:(src.title||'\u65b0\u5bf9\u8bdd')
-        +'\u00b7\u5206\u53c9',
-      ts:Date.now(),
-      msgs:JSON.parse(JSON.stringify(
-        src.msgs.slice(0,idx+1)))};
+    var fork=JSON.parse(JSON.stringify(src));
+    fork.id=Date.now().toString(36)
+      +Math.random().toString(36).slice(2,7);
+    fork.updatedAt=Date.now();
+    fork.messages=src.messages.slice(0,idx+1);
+    if('msgs' in fork)fork.msgs=[];
     arr.push(fork);
     var blob=JSON.stringify(arr.slice(0,50));
     try{localStorage.setItem(RK,blob);}catch(e){}
@@ -197,7 +226,7 @@
         return;
       }
       banner();setBtn();
-      if(confirm('\u7ed3\u675f\u4e34\u5f53\u524d\u4e34\u65f6\u804a\u5929\uff1f'
+      if(confirm('\u7ed3\u675f\u5f53\u524d\u4e34\u65f6\u804a\u5929\uff1f'
         +'\u672a\u4fdd\u5b58\u5185\u5bb9\u5c06\u4e22\u5f03\uff0c'
         +'\u9875\u9762\u5237\u65b0\u56de\u5230\u771f\u5b9e\u4f1a\u8bdd\u3002')){
         snapRestore();
