@@ -1,9 +1,38 @@
-/* chat-extra.js P1-3 - temp chat (no-persist) + conversation fork */
+/* chat-extra.js P1-3b - temp chat shield v2 (snapshot+restore) + fork + idle btn text fix */
 'use strict';
 (function(){
   var KEY='at_chat_sessions';
-  var on=false,orig=localStorage.setItem;
+  var SK='at_temp_snap_v1';
+  var on=false,
+    origSet=localStorage.setItem,
+    origDel=localStorage.removeItem;
   function toastS(m){try{toast(m);}catch(e){}}
+  localStorage.setItem=function(k,v){
+    if(on&&k===KEY)return;
+    return origSet.call(localStorage,k,v);
+  };
+  localStorage.removeItem=function(k){
+    if(on&&k===KEY)return;
+    return origDel.call(localStorage,k);
+  };
+  function snapSave(){
+    try{
+      var cur=localStorage.getItem(KEY);
+      sessionStorage.setItem(SK,
+        cur===null?'\u0000':cur);
+    }catch(e){}
+  }
+  function snapRestore(){
+    try{
+      var s=sessionStorage.getItem(SK);
+      if(s===null)return false;
+      sessionStorage.removeItem(SK);
+      if(s==='\u0000')
+        origDel.call(localStorage,KEY);
+      else origSet.call(localStorage,KEY,s);
+      return true;
+    }catch(e){return false;}
+  }
   function banner(){
     var b=document.getElementById('cxBan');
     if(on&&!b){
@@ -21,12 +50,9 @@
   }
   function setBtn(){
     var b=document.getElementById('cxTmp');
-    if(b)b.textContent=on?'\u25cf \u4e34\u65f6\u4e2d':'\u25cb \u4e34\u65f6\u804a\u5929';
+    if(b)b.textContent=on?'\u25cf \u4e34\u65f6\u4e2d'
+      :'\u25cb \u4e34\u65f6\u804a\u5929';
   }
-  localStorage.setItem=function(k,v){
-    if(on&&k===KEY)return;
-    return orig.call(localStorage,k,v);
-  };
   function msgIndex(el){
     var inner=document.getElementById('inner');
     if(!inner)return -1;
@@ -84,7 +110,7 @@
     for(i=0;i<bars.length;i++){
       if(bars[i].getAttribute('data-fk'))continue;
       bars[i].setAttribute('data-fk','1');
-      var b=document.createElement('button');
+      var b=document.createElement('button')
       b.className='act';
       b.textContent='\u5206\u53c9';
       b.onclick=(function(bar){
@@ -95,10 +121,15 @@
       bars[i].appendChild(b);
     }
   }
+  function onLeave(){
+    if(sessionStorage.getItem(SK)!==null)snapRestore();
+  }
   function boot(){
     if(document.getElementById('cxTmp'))return;
+    if(sessionStorage.getItem(SK)!==null)snapRestore();
     var b=document.createElement('button');
     b.id='cxTmp';
+    b.textContent='\u25cb \u4e34\u65f6\u804a\u5929';
     b.style.cssText='position:fixed;left:14px;bottom:14px;'
       +'z-index:9998;background:#fff;'
       +'border:1px solid #d9dee8;border-radius:999px;'
@@ -106,15 +137,17 @@
       +'box-shadow:0 2px 10px rgba(0,0,0,.08);';
     b.onclick=function(){
       on=!on;
-      if(on){banner();setBtn();
+      if(on){
+        snapSave();banner();setBtn();
         toastS('\u5df2\u5f00\u542f\u4e34\u65f6\u804a\u5929\uff0c\u672c\u523b\u8d77\u6d88\u606f\u4e0d\u4fdd\u5b58');
-        return;}
+        return;
+      }
       banner();setBtn();
       if(confirm('\u7ed3\u675f\u4e34\u5f53\u524d\u4e34\u65f6\u804a\u5929\uff1f\u672a\u4fdd\u5b58\u5185\u5bb9\u5c06\u4e22\u5f03\uff0c\u9875\u9762\u5237\u65b0\u56de\u5230\u771f\u5b9e\u4f1a\u8bdd\u3002')){
+        snapRestore();
         location.reload();
       }else{on=true;banner();setBtn();}
     };
-    setBtn();
     document.body.appendChild(b);
     sweep();
     if(typeof MutationObserver!=='undefined'){
@@ -124,6 +157,10 @@
     }else{
       setInterval(sweep,900);
     }
+    try{
+      window.addEventListener('pagehide',onLeave,false);
+      window.addEventListener('beforeunload',onLeave,false);
+    }catch(e){}
   }
   if(document.readyState==='loading')
     document.addEventListener('DOMContentLoaded',boot);
