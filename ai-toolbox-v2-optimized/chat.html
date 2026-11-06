@@ -70,7 +70,7 @@ background:var(--pri);color:#fff;font-size:15px;cursor:pointer}
     <button id="stop">停止</button>
   </div>
 </main>
-<script src="js/chat-extra.js?v=8"></script>
+<script src="js/chat-extra.js?v=9"></script>
 <script src="js/app.js"></script>
 <script>
 'use strict';
@@ -109,8 +109,10 @@ function delSess(id){
   sessions=sessions.filter(function(s){return s.id!==id});
   if(curId===id)curId=sessions.length?sessions[0].id:null;
   save();if(!cur())newSess();else renderAll()}
-function title(s){return s.messages.length
-  ?(s.messages[0].content.slice(0,18)||s.title):s.title}
+function title(s){
+  if(s.title&&s.title.slice(-3)=='·分叉')return s.title;
+  return s.messages.length
+    ?(s.messages[0].content.slice(0,18)||s.title):s.title}
 function renderSess(f){var box=q('#sessList');box.innerHTML='';
   sessions.slice().sort(function(a,b){return b.updatedAt-a.updatedAt})
   .forEach(function(s){
@@ -170,18 +172,26 @@ function send(){var s=cur(),txt=q('#inp').value.trim();
     if(m!==asst&&m.content)
       msgs.push({role:m.role,content:m.content})});
   ctrl=new AbortController();
+  var autoStop=false;
+  var stallT=setTimeout(function(){
+    autoStop=true;if(ctrl)ctrl.abort()},90000);
   (window.Agent?Agent.run:llmChat)(msgs,{signal:ctrl.signal,
     onProfile:function(n){tst('模型：'+n)},
-    onDelta:function(d,full){asst.content=full;
+    onDelta:function(d,full){clearTimeout(stallT);
+      stallT=setTimeout(function(){
+        autoStop=true;if(ctrl)ctrl.abort()},90000);
+      asst.content=full;
       var a=document.querySelectorAll('.msg.assistant');
       var last=a[a.length-1];
       if(last)last.innerHTML=mdr(full);
       q('#msgs').scrollTop=q('#msgs').scrollHeight}})
   .then(function(full){asst.content=full||asst.content})
   .catch(function(e){
-    var m=e.name==='AbortError'?'已中断':e.message;
+    var m=e.name==='AbortError'?(autoStop
+      ?'响应超时，已自动中断':'已中断'):e.message;
     asst.content+=(asst.content?'\n\n':'')+'⚠ '+m;tst(m)})
-  .finally(function(){ctrl=null;s.updatedAt=Date.now();
+  .finally(function(){clearTimeout(stallT);ctrl=null;
+    s.updatedAt=Date.now();
     save();renderAll();busy(false);try{window.Mem&&Mem.onExchange(s);}catch(e){}})}
 q('#send').onclick=send;
 q('#stop').onclick=function(){if(ctrl)ctrl.abort()};

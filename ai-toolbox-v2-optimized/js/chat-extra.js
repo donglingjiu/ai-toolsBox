@@ -82,6 +82,8 @@
       .replace(/\s+/g,'');
   }
   function deriveTitle(s){
+    if(s&&s.title
+      &&s.title.slice(-3)==='\u00b7\u5206\u53c9')return s.title;
     if(s&&s.messages&&s.messages.length){
       var c0=s.messages[0].content;
       if(c0)return String(c0).slice(0,18);
@@ -172,6 +174,10 @@
       +Math.random().toString(36).slice(2,7);
     fork.updatedAt=Date.now();
     fork.messages=src.messages.slice(0,idx+1);
+    var _bt=deriveTitle(src);
+    if(_bt.slice(-3)==='\u00b7\u5206\u53c9')
+      _bt=_bt.slice(0,-3);
+    fork.title=_bt+'\u00b7\u5206\u53c9';
     if('msgs' in fork)fork.msgs=[];
     arr.push(fork);
     arr.sort(function(a,b){
