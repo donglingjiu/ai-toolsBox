@@ -78,7 +78,7 @@ var KEY='chat_sessions_v1', sessions=[], curId=null, ctrl=null;
 function q(s){return document.querySelector(s)}
 function mk(tag,attrs){var e=document.createElement(tag);
   if(attrs)for(var k in attrs){
-    if(k.slice(0,2)=='on')e[k.slice(2)]=attrs[k];
+    if(k.slice(0,2)=='on')e[k]=attrs[k];
     else e.setAttribute(k,attrs[k])}
   for(var i=2;i<arguments.length;i++){var c=arguments[i];
     e.appendChild(typeof c=='string'?document.createTextNode(c):c)}
