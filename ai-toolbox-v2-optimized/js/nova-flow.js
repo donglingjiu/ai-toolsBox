@@ -96,13 +96,17 @@ async function runStage(idx){
       { temperature:0.7, signal:Ctrl.signal,
         onDelta:(d,f)=>{ full=f; const n=Date.now(); if(n-lastPaint>80){ lastPaint=n; box.innerHTML=mdRender(full); box.scrollTop=box.scrollHeight; } } }
     );
+    if(window.FlowHist&&State.outputs[st.key]&&State.outputs[st.key].text)FlowHist.snap(st.key,State.outputs[st.key]);
     State.outputs[st.key]={text:full,ts:Date.now()};
     State.status[st.key]="done";
     if(idx<NF_STAGES.length-1){ State.stage=idx+1; selectStage(idx+1,true); }
     novaToast(st.name+" 完成");
   }catch(e){
     if(e&&e.name==="AbortError"){
-      if(full) State.outputs[st.key]={text:full,ts:Date.now()};
+      if(full){
+        if(window.FlowHist&&State.outputs[st.key]&&State.outputs[st.key].text)FlowHist.snap(st.key,State.outputs[st.key]);
+        State.outputs[st.key]={text:full,ts:Date.now()};
+      }
       State.status[st.key]=full?"stopped":"pending";
       novaToast("已停止"+(full?"（保留部分输出，可重跑覆盖）":""),"warn");
     }else{
@@ -140,6 +144,7 @@ function paintOut(){
   $d("#out-title").textContent="《"+ARTIFACT[State.stage]+"》";
   $d("#out-meta").textContent=out&&out.ts?"更新于 "+new Date(out.ts).toLocaleString()+" · "+out.text.length+" 字":"尚未生成";
   $d("#out-box").innerHTML=out&&out.text?mdRender(out.text):"";
+  if(window.FlowHist)FlowHist.refresh();
 }
 function paintInput(){
   const st=NF_STAGES[State.stage];
