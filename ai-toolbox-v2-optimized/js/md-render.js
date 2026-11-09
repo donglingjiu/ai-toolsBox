@@ -116,6 +116,8 @@
       d.appendChild(s2);
       d.appendChild(p2);
       if (pre) pre.replaceWith(d); else code.replaceWith(d);
+      var g2 = document.querySelectorAll('[id^="dmmd-"]');
+      g2.forEach(function (n) { n.remove(); });
       done();
     }
     function go() {
