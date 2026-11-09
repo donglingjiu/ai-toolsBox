@@ -93,14 +93,40 @@
   function mdMermaid(code, done) {
     var src = code.textContent;
     var pre = code.closest ? code.closest('pre') : null;
+    function fail() {
+      var d = document.createElement('details');
+      d.className = 'mmd-fail';
+      d.style.margin = '14px 0';
+      d.style.padding = '8px 12px';
+      d.style.border = '1px dashed rgba(148,163,184,.45)';
+      d.style.borderRadius = '8px';
+      d.style.background = 'rgba(15,23,42,.25)';
+      var s2 = document.createElement('summary');
+      s2.textContent = '图表源码（解析未成功，点开查看）';
+      s2.style.cursor = 'pointer';
+      s2.style.fontSize = '13px';
+      s2.style.opacity = '.85';
+      var p2 = document.createElement('pre');
+      p2.style.margin = '8px 0 0';
+      p2.style.whiteSpace = 'pre-wrap';
+      p2.style.fontSize = '12px';
+      var c2 = document.createElement('code');
+      c2.textContent = src;
+      p2.appendChild(c2);
+      d.appendChild(s2);
+      d.appendChild(p2);
+      if (pre) pre.replaceWith(d); else code.replaceWith(d);
+      done();
+    }
     function go() {
       var id = 'mmd-' + Math.random().toString(36).slice(2, 9);
       mermaid.render(id, src).then(function (r) {
+        if (!r || !r.svg || r.svg.indexOf('Syntax error') >= 0) { fail(); return; }
         var d = document.createElement('div');
         d.className = 'mermaid-box'; d.innerHTML = r.svg;
         if (pre) pre.replaceWith(d); else code.replaceWith(d);
         done();
-      }).catch(function () { done(); });
+      }).catch(function () { fail(); });
     }
     if (M.mermaidReady) return go();
     loadScript('js/vendor/mermaid.min.js', function (ok) {
