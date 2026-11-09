@@ -66,6 +66,7 @@
 <script src="js/vendor/marked-9.min.js?v=1"></script>
 <script src="js/prompts.js?v=11"></script>
 <script src="js/app.js?v=11"></script>
+<script src="js/learn-bridge.js?v=1"></script>
 <script>
 (function () {
   const FAV_KEY = 'at_prompt_favs';
@@ -209,6 +210,12 @@
       body.classList.remove('cursor-blink');
       card.dataset.raw = full;
       card.querySelectorAll('button').forEach(b => b.classList.remove('hidden'));
+      const sb = el('button', { class: 'btn btn-ghost btn-sm', onclick: async () => {
+        const nm = '提示词·' + curTool.name + '·' + new Date().toISOString().slice(0, 10);
+        const ok2 = await LearnBridge.save(nm, card.dataset.raw || '');
+        if (ok2) { sb.textContent = '✓ 已入脑'; sb.disabled = true; }
+      } }, '◎ 存入知识库');
+      card.querySelector('.result-head .flex').appendChild(sb);
     } catch (e) {
       body.classList.remove('cursor-blink');
       body.innerHTML = '<div class="tip tip-warn">调用失败：' + (e.message || e) + '</div>';
