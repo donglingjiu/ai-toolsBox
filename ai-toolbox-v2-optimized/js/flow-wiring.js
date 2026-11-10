@@ -174,6 +174,9 @@
     clearTimeout(deb); deb = setTimeout(check, 300);
   }).observe(document.body, { subtree: true, childList: true, characterData: true });
   setTimeout(check, 600);
+  window.addEventListener('pagehide', function(){
+    clearTimeout(deb); try{ check(); }catch(e){}
+  });
 
   window.WiringDebug = {
     get WF() { return WF; },
@@ -188,5 +191,5 @@
     seen: seen, startTs: startTs, rescan: scanCards, current: currentStage,
     product: productText
   };
-  T('v2.2 ready wf_id=' + WF);
+  T('v2.3 ready wf_id=' + WF);
 })();
