@@ -211,7 +211,7 @@
       card.dataset.raw = full;
       card.querySelectorAll('button').forEach(b => b.classList.remove('hidden'));
       const sb = el('button', { class: 'btn btn-ghost btn-sm', onclick: async () => {
-        const nm = '提示词·' + curTool.name + '·' + new Date().toISOString().slice(0, 10);
+        const nm = '提示词·' + curTool.name + '·' + new Date().toLocaleDateString('zh-CN');
         const ok2 = await LearnBridge.save(nm, card.dataset.raw || '');
         if (ok2) { sb.textContent = '✓ 已入脑'; sb.disabled = true; }
       } }, '◎ 存入知识库');
