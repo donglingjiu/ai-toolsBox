@@ -114,6 +114,10 @@
       (g ? ' gate=' + g.score + '/' + g.threshold : ''));
   }
 
+  function onFail(st) {
+    trace(st, 'fail');
+    T('stage ' + st + ' fail');
+  }
   function hookBtn(re, fn) {
     var els = document.querySelectorAll('button');
     for (var i = 0; i < els.length; i++)
@@ -156,11 +160,12 @@
     var now = scanCards();
     for (var s = 1; s <= 5; s++) {
       if (!now[s]) continue;
-      var key = now[s].done ? '1' : '0';
+      var key = now[s].done ? '1' : (now[s].fail ? 'F' : '0');
       if (seen[s] === undefined) { seen[s] = key; continue; }
       if (seen[s] === key) continue;
       seen[s] = key;
       if (key === '1') onDone(s);
+      else if (key === 'F') onFail(s);
       else { trace(s, 'reset'); T('stage ' + s + ' reset'); }
     }
   }
@@ -183,5 +188,5 @@
     seen: seen, startTs: startTs, rescan: scanCards, current: currentStage,
     product: productText
   };
-  T('v2.1 ready wf_id=' + WF);
+  T('v2.2 ready wf_id=' + WF);
 })();
