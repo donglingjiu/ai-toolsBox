@@ -110,9 +110,14 @@ async function runStage(idx){
       State.status[st.key]=full?"stopped":"pending";
       novaToast("已停止"+(full?"（保留部分输出，可重跑覆盖）":""),"warn");
     }else{
+      if(full){
+        var oo=State.outputs[st.key];
+        if(window.FlowHist&&oo&&oo.text){FlowHist.snap(st.key,oo);}
+        State.outputs[st.key]={text:full,ts:Date.now()};
+      }
       State.status[st.key]="fail";
       box.innerHTML='<p style="color:#FF6B81">失败：'+escH(String((e&&e.message)||e))+'</p>';
-      novaToast(st.name+" 失败","error");
+      novaToast(st.name+" 失败"+(full?"（已保留部分输出 "+full.length+" 字）":""),"error");
     }
   }
   saveState(); Running=false; Ctrl=null; $d("#stop-btn").disabled=true;
