@@ -60,3 +60,7 @@ P1成果: 音频概览(双主持人WebSpeech)/学习中心(大纲树+闪卡)/临
 - 部署=CF Pages自动同步GitHub(push即构建, 无repo侧CI); CF Pretty URLs对*.html发308→无扩展名路径, HTML验收curl必带-L
 - L2/L3竣工: 22页单份宪法v3对齐, stone.html 244-link历史事故修复, K徽章/sw-card令牌化(带fallback)
 - 遗留: s1-io面板令牌化(人眼手术), SW预缓存对无扩展名路径失败(P3小案), 版本单源化(P4)
+- 第二卷竣工: s1-io令牌化(9处7种/21页v4) · wiring单源(v7) · SW手术(nova-v20+nav可见化, 运行时激活#1945验证)
+- 7f00aab备注: message含未执行项, SW由0f7dd04补完 — 家训: message只写已验证事实
+- SW终章: 卡死SW为更老祖先脚本(sw.js:123), 非v20版本bump驱逐; 激活证明CORE全URL健在
+- 遗留: 5页迁移(data/docs/flow/index/mind双重着装, 侦察先行) P3 · s1-io CORE条目失配 P4 · 几何token入宪 P4
