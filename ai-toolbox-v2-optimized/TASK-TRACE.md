@@ -58,3 +58,5 @@ P1成果: 音频概览(双主持人WebSpeech)/学习中心(大纲树+闪卡)/临
 - 金丝雀: skills.html挂tokens-light(c666bee已push); 验收三重: curl=1 + sheets=7 + bg=rgb(237,246,255)
 - 教训: commit≠上线, 验收前先过部署跳(curl); 版本单源化待修(一文件四版本)
 - 部署=CF Pages自动同步GitHub(push即构建, 无repo侧CI); CF Pretty URLs对*.html发308→无扩展名路径, HTML验收curl必带-L
+- L2/L3竣工: 22页单份宪法v3对齐, stone.html 244-link历史事故修复, K徽章/sw-card令牌化(带fallback)
+- 遗留: s1-io面板令牌化(人眼手术), SW预缓存对无扩展名路径失败(P3小案), 版本单源化(P4)
