@@ -3,7 +3,7 @@
 (function () {
   'use strict';
   window.__FLOW_WIRED__ = true;
-  window.__WIRING_V__ = 2;
+  window.__WIRING_V__ = 2.3;
 
   var CSS = 'color:#8b5cf6;font-weight:bold';
   function T(s) { try { console.log('%c[wiring]', CSS, s); } catch (e) {} }
@@ -180,7 +180,7 @@
 
   window.WiringDebug = {
     get WF() { return WF; },
-    version: 2,
+    version: window.__WIRING_V__,
     dump: function () {
       try {
         var all = JSON.parse(localStorage.getItem('flow_traces_' + WF) || '[]');
@@ -191,5 +191,5 @@
     seen: seen, startTs: startTs, rescan: scanCards, current: currentStage,
     product: productText
   };
-  T('v2.3 ready wf_id=' + WF);
+  T('v' + window.__WIRING_V__ + ' ready wf_id=' + WF);
 })();
