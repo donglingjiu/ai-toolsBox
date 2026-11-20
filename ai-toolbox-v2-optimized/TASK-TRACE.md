@@ -68,3 +68,5 @@ P1成果: 音频概览(双主持人WebSpeech)/学习中心(大纲树+闪卡)/临
 - 法医: v4收编块曾孤儿上线(08f23c3, grep"^--"=8暴露顶格) → 5623226 :root包裹成活; 运行时三证1280px/10px/light; 畸形sed空转由diff统计自证
 - 家训: heredoc追加CSS必先tail结构 · 条件占位行必须注释化 · 变异命令禁挂2>/dev/null
 - 遗留P4: 青绿K真身(s1-backup零样式串, 嫌疑转nova-core/css) · sw注释塔 · s1-io CORE戳失配 · --sidebar博物馆藏品 · tokens.css文件归档
+- e444bb6备注: message首半句失实(令牌化未发生, 同帧grep=0互证); 实际仅单页戳bump — 家训升级: commit前最后一眼必须是验收grep
+- 出生证明翻案: nova-core 85-87=cmdk overlay(有户口,样式在nova.css命令面板辖区); 真浮动K在:217区待二读; s1-backup终审清白(Blob/download)
