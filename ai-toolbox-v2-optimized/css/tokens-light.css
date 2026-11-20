@@ -53,6 +53,7 @@ input:focus,textarea:focus,select:focus{border-color:#8eb1ff;box-shadow:0 0 0 4p
 .mind-ta:focus{border-color:#8eb1ff;box-shadow:0 0 0 4px rgba(73,129,255,.12)}
 .mind-wrap{background:linear-gradient(180deg,#fbfdff,#f5f9ff);border-color:rgba(196,215,244,.78);box-shadow:inset 0 1px 2px rgba(29,65,126,.04)}
 
+:root {
 /* —— v4 收编：初代宪法基础设施层（源自 tokens.css v1.0, 主题中性平移） —— */
 --font-ui: "Inter","HarmonyOS Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
 --font-mono: "JetBrains Mono","Cascadia Code",Consolas,monospace;
@@ -62,3 +63,4 @@ input:focus,textarea:focus,select:focus{border-color:#8eb1ff;box-shadow:0 0 0 4p
 --e-out:cubic-bezier(.22,1,.36,1);
 --t-fast:140ms; --t-mid:240ms; --t-slow:420ms;
 --page:1280px; --sidebar:248px; --cmdk:640px;
+}
