@@ -1,5 +1,6 @@
 /* suite.css v2 — Obsidian 工作台 · 暗色高级 */
 :root{color-scheme:dark}
+:root{--suite-accent:var(--suite-accent)}
 *{box-sizing:border-box}
 body{margin:0;min-height:100vh;
   font:14px/1.6 -apple-system,'PingFang SC',
@@ -15,7 +16,7 @@ body::before{content:'';position:fixed;inset:0;
   margin:0 auto;padding:32px 24px 72px}
 .s-top a{color:#8b92a5;text-decoration:none;
   font-size:13px}
-.s-top a:hover{color:#45e0c8}
+.s-top a:hover{color:var(--suite-accent)}
 .s-hero{display:flex;flex-wrap:wrap;
   align-items:center;gap:12px;margin:10px 0 6px}
 h1{margin:0;font-size:26px;font-weight:700;
@@ -24,7 +25,7 @@ h1{margin:0;font-size:26px;font-weight:700;
   -webkit-background-clip:text;
   background-clip:text;
   -webkit-text-fill-color:transparent}
-.s-chip{font-size:11px;color:#45e0c8;
+.s-chip{font-size:11px;color:var(--suite-accent);
   background:rgba(69,224,200,.08);
   border:1px solid rgba(69,224,200,.28);
   border-radius:999px;padding:3px 11px;
@@ -50,7 +51,7 @@ h1{margin:0;font-size:26px;font-weight:700;
   align-items:center;justify-content:center;
   font-size:16px;color:#08251f;
   background:linear-gradient(135deg,
-  #45e0c8,#3aa5f7);
+  var(--suite-accent),#3aa5f7);
   box-shadow:0 4px 14px rgba(69,224,200,.22)}
 .tile.v{background:linear-gradient(135deg,
   #8b7cf7,#6a5ce0);color:#14102e;
@@ -70,7 +71,7 @@ h1{margin:0;font-size:26px;font-weight:700;
   background:rgba(69,224,200,.05)}
 .drop b{color:#c9cfdb;font-size:13px;
   font-weight:600}
-.drop .up{font-size:17px;color:#45e0c8;
+.drop .up{font-size:17px;color:var(--suite-accent);
   line-height:1}
 .card input[type=text],.card select{width:100%;
   padding:9px 12px;font-size:13px;color:#e8eaf0;
@@ -79,17 +80,17 @@ h1{margin:0;font-size:26px;font-weight:700;
   border-radius:10px}
 .card input[type=text]:focus,
 .card select:focus{outline:none;
-  border-color:#45e0c8;
+  border-color:var(--suite-accent);
   box-shadow:0 0 0 3px rgba(69,224,200,.15)}
 label{display:flex;gap:7px;align-items:center;
   font-size:12.5px;color:#aeb4c2}
-label input{accent-color:#45e0c8;width:15px;
+label input{accent-color:var(--suite-accent);width:15px;
   height:15px}
 .mbtn{width:100%;padding:11px 16px;border:0;
   border-radius:12px;cursor:pointer;
   font-size:14px;font-weight:600;color:#06231e;
   background:linear-gradient(135deg,
-  #45e0c8,#3aa5f7);
+  var(--suite-accent),#3aa5f7);
   box-shadow:0 4px 16px rgba(69,224,200,.25);
   transition:filter .15s,transform .15s}
 .mbtn:hover{filter:brightness(1.08)}
@@ -102,7 +103,7 @@ label input{accent-color:#45e0c8;width:15px;
 .row .mbtn{flex:1;width:auto}
 a.mbtn{display:block;text-align:center;
   text-decoration:none}
-.st{font-size:12px;min-height:1em;color:#45e0c8;
+.st{font-size:12px;min-height:1em;color:var(--suite-accent);
   font-family:ui-monospace,Menlo,Consolas,
   monospace}
 .hint{font-size:12px;color:#8b92a5}
@@ -117,7 +118,7 @@ a.mbtn{display:block;text-align:center;
   rgba(255,255,255,.12);background:transparent;
   border-radius:7px;cursor:pointer;
   padding:1px 8px;color:#8b92a5}
-.m-list button:hover{color:#45e0c8}
+.m-list button:hover{color:var(--suite-accent)}
 table{border-collapse:collapse;font-size:12px;
   margin-top:6px}
 td{border:1px solid rgba(255,255,255,.08);

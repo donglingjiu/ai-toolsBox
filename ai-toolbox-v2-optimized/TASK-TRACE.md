@@ -74,3 +74,8 @@ P1成果: 音频概览(双主持人WebSpeech)/学习中心(大纲树+闪卡)/临
 - v5静默修复: --cmdk宽+t-fast/e-out动画v5前在~18非老兵页失效, v5后全站统一
 - suite.css新大陆(v1硬编码化石床, 消费者待查); nova-core戳塔三时代(v1×12/bare×4/v15×1), 下次真改动统一bump v16
 - runtime塔: novaSelfCheck报错文案仍指已退役tokens.css
+- at-cmdk:42运行时注入<style>—三卷CSS考古扑空终审; :454 fab出生地; :148让位协议
+- 青绿K传说解体: 实体=青绿文字胶囊(脑…,flow特有)+蓝紫圆K(全站); index齿轮=制服撤诉
+- v5-18页论断死亡(@import空+style.css无cmdk+nova.css仅5页); split-brain嫌疑: JS16页vs CSS5页, nova-core自着装普查中
+- suite立法: --suite-accent×10(>9系大写hex逃过大小写敏感普查); #3aa5f7+rgba残留; 戳v3
+- /flow版本地质六层(v1/v7/v14/v15/v16/bare), md-render v16最高峰
