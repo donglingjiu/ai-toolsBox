@@ -1,5 +1,5 @@
 /* Nova SW：同源静态缓存层 v1（大版本发布时 CACHE 改 nova-v2 强制刷新）*/
-var CACHE = 'nova-v19';
+var CACHE = 'nova-v20';
 var CORE = ['./', 'css/tokens.css', 'css/nova.css', 'css/tokens-light.css',
   'js/nova-core.js', 'js/at-cmdk.js', 'js/s1-backup.js', 'js/s1-io.js'];
 self.addEventListener('install', function(e){
@@ -24,7 +24,7 @@ self.addEventListener('fetch', function(e){
         var cp = r.clone();
         caches.open(CACHE).then(function(c){ c.put(req, cp); });
         return r;
-      }).catch(function(){ return hit; });
+      }).catch(function(err){ console.warn('[SW] nav refresh fail', req.url); return hit; });
       return hit || net;
     }));
     return;
