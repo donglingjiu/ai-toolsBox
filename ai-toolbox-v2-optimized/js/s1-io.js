@@ -4,7 +4,7 @@
   if (document.getElementById('s1-io')) return;
   var st = document.createElement('style'); st.id = 's1-io-style';
   st.textContent = '#s1-io{position:fixed;right:14px;bottom:60px;z-index:9999;display:flex;flex-direction:column;gap:6px;align-items:flex-end;font-size:12px}' +
-    '#s1-io button{padding:7px 12px;border:1px solid var(--line,#d9ddf0);border-radius:var(--r-btn,999px);background:var(--bg-surface,#fff);box-shadow:0 4px 14px rgba(31,36,48,.12);cursor:pointer;color:var(--text-1,#333c56)}' +
+    '#s1-io button{padding:7px 12px;border:1px solid var(--line,#d9ddf0);border-radius:var(--r-fab,999px);background:var(--bg-surface,#fff);box-shadow:0 4px 14px rgba(31,36,48,.12);cursor:pointer;color:var(--text-1,#333c56)}' +
     '#s1-io button:hover{border-color:var(--brand,#8fa0ff)}' +
     '#s1-io .s1-msg{background:var(--bg-surface,#fff);border:1px solid var(--line,#e6e8f2);border-radius:var(--r-card,8px);padding:6px 10px;color:var(--text-2,#5a6178);max-width:280px}';
   document.head.appendChild(st);
