@@ -70,3 +70,7 @@ P1成果: 音频概览(双主持人WebSpeech)/学习中心(大纲树+闪卡)/临
 - 遗留P4: 青绿K真身(s1-backup零样式串, 嫌疑转nova-core/css) · sw注释塔 · s1-io CORE戳失配 · --sidebar博物馆藏品 · tokens.css文件归档
 - e444bb6备注: message首半句失实(令牌化未发生, 同帧grep=0互证); 实际仅单页戳bump — 家训升级: commit前最后一眼必须是验收grep
 - 出生证明翻案: nova-core 85-87=cmdk overlay(有户口,样式在nova.css命令面板辖区); 真浮动K在:217区待二读; s1-backup终审清白(Blob/download)
+- 转述弹劾: "双K摆放"系截图误读(源码log=⌘K 或 / 唤起); K徽章=cmdk-btn(nova.css:55+kbd键帽) 待DevTools定谳
+- v5静默修复: --cmdk宽+t-fast/e-out动画v5前在~18非老兵页失效, v5后全站统一
+- suite.css新大陆(v1硬编码化石床, 消费者待查); nova-core戳塔三时代(v1×12/bare×4/v15×1), 下次真改动统一bump v16
+- runtime塔: novaSelfCheck报错文案仍指已退役tokens.css
