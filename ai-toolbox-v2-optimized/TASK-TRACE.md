@@ -64,3 +64,7 @@ P1成果: 音频概览(双主持人WebSpeech)/学习中心(大纲树+闪卡)/临
 - 7f00aab备注: message含未执行项, SW由0f7dd04补完 — 家训: message只写已验证事实
 - SW终章: 卡死SW为更老祖先脚本(sw.js:123), 非v20版本bump驱逐; 激活证明CORE全URL健在
 - 遗留: 5页迁移(data/docs/flow/index/mind双重着装, 侦察先行) P3 · s1-io CORE条目失配 P4 · 几何token入宪 P4
+- 第三卷竣工: 宪法合并v5—21基础设施变量收编+--r-fab语义立法; 五页脱双袍(tokens.css退役+CORE清尸+CACHE v21); nova.css明化(color-scheme light+selection令牌化)
+- 法医: v4收编块曾孤儿上线(08f23c3, grep"^--"=8暴露顶格) → 5623226 :root包裹成活; 运行时三证1280px/10px/light; 畸形sed空转由diff统计自证
+- 家训: heredoc追加CSS必先tail结构 · 条件占位行必须注释化 · 变异命令禁挂2>/dev/null
+- 遗留P4: 青绿K真身(s1-backup零样式串, 嫌疑转nova-core/css) · sw注释塔 · s1-io CORE戳失配 · --sidebar博物馆藏品 · tokens.css文件归档
