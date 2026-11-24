@@ -1,5 +1,5 @@
 /* nova-cmdk v1 — legacy 壳层嫁接（亮色 shim + 切片） */
-:root{--bg-base:#edf6ff;--bg-surface:#ffffff;--bg-elevated:#ffffff;--glass:rgba(255,255,255,.78);--text-1:#102b60;--text-2:#44618f;--text-3:#6e84aa;--line:rgba(166,197,239,.52);--brand:#3778ff;--brand-2:#7964f7;--shadow-card:0 18px 46px rgba(43,83,150,.10)}
+/* 座次铭: 本文件必须在 tokens-light.css 之后装载; 原:root为纯复印件(0独名)已修剪, 全部令牌由宪法供给 */
 /* 命令面板触发按钮 */ .cmdk-btn{
   display: flex; align-items: center; gap: var(--s2);
   padding: var(--s2) var(--s3);
