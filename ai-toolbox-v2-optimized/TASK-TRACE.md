@@ -79,3 +79,9 @@ P1成果: 音频概览(双主持人WebSpeech)/学习中心(大纲树+闪卡)/临
 - v5-18页论断死亡(@import空+style.css无cmdk+nova.css仅5页); split-brain嫌疑: JS16页vs CSS5页, nova-core自着装普查中
 - suite立法: --suite-accent×10(>9系大写hex逃过大小写敏感普查); #3aa5f7+rgba残留; 戳v3
 - /flow版本地质六层(v1/v7/v14/v15/v16/bare), md-render v16最高峰
+- v15案终审: 活体DOM唱名?v=1 — census全对, console"v15"=转录#4(数字粘连?v=1:217); SW无罪维持; 戳塔v1×11/裸×4/v15×1
+- 308真凶: CF Pages clean URL(resume.html→/resume) — 仪器三规程: curl -sL + -w %{http_code} + 截图放大读戳
+- 嫁接刀口: 手贴link标签body尾(resume:198/advisor:119), 三件套nova-cmdk→tokens-light→nova-core — 座次即法
+- 级联政变反转: 宪法永远后到永远赢, 复印件共享名全被压制(改宪法自动传播11页); 独名(--glass/--shadow-card)待查
+- style.css≠基础设施供体(--ink平行namespace, body法被嫁接三条删除线覆盖); nova-cmdk借粮经tokens-light — v5第三笔静默战果(11工厂页按钮)
+- /resume单页四代戳同堂: app.js?v=11新高 + v1/v5/bare
