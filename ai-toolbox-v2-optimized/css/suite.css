@@ -1,6 +1,6 @@
 /* suite.css v2 — Obsidian 工作台 · 暗色高级 */
 :root{color-scheme:dark}
-:root{--suite-accent:var(--suite-accent)}
+:root{--suite-accent:#45e0c8}
 *{box-sizing:border-box}
 body{margin:0;min-height:100vh;
   font:14px/1.6 -apple-system,'PingFang SC',
