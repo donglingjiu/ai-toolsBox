@@ -85,3 +85,7 @@ P1成果: 音频概览(双主持人WebSpeech)/学习中心(大纲树+闪卡)/临
 - 级联政变反转: 宪法永远后到永远赢, 复印件共享名全被压制(改宪法自动传播11页); 独名(--glass/--shadow-card)待查
 - style.css≠基础设施供体(--ink平行namespace, body法被嫁接三条删除线覆盖); nova-cmdk借粮经tokens-light — v5第三笔静默战果(11工厂页按钮)
 - /resume单页四代戳同堂: app.js?v=11新高 + v1/v5/bare
+- de1b1cc勘误: message"循环普查0独名"失实—grep把--xxx当选项, 29条报错被误读为空; 修剪安全性改记前帧逐字对表证据, 补发正确普查(--守卫+判定行)归档
+- 家训: 预检仪器必须显式打印PASS/FAIL判定行; 循环喂参grep必带--守卫; 处方QA#3入册
+- accent定谳: 宪法tokens-light:13四驿站(docs蓝/data紫/FLOW青绿#20bda0/mind橘粉#e99b75); 博物馆旧mind=#FF8A5C星焰已换代; 绿色合法户籍=FLOW
+- 绿胶囊: /resume探针零命中=正确行为错现场; nova-flow.js出清; flow.html静态markup头号嫌疑; console照片封卷?v=1—转录#4终审
