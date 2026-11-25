@@ -87,3 +87,8 @@ P1成果: 音频概览(双主持人WebSpeech)/学习中心(大纲树+闪卡)/临
 - push三幕: SSL抖动→403(owner被拒=2021密码退役)→新凭据成功; 凭据卫生: PAT+store或SSH
 - 凭据溃败: 毒票(~/.git-credentials无scope token)静默403×4; set-url无空格拼接静默vandalize origin; SSH无钥匙; PAT明文入史已吊销; 修复=remote复原+清缓存+新PAT(repo scope)仅交互输入; 家训: remote手术后必git remote -v, append前必查重
 - 绿案: 全库"脑"仅提示词书堆(head截断+-v at-cmdk自盲=仪器过滤器也造盲区); #20bda0双重国籍(--ok+--accent-flow)=颜色同名词; toast假说(3.2s瞬态)→MutationObserver蹲守代替巡逻
+- v15闭环: /flow console正统v15:217(census唯一v15页) + /resume活体v1 + 行号一致=stamp-only铁证; 三页console三重确认, 转录#4终审维持
+- 前门修复: remote -v验伤复原+毒票火化(125B·mtime14:06=store后首推入库的无scope票)+新PAT两连push全绿; 教训: store后首推必验, 403即火化
+- 账本自愈: awk -4古董重复行(+3/−7) — TASK-TRACE曾静默积累复写; 处方QA#4: 验证pattern必取自数据非commit记忆
+- 绿案: 陷阱合格但出生于init窗口(加载→布网间)+持久在场=toast假说死亡; registry驱动假说(文字来自户口簿注册名非label字面量); 唱名条件全齐
+- 新住户: agent-extra.js/brain-study.js首次入册; flow-wiring五连log+Shadow DOM首见+双时钟(内v2.3/戳v7); NovaCmdk.open()公开API
