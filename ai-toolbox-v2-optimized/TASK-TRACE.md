@@ -85,3 +85,5 @@ P1成果: 音频概览(双主持人WebSpeech)/学习中心(大纲树+闪卡)/临
 - 木乃伊死亡证明: 好仪器(--守卫+判定行)11连OK·0MISSING — de1b1cc claim追溯补证; /qr活体验尸健康=视觉章准予; 座次铭v2生产上线(头注释v1微漂P4)
 - 绿案: flow.html无"脑"(markup死)+accent-flow唯一消费者=首页驿站名(var死) → 运行时+内联绿唯一幸存; 增强版侦查法(outerHTML)待/flow第4次唱名
 - push三幕: SSL抖动→403(owner被拒=2021密码退役)→新凭据成功; 凭据卫生: PAT+store或SSH
+- 凭据溃败: 毒票(~/.git-credentials无scope token)静默403×4; set-url无空格拼接静默vandalize origin; SSH无钥匙; PAT明文入史已吊销; 修复=remote复原+清缓存+新PAT(repo scope)仅交互输入; 家训: remote手术后必git remote -v, append前必查重
+- 绿案: 全库"脑"仅提示词书堆(head截断+-v at-cmdk自盲=仪器过滤器也造盲区); #20bda0双重国籍(--ok+--accent-flow)=颜色同名词; toast假说(3.2s瞬态)→MutationObserver蹲守代替巡逻
