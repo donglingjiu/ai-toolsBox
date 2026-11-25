@@ -92,3 +92,8 @@ P1成果: 音频概览(双主持人WebSpeech)/学习中心(大纲树+闪卡)/临
 - 账本自愈: awk -4古董重复行(+3/−7) — TASK-TRACE曾静默积累复写; 处方QA#4: 验证pattern必取自数据非commit记忆
 - 绿案: 陷阱合格但出生于init窗口(加载→布网间)+持久在场=toast假说死亡; registry驱动假说(文字来自户口簿注册名非label字面量); 唱名条件全齐
 - 新住户: agent-extra.js/brain-study.js首次入册; flow-wiring五连log+Shadow DOM首见+双时钟(内v2.3/戳v7); NovaCmdk.open()公开API
+- 探针盲区定谳: 正确舞台+目标可见+零输出=仪器事故; offsetParent对position:fixed返null(角标家族全被筛掉)+Shadow DOM新面纱(flow-wiring首例); 修复=SING2(*+leaf+contains脑+rect高度+position唱名); 零成本通道=Elements Ctrl+F
+- estate核弹: 26页!(户口簿17系低估) 处女房间migrate/stone/skill-test/chat从未受审; agent-extra→chat唯一/brain-study→brain唯一
+- 绿案收敛: 双户口簿脑头文本(at-cmdk:52"脑图 Mind"/nova-core:25尾段"脑图工作室")→registry角标假说; 裁缝在两文件之一
+- StateMachine持久: wf_id=wf_mnet789跨会话恒定(shadow即状态容器); Violation浮动193→141ms
+- 纪律: 新钥匙三连推全绿(7da2017清洁+5/-0)
