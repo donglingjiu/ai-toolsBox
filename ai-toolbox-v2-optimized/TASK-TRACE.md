@@ -109,3 +109,8 @@ P1成果: 音频概览(双主持人WebSpeech)/学习中心(大纲树+闪卡)/临
 - 互补面纱定理: 探针veil(offsetParent×fixed)+文字veil(转义序列逃避字面grep)不重叠覆盖目标全部暴露面=七帧之难系结构性; 破案=换尺子(rect)+换锚点(结构id)
 - 转录#6: \u8111→\u8114尾位漂移(渲染行为+U+8111=脑终审); 数字位三连损(#4粘连/#5通道/#6尾位) — 含数字字面量一律仪器复验
 - census v3新栏: 懒造公民(DOM快照≠房屋清单, 三存在态: 静态/装载即造/按需物化)
+- 码点终审: u8111×4(u8114×0)=转录#6实锤; 4=1label+3tips(加载中/初始门匾/成功重设); QA#5: 部分阅读的期望值降级为下界, 偏差即测距仪
+- vendor三库full-circle: chain(['js/vendor/d3,markmap-lib,markmap-view'])自托管 — saga首帧jsdelivr ERR_ABORTED×4与末帧发现同源; 待grep定案: 迁移史vs mind.html旧伤
+- 宫殿性格五联: 懒惰(mmReady闩+ov首点才造)/克制(60门+fallback 40/36/6)/体面(三态门匾+失败台词)/谦逊(双代transform兼容+全书try-catch)/守拍(duration300=宪法--t-mid)
+- M.openMind公开API+sweep管线(out-box→md-enh→enhance→lastText→mdFabSync): 生产链闭合; :246后待读(调度+enhance真身)
+- 纪律: 1972492零疤痕·七连推全绿
