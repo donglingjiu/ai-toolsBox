@@ -101,3 +101,7 @@ P1成果: 音频概览(双主持人WebSpeech)/学习中心(大纲树+闪卡)/临
 - Shadow DOM死亡: attachShadow全宅0命中+"StateMachine shadow"=JS状态影子(假朋友) — 教训: 凭日志措辞立项前先grep对应API
 - estate矩阵: 宪法23/26·大脑16/26·atcmd22/26; 完美包含律: 大脑辖区=宪法∩atcmd(三全16页); atcmd比大脑更普适(旧系统=真通用层, fab照22页); 404的K=atcmd+无宪法→fallback✓; chat=三网全off孤岛; stone/migrate/skill-test=工具/测试页(户口簿差额大半系有意)
 - 纪律: fc75a9e零疤痕; 新钥匙四连推全绿
+- 绿案结案: 创造者=裁缝=md-render.js(MIND_CSS:146-156, fab:166, ov:183); #md-mind-fab=display:none默认+JS翻block(SING2内联即开关指纹); 全屏暗色宫殿(#md-mind-ov z9991·markmap-foreign铁证·pre=#0d1117 GitHubDark)=markdown→markmap直达渡口; 辖区定谳: md-render仅载flow.html→栖息地/flow且仅/flow(盲零+真零同时成立)
+- 转录#5: #1ab8a6系误读, 源码#14b8a6=rgb(20,184,166)=Tailwind teal-500(护照补发,"私有hex"论断撤回); grep部分沉默 indict 人眼; Tailwind家族+teal-500共4枚标准色在役
+- 自印CSS家族三成员: atcmd-fab/nova-flow:129/md-render MIND_CSS — estate census v3应加"JS内CSS串"栏目; 暗色主题退守两处主权领地(代码块+md-mind宫殿)
+- 纪律: cca94e0零疤痕·五连推全绿
