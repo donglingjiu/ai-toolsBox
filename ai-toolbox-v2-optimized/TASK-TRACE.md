@@ -97,3 +97,7 @@ P1成果: 音频概览(双主持人WebSpeech)/学习中心(大纲树+闪卡)/临
 - 绿案收敛: 双户口簿脑头文本(at-cmdk:52"脑图 Mind"/nova-core:25尾段"脑图工作室")→registry角标假说; 裁缝在两文件之一
 - StateMachine持久: wf_id=wf_mnet789跨会话恒定(shadow即状态容器); Violation浮动193→141ms
 - 纪律: 新钥匙三连推全绿(7da2017清洁+5/-0)
+- 绿案供词: <button id="md-mind-…"> ∅class·fixed·内联仅display:block·渐变135deg #1ab8a6→#6366f1(#1ab8a6=第三枚青绿≠#20bda0; #6366f1=Tailwind indigo-500家族第三人); offsetParent盲区被元素自证; 渐变必来自ID选择器规则; 唯一命中=/flow全域唯一"脑"叶节点
+- Shadow DOM死亡: attachShadow全宅0命中+"StateMachine shadow"=JS状态影子(假朋友) — 教训: 凭日志措辞立项前先grep对应API
+- estate矩阵: 宪法23/26·大脑16/26·atcmd22/26; 完美包含律: 大脑辖区=宪法∩atcmd(三全16页); atcmd比大脑更普适(旧系统=真通用层, fab照22页); 404的K=atcmd+无宪法→fallback✓; chat=三网全off孤岛; stone/migrate/skill-test=工具/测试页(户口簿差额大半系有意)
+- 纪律: fc75a9e零疤痕; 新钥匙四连推全绿
