@@ -105,3 +105,7 @@ P1成果: 音频概览(双主持人WebSpeech)/学习中心(大纲树+闪卡)/临
 - 转录#5: #1ab8a6系误读, 源码#14b8a6=rgb(20,184,166)=Tailwind teal-500(护照补发,"私有hex"论断撤回); grep部分沉默 indict 人眼; Tailwind家族+teal-500共4枚标准色在役
 - 自印CSS家族三成员: atcmd-fab/nova-flow:129/md-render MIND_CSS — estate census v3应加"JS内CSS串"栏目; 暗色主题退守两处主权领地(代码块+md-mind宫殿)
 - 纪律: cca94e0零疤痕·五连推全绿
+- 绿案终卷: label='\u8111\u56fe'(脑图·源码为转义序列=七帧grep扑空的物理解释!); 触发=mdFabSync()·M.lastText.length>60资格门; 架构=四重懒造(fab/CSS同步注入/ov首点才造/markmap库chain顺序加载·失败即中止); 门匾"脑图视图 · 当前文档"
+- 互补面纱定理: 探针veil(offsetParent×fixed)+文字veil(转义序列逃避字面grep)不重叠覆盖目标全部暴露面=七帧之难系结构性; 破案=换尺子(rect)+换锚点(结构id)
+- 转录#6: \u8111→\u8114尾位漂移(渲染行为+U+8111=脑终审); 数字位三连损(#4粘连/#5通道/#6尾位) — 含数字字面量一律仪器复验
+- census v3新栏: 懒造公民(DOM快照≠房屋清单, 三存在态: 静态/装载即造/按需物化)
