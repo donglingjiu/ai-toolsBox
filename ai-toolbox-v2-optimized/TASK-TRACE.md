@@ -114,3 +114,8 @@ P1成果: 音频概览(双主持人WebSpeech)/学习中心(大纲树+闪卡)/临
 - 宫殿性格五联: 懒惰(mmReady闩+ov首点才造)/克制(60门+fallback 40/36/6)/体面(三态门匾+失败台词)/谦逊(双代transform兼容+全书try-catch)/守拍(duration300=宪法--t-mid)
 - M.openMind公开API+sweep管线(out-box→md-enh→enhance→lastText→mdFabSync): 生产链闭合; :246后待读(调度+enhance真身)
 - 纪律: 1972492零疤痕·七连推全绿
+- CDN史前史定谳: 全宅grep零命中(jsdelivr/unpkg/cdnjs全无) — 首帧ERR_ABORTED×4系迁移前史前史; mind.html:79-81静态标签亦指vendor; 「好的空」=全量grep无截断无排除的空输出
+- 双门markmap分叉谱: 工作室(mind.html)亮色#1b2437·静态常驻·maxWidth280 vs 渡口暗色#e8ecf5·chain懒造·300; 自印CSS家族第四成员(mind:150); 三重300拍(宪法--t-mid/markmap duration/sweep防抖)入P4单源清单
+- vendor考古: 总用量6452KB vs 可见~623KB=6MB缺口+链接数3(藏1子目录) — head截断两层代价, 算术对账=截断探测器(QA#6); 年代层10/28→10/29→11/5(html2canvas最后移民·664权限异类); github-dark.min.css实体=暗色档案室; 供应链: marked9+highlight+markmap3+dark+d3+html2canvas
+- sweep终章: pend=300ms防抖(MutationObserver全body→停笔0.3s才渲染=流式策略); Violation=enhance执行耗时非调度; md-render全书253行合卷(})();)
+- 纪律: b31335c零疤痕·八连推全绿; 折行疤#2(「后 待读」)同型连现→长行短写+commit前查空格
